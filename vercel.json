@@ -1,6 +1,5 @@
 {
   "rewrites": [
-    { "source": "/catalogo", "destination": "/catalogo.html" },
     { "source": "/produto/:cod", "destination": "/api/produto/:cod" }
   ]
 }
