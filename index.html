@@ -618,6 +618,10 @@ var stories=ld('manu_st',[])||[];
 var cart={},entrega='comb',feedTab='feed';
 var editPId=null,editHlId=null,editStId=null,dragSrc=null;
 var curProd=null,curProdQty=1;
+function ldTxt(k,d){try{var s=localStorage.getItem(k);return s?JSON.parse(s):d;}catch(e){return d;}}
+var msgAbertura1 = ldTxt('msg_ab1', 'Oii! Gostei desse modelo e quero fazer o pedido:');
+var msgAbertura2 = ldTxt('msg_ab2', 'Ola! Gostei desses modelos e quero seguir com o pedido:');
+var msgFechamento = ldTxt('msg_fec', 'Aguardo retorno para combinarmos os detalhes!');
 
 function newCod(){var u=new Set(prods.map(function(p){return p.cod;}).filter(Boolean));for(var i=1;i<=999;i++){var c=('000'+i).slice(-3);if(!u.has(c))return c;}return'001';}
 
