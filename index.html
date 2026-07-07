@@ -1288,17 +1288,21 @@ saveProd = function(){
   };
   if(editPId){var i=prods.findIndex(function(x){return x.id===editPId;});if(i>=0)prods[i]=p;}
   else prods.push(p);
-  // Fazer upload das medias para Supabase Storage
+  // Fazer upload das medias e da foto de capa para Supabase Storage
   toast('⏳ Salvando fotos...');
   var prodId = p.id;
   var mediasParaUpload = extraMedias.slice();
-  uploadMedias(prodId, mediasParaUpload).then(function(urlMedias){
-    p.medias = urlMedias;
+  var capaUpload = (p.img && p.img.startsWith('data:'))
+    ? uploadParaStorage(p.img, 'prod_' + prodId + '_capa')
+    : Promise.resolve(p.img);
+  Promise.all([uploadMedias(prodId, mediasParaUpload), capaUpload]).then(function(res){
+    p.medias = res[0];
+    p.img = res[1] || p.img;
     // Atualizar produto na lista
     var idx = prods.findIndex(function(x){return x.id===prodId;});
     if(idx>=0) prods[idx]=p; else prods.push(p);
     // Salvar também no localStorage como backup
-    try{ localStorage.setItem('medias_'+prodId, JSON.stringify(urlMedias)); }catch(e){}
+    try{ localStorage.setItem('medias_'+prodId, JSON.stringify(p.medias)); }catch(e){}
     sv('manu_p',prods);render();renderAdmList();clearProd();showAT('prods');
     toast(editPId?'✅ Produto atualizado!':'✅ Produto adicionado!');
   });
