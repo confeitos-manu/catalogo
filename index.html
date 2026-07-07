@@ -997,7 +997,17 @@ function de(e){e.currentTarget.classList.remove('drag');}
 function dp(e){e.preventDefault();var t=e.currentTarget;if(!dragSrc||dragSrc===t)return;var s=prods.find(function(p){return p.id==dragSrc.dataset.id;});var tg=prods.find(function(p){return p.id==t.dataset.id;});if(!s||!tg)return;var tmp=s.order;s.order=tg.order;tg.order=tmp;sv('manu_p',prods);renderAdmList();render();}
 function editProd(id){var p=prods.find(function(x){return x.id===id;});if(!p)return;editPId=id;document.getElementById('editId').value=id;document.getElementById('pNome').value=p.nome;document.getElementById('pDesc').value=p.desc||'';document.getElementById('pPreco').value=p.preco;document.getElementById('pCat').value=p.cat||'';document.getElementById('pTam').value=p.tam||'';document.getElementById('pCod').value=p.cod||'';document.getElementById('imgData').value=p.img||'';document.getElementById('imgPrev').innerHTML=p.img?'<img src="'+p.img+'">':'<span>📷</span>';setStatus(p.status||'ativo');showAT('novo');}
 function delProd(id){if(!confirm('Remover produto?'))return;prods=prods.filter(function(p){return p.id!==id;});delete cart[id];sv('manu_p',prods);updateCart();render();renderAdmList();}
-function handleImg(inp){var f=inp.files[0];if(!f)return;var r=new FileReader();r.onload=function(e){document.getElementById('imgData').value=e.target.result;document.getElementById('imgPrev').innerHTML='<img src="'+e.target.result+'">';};r.readAsDataURL(f);}
+function handleImg(inp){
+  var f=inp.files[0];if(!f)return;
+  var r=new FileReader();
+  r.onload=function(e){
+    comprimirImagem(e.target.result, 1600, 0.82).then(function(dataComprimido){
+      document.getElementById('imgData').value=dataComprimido;
+      document.getElementById('imgPrev').innerHTML='<img src="'+dataComprimido+'">';
+    });
+  };
+  r.readAsDataURL(f);
+}
 function setStatus(s){document.getElementById('pStatus').value=s;['ativo','esgotado','escondido'].forEach(function(t){document.getElementById('st-'+t).classList.toggle('active',t===s);});}
 function saveProd(){
   var nome=document.getElementById('pNome').value.trim();
@@ -1123,6 +1133,28 @@ function setEncaixe(tipo){
   if(el) el.classList.add('active');
 }
 
+// Reduz o tamanho de fotos grandes (comuns em câmeras de celular) antes de enviar,
+// evitando falhas de upload por arquivo muito pesado / conexão instável
+function comprimirImagem(dataUrl, maxDim, quality){
+  return new Promise(function(resolve){
+    var img = new Image();
+    img.onload = function(){
+      var w = img.width, h = img.height;
+      if(w > maxDim || h > maxDim){
+        if(w > h){ h = Math.round(h * (maxDim / w)); w = maxDim; }
+        else { w = Math.round(w * (maxDim / h)); h = maxDim; }
+      }
+      var canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      var ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL('image/jpeg', quality || 0.82));
+    };
+    img.onerror = function(){ resolve(dataUrl); }; // se falhar, usa a original
+    img.src = dataUrl;
+  });
+}
+
 // ===== MÍDIAS EXTRAS =====
 var extraMedias = []; // array de {type:'image'|'video', data: base64}
 var carouselIdx = 0;
@@ -1135,9 +1167,17 @@ function handleExtraMedia(inp){
     var r = new FileReader();
     r.onload = function(e){
       var type = f.type.startsWith('video') ? 'video' : 'image';
-      extraMedias.push({type:type, data:e.target.result});
-      pending--;
-      if(pending===0) renderExtraMediaGrid();
+      if(type === 'image'){
+        comprimirImagem(e.target.result, 1600, 0.82).then(function(dataComprimido){
+          extraMedias.push({type:type, data:dataComprimido});
+          pending--;
+          if(pending===0) renderExtraMediaGrid();
+        });
+      } else {
+        extraMedias.push({type:type, data:e.target.result});
+        pending--;
+        if(pending===0) renderExtraMediaGrid();
+      }
     };
     r.readAsDataURL(f);
   });
