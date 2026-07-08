@@ -503,6 +503,10 @@ Faça sua encomenda abaixo 👇</div>
             <p class="ih">Clique para escolher</p>
             <input type="file" id="imgFile" accept="image/*" style="display:none" onchange="handleImg(this)">
             <input type="hidden" id="imgData">
+            <div class="encaixe-opts">
+              <div class="encaixe-btn active" id="enc-quadrado" onclick="setEncaixe('cover')">🔲 Cortar (preenche o quadrado)</div>
+              <div class="encaixe-btn" id="enc-paisagem" onclick="setEncaixe('contain')">🖼️ Ajustar (mostra a foto inteira)</div>
+            </div>
           </div>
           <div class="fl" id="extraMediaSection">
             <label>📸 Fotos extras (carrossel)</label>
@@ -1678,6 +1682,7 @@ editProd = function(id){
   document.getElementById('imgData').value=p.img||'';
   document.getElementById('imgPrev').innerHTML=p.img?'<img src="'+p.img+'">':'<span>📷</span>';
   setStatus(p.status||'ativo');
+  setEncaixe(p.encaixe||'cover');
   // Carregar mídias extras
   extraMedias = (p.medias||[]).slice();
   renderExtraMediaGrid();
