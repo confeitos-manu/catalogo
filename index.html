@@ -1333,11 +1333,9 @@ function renderExtraMediaGrid(){
       '<input placeholder="Cód." value="'+(m.cod||'')+'" oninput="setMediaVar('+i+',\'cod\',this.value)" style="width:40px;font-size:0.68rem;padding:3px 4px;border:1px solid #ddd;border-radius:6px;">'+
       '<input placeholder="Preço" type="number" step="0.01" value="'+(m.preco||'')+'" oninput="setMediaVar('+i+',\'preco\',this.value)" style="width:50px;font-size:0.68rem;padding:3px 4px;border:1px solid #ddd;border-radius:6px;">'+
       '</div>'+
-      (m.cod ?
-        '<input placeholder="Nome (ex: Buquê rosa)" value="'+(m.nome||'')+'" oninput="setMediaVar('+i+',\'nome\',this.value)" style="width:100%;font-size:0.68rem;padding:3px 4px;margin-top:3px;border:1px solid #ddd;border-radius:6px;">'+
-        '<input placeholder="Diferença (ex: flor de cetim)" value="'+(m.diferenca||'')+'" oninput="setMediaVar('+i+',\'diferenca\',this.value)" style="width:100%;font-size:0.68rem;padding:3px 4px;margin-top:3px;border:1px solid #ddd;border-radius:6px;">'+
-        '<label style="display:flex;align-items:center;gap:3px;font-size:0.65rem;margin-top:3px;color:#c0392b;"><input type="checkbox" '+(m.esgotado?'checked':'')+' onchange="setMediaVar('+i+',\'esgotado\',this.checked)" style="width:12px;height:12px;">Esgotado</label>'
-        : '');
+      '<input placeholder="Nome (ex: Buquê rosa)" value="'+(m.nome||'')+'" oninput="setMediaVar('+i+',\'nome\',this.value)" style="width:100%;font-size:0.68rem;padding:3px 4px;margin-top:3px;border:1px solid #ddd;border-radius:6px;">'+
+      '<input placeholder="Diferença (ex: flor de cetim)" value="'+(m.diferenca||'')+'" oninput="setMediaVar('+i+',\'diferenca\',this.value)" style="width:100%;font-size:0.68rem;padding:3px 4px;margin-top:3px;border:1px solid #ddd;border-radius:6px;">'+
+      '<label style="display:flex;align-items:center;gap:3px;font-size:0.65rem;margin-top:3px;color:#c0392b;"><input type="checkbox" '+(m.esgotado?'checked':'')+' onchange="setMediaVar('+i+',\'esgotado\',this.checked)" style="width:12px;height:12px;">Esgotado</label>';
     return '<div class="extra-media-item" style="display:flex;flex-direction:column;">'+
       '<div class="extra-media-thumb">'+tag+'<button class="extra-media-del" onclick="delExtraMedia('+i+')">×</button></div>'+
       variante+
