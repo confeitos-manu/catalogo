@@ -669,6 +669,26 @@ var msgPreferencia = ldTxt('msg_pref', 'Preferencia');
 
 function newCod(){var u=new Set(prods.map(function(p){return p.cod;}).filter(Boolean));for(var i=1;i<=999;i++){var c=('000'+i).slice(-3);if(!u.has(c))return c;}return'001';}
 
+// Confere se o código do produto ou de alguma variação já é usado em outro lugar do catálogo
+function codigosDuplicados(p){
+  var usados = {}; // codigo -> true
+  prods.forEach(function(outro){
+    if(outro.id===p.id) return; // ignora o próprio produto (edição)
+    if(outro.cod) usados[outro.cod] = true;
+    (outro.medias||[]).forEach(function(m){ if(m && m.cod) usados[m.cod] = true; });
+  });
+  var conflitos = [];
+  var vistosNoProprio = {};
+  if(p.cod){ vistosNoProprio[p.cod] = true; if(usados[p.cod]) conflitos.push(p.cod); }
+  (p.medias||[]).forEach(function(m){
+    if(!m || !m.cod) return;
+    if(usados[m.cod] && conflitos.indexOf(m.cod)===-1) conflitos.push(m.cod);
+    if(vistosNoProprio[m.cod] && conflitos.indexOf(m.cod)===-1) conflitos.push(m.cod); // repetido dentro do mesmo produto
+    vistosNoProprio[m.cod] = true;
+  });
+  return conflitos;
+}
+
 // RENDER STORIES
 function renderStories(){
   var el=document.getElementById('storiesBar');
@@ -1596,6 +1616,11 @@ saveProd = function(){
     medias: extraMedias.slice(), // mídias extras
     order:editPId?(prods.find(function(x){return x.id===editPId;})||{}).order||maxO:maxO+1
   };
+  var codesConflito = codigosDuplicados(p);
+  if(codesConflito.length){
+    alert('Esse(s) código(s) já estão em uso em outro produto/variação: '+codesConflito.join(', ')+'. Troque antes de salvar.');
+    return;
+  }
   if(editPId){var i=prods.findIndex(function(x){return x.id===editPId;});if(i>=0)prods[i]=p;}
   else prods.push(p);
   // Fazer upload das medias e da foto de capa para Supabase Storage
@@ -1614,9 +1639,14 @@ saveProd = function(){
     // Salvar também no localStorage como backup
     try{ localStorage.setItem('medias_'+prodId, JSON.stringify(p.medias)); }catch(e){}
     try{ localStorage.setItem('manu_p', JSON.stringify(prods)); }catch(e){}
-    sbUpsertProduto(p).catch(function(e){console.error('Erro Supabase:',e);});
     render();renderAdmList();clearProd();showAT('prods');
-    toast(editPId?'✅ Produto atualizado!':'✅ Produto adicionado!');
+    sbUpsertProduto(p).then(function(ok){
+      if(ok){ toast(editPId?'✅ Produto atualizado!':'✅ Produto adicionado!'); }
+      else { toast('⚠️ Salvou aqui, mas falhou ao sincronizar (talvez código repetido). Confira!'); }
+    }).catch(function(e){
+      console.error('Erro Supabase:',e);
+      toast('⚠️ Falha ao sincronizar com o servidor. Confira sua internet.');
+    });
   });
   editPId=null;
 };
