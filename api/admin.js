@@ -55,7 +55,9 @@ module.exports = async (req, res) => {
         status: p.status || 'ativo',
         order_num: p.order || 0,
         medias: (p.medias || []).filter(function (m) { return m && m.data && m.data.startsWith('http'); }),
-        encaixe: p.encaixe || 'cover'
+        encaixe: p.encaixe || 'cover',
+        posy: (p.posy != null) ? p.posy : 50,
+        zoom: (p.zoom != null) ? p.zoom : 100
       };
       var r1 = await sbServiceFetch('/rest/v1/catalogo?on_conflict=cod', {
         method: 'POST',
