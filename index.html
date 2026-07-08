@@ -499,7 +499,7 @@ Faça sua encomenda abaixo 👇</div>
           <input type="hidden" id="editId">
           <div class="fl">
             <label>Foto</label>
-            <div class="ip" id="imgPrev" onclick="document.getElementById('imgFile').click()"><span>📷</span></div>
+            <div class="ip" id="imgPrev" onclick="document.getElementById('imgFile').click()" style="width:100%;aspect-ratio:1;border-radius:12px;"><span>📷</span></div>
             <p class="ih">Clique para escolher</p>
             <input type="file" id="imgFile" accept="image/*" style="display:none" onchange="handleImg(this)">
             <input type="hidden" id="imgData">
@@ -507,6 +507,7 @@ Faça sua encomenda abaixo 👇</div>
               <div class="encaixe-btn active" id="enc-quadrado" onclick="setEncaixe('cover')">🔲 Cortar (preenche o quadrado)</div>
               <div class="encaixe-btn" id="enc-paisagem" onclick="setEncaixe('contain')">🖼️ Ajustar (mostra a foto inteira)</div>
             </div>
+            <p class="ih">A prévia acima já mostra exatamente como vai ficar no catálogo</p>
           </div>
           <div class="fl" id="extraMediaSection">
             <label>📸 Fotos extras (carrossel)</label>
@@ -1152,6 +1153,7 @@ function handleImg(inp){
     comprimirImagem(e.target.result, 1600, 0.82).then(function(dataComprimido){
       document.getElementById('imgData').value=dataComprimido;
       document.getElementById('imgPrev').innerHTML='<img src="'+dataComprimido+'">';
+      setEncaixe(encaixeAtual); // reaplica o enquadramento escolhido na prévia nova
     });
   };
   r.readAsDataURL(f);
@@ -1292,6 +1294,12 @@ function setEncaixe(tipo){
   var map = {'cover':'quadrado','contain-portrait':'retrato','contain':'paisagem'};
   var el = document.getElementById('enc-'+map[tipo]);
   if(el) el.classList.add('active');
+  // Atualiza a prévia da foto na hora, pra já mostrar como vai ficar
+  var previewImg = document.querySelector('#imgPrev img');
+  if(previewImg){
+    previewImg.style.objectFit = (tipo==='contain'||tipo==='contain-portrait') ? 'contain' : 'cover';
+    previewImg.style.background = (tipo==='contain'||tipo==='contain-portrait') ? '#f0f0f0' : 'transparent';
+  }
 }
 
 // Reduz o tamanho de fotos grandes (comuns em câmeras de celular) antes de enviar,
