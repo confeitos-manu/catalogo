@@ -56,7 +56,7 @@ body{font-family:'Inter',sans-serif;background:#fafafa;color:#111;max-width:480p
 
 /* GRID FEED */
 .feed-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;background:#eee;}
-.feed-cell{aspect-ratio:1;overflow:hidden;cursor:pointer;position:relative;background:#f5f5f5;display:flex;align-items:center;justify-content:center;font-size:2rem;}
+.feed-cell{aspect-ratio:4/5;overflow:hidden;cursor:pointer;position:relative;background:#f5f5f5;display:flex;align-items:center;justify-content:center;font-size:2rem;}
 .feed-cell img{width:100%;height:100%;object-fit:cover;}
 .feed-cell .cell-overlay{position:absolute;inset:0;background:rgba(0,0,0,0);transition:background .15s;display:flex;align-items:center;justify-content:center;}
 .feed-cell:hover .cell-overlay{background:rgba(0,0,0,0.18);}
@@ -270,7 +270,9 @@ async function sbCarregarProdutos(){
       status: p.status||'ativo',
       order: p.order_num||i,
       medias: medias,
-      encaixe: p.encaixe||'cover'
+      encaixe: p.encaixe||'cover',
+      posy: p.posy!=null ? p.posy : 50,
+      zoom: p.zoom!=null ? p.zoom : 100
     };
   });
 }
@@ -400,7 +402,7 @@ Faça sua encomenda abaixo 👇</div>
 <div class="modal-bg" id="modalProd">
   <div class="modal-prod" id="modalProdInner">
     <button onclick="closeProd()" style="position:fixed;top:12px;right:12px;z-index:600;background:rgba(255,255,255,0.95);border:1px solid #eee;border-radius:50%;width:36px;height:36px;font-size:1.2rem;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.2);">✕</button>
-    <div style="position:relative;width:100%;background:#000;flex-shrink:0;overflow:hidden;min-height:300px;">
+    <div style="position:relative;width:100%;background:#000;flex-shrink:0;overflow:hidden;min-height:300px;aspect-ratio:4/5;">
       <div class="carousel" id="prodCarousel" style="height:100%;">
         <div class="carousel-track" id="carouselTrack"></div>
         <button class="carousel-btn prev" id="carouselPrev" onclick="carouselNav(-1)" style="display:none">‹</button>
@@ -499,13 +501,19 @@ Faça sua encomenda abaixo 👇</div>
           <input type="hidden" id="editId">
           <div class="fl">
             <label>Foto</label>
-            <div class="ip" id="imgPrev" onclick="document.getElementById('imgFile').click()" style="width:100%;aspect-ratio:1;border-radius:12px;"><span>📷</span></div>
+            <div class="ip" id="imgPrev" onclick="document.getElementById('imgFile').click()" style="width:100%;aspect-ratio:4/5;border-radius:12px;"><span>📷</span></div>
             <p class="ih">Clique para escolher</p>
             <input type="file" id="imgFile" accept="image/*" style="display:none" onchange="handleImg(this)">
             <input type="hidden" id="imgData">
             <div class="encaixe-opts">
               <div class="encaixe-btn active" id="enc-quadrado" onclick="setEncaixe('cover')">🔲 Cortar (preenche o quadrado)</div>
               <div class="encaixe-btn" id="enc-paisagem" onclick="setEncaixe('contain')">🖼️ Ajustar (mostra a foto inteira)</div>
+            </div>
+            <div id="posYWrap" style="margin-top:8px;">
+              <label style="font-size:12px;color:#888;display:block;margin-bottom:2px;">↕️ Posição da foto (mais pra cima / mais pra baixo)</label>
+              <input type="range" id="posYSlider" min="0" max="100" value="50" oninput="ajustarPosY(this.value)" style="width:100%;">
+              <label style="font-size:12px;color:#888;display:block;margin:6px 0 2px;">🔍 Zoom (ampliar / diminuir)</label>
+              <input type="range" id="zoomSlider" min="100" max="220" value="100" oninput="ajustarZoom(this.value)" style="width:100%;">
             </div>
             <p class="ih">A prévia acima já mostra exatamente como vai ficar no catálogo</p>
           </div>
@@ -784,7 +792,7 @@ function openHl(id){
   if(prodsDoDestaque.length){
     prodsEl.innerHTML = prodsDoDestaque.map(function(p){
       return '<div onclick="document.getElementById(\'modalHl\').classList.remove(\'open\');openProd('+p.id+');" style="cursor:pointer;border-radius:10px;overflow:hidden;background:#f5f5f5;">'+
-        (p.img?'<img src="'+p.img+'" style="width:100%;aspect-ratio:1;object-fit:cover;display:block;">':'<div style="width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:1.8rem;">🌸</div>')+
+        (p.img?'<img src="'+p.img+'" style="width:100%;aspect-ratio:4/5;object-fit:cover;object-position:center '+(p.posy!=null?p.posy:50)+'%;transform:scale('+((p.zoom!=null?p.zoom:100)/100)+');transform-origin:center '+(p.posy!=null?p.posy:50)+'%;display:block;">':'<div style="width:100%;aspect-ratio:4/5;display:flex;align-items:center;justify-content:center;font-size:1.8rem;">🌸</div>')+
         '<div style="padding:6px 8px;"><div style="font-size:0.75rem;font-weight:600;line-height:1.2;">'+p.nome+'</div><div style="font-size:0.78rem;font-weight:700;">R$ '+p.preco.toFixed(2).replace('.',',')+'</div></div>'+
         '</div>';
     }).join('');
@@ -818,7 +826,7 @@ function render(){
   if(feedTab==='feed'){
     if(!list.length){el.innerHTML='<div style="text-align:center;padding:40px;color:#888">Nenhum produto</div>';return;}
     var cells=list.map(function(p){
-      var img=p.img?'<img src="'+p.img+'" alt="" loading="lazy">':'<span style="font-size:2.5rem">🌸</span>';
+      var img=p.img?'<img src="'+p.img+'" alt="" loading="lazy" style="object-position:center '+(p.posy!=null?p.posy:50)+'%;transform:scale('+((p.zoom!=null?p.zoom:100)/100)+');transform-origin:center '+(p.posy!=null?p.posy:50)+'%;">':'<span style="font-size:2.5rem">🌸</span>';
       var esg=p.status==='esgotado'?'<div class="cell-esg">ESGOTADO</div>':'';
       var cod=p.cod?'<div class="cell-cod">#'+p.cod+'</div>':'';
       return '<div class="feed-cell" onclick="openProd('+p.id+')">'+img+'<div class="cell-overlay"></div>'+esg+cod+'</div>';
@@ -1284,6 +1292,27 @@ function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.c
 
 // ===== ENCAIXE =====
 var encaixeAtual = 'cover';
+var posYAtual = 50;
+var zoomAtual = 100;
+
+function aplicarTransformPreview(){
+  var previewImg = document.querySelector('#imgPrev img');
+  if(previewImg) previewImg.style.transform = 'scale('+(zoomAtual/100)+')';
+}
+
+function ajustarPosY(valor){
+  posYAtual = parseInt(valor,10);
+  var previewImg = document.querySelector('#imgPrev img');
+  if(previewImg){
+    previewImg.style.objectPosition = 'center '+posYAtual+'%';
+    previewImg.style.transformOrigin = 'center '+posYAtual+'%';
+  }
+}
+
+function ajustarZoom(valor){
+  zoomAtual = parseInt(valor,10);
+  aplicarTransformPreview();
+}
 
 function setEncaixe(tipo){
   encaixeAtual = tipo;
@@ -1296,10 +1325,16 @@ function setEncaixe(tipo){
   if(el) el.classList.add('active');
   // Atualiza a prévia da foto na hora, pra já mostrar como vai ficar
   var previewImg = document.querySelector('#imgPrev img');
+  var ehCover = (tipo!=='contain' && tipo!=='contain-portrait');
   if(previewImg){
-    previewImg.style.objectFit = (tipo==='contain'||tipo==='contain-portrait') ? 'contain' : 'cover';
-    previewImg.style.background = (tipo==='contain'||tipo==='contain-portrait') ? '#f0f0f0' : 'transparent';
+    previewImg.style.objectFit = ehCover ? 'cover' : 'contain';
+    previewImg.style.background = ehCover ? 'transparent' : '#f0f0f0';
+    previewImg.style.objectPosition = ehCover ? ('center '+posYAtual+'%') : 'center';
+    previewImg.style.transformOrigin = 'center '+posYAtual+'%';
+    previewImg.style.transform = ehCover ? ('scale('+(zoomAtual/100)+')') : 'none';
   }
+  var posWrap = document.getElementById('posYWrap');
+  if(posWrap) posWrap.style.display = ehCover ? 'block' : 'none';
 }
 
 // Reduz o tamanho de fotos grandes (comuns em câmeras de celular) antes de enviar,
@@ -1553,13 +1588,17 @@ function renderCarousel(){
   if(!track) return;
 
   var fit = (curProd && curProd.encaixe==='contain') ? 'contain' : 'cover';
-  track.innerHTML = carouselMedia.map(function(m){
+  var posY = (curProd && curProd.posy!=null) ? curProd.posy : 50;
+  var zoom = (curProd && curProd.zoom!=null) ? curProd.zoom : 100;
+  track.innerHTML = carouselMedia.map(function(m, idx){
+    var pos = idx===0 ? ('center '+posY+'%') : 'center';
+    var transformStyle = idx===0 ? ('transform:scale('+(zoom/100)+');transform-origin:'+pos+';') : '';
     if(m.type==='video'){
       return '<div class="carousel-slide"><video src="'+m.data+'" controls playsinline style="width:100%;height:100%;object-fit:'+fit+'"></video></div>';
     } else if(m.type==='placeholder'){
       return '<div class="carousel-slide"><div class="placeholder">🌸</div></div>';
     } else {
-      return '<div class="carousel-slide"><img src="'+m.data+'" style="width:100%;height:100%;object-fit:'+fit+';'+(fit==='contain'?'background:#f5f5f5;':'')+'"></div>';
+      return '<div class="carousel-slide"><img src="'+m.data+'" style="width:100%;height:100%;object-fit:'+fit+';object-position:'+pos+';'+transformStyle+(fit==='contain'?'background:#f5f5f5;':'')+'"></div>';
     }
   }).join('');
 
@@ -1636,6 +1675,8 @@ saveProd = function(){
     status:document.getElementById('pStatus').value||'ativo',
     img:document.getElementById('imgData').value,
     encaixe: encaixeAtual,
+    posy: posYAtual,
+    zoom: zoomAtual,
     medias: extraMedias.slice(), // mídias extras
     order:editPId?(prods.find(function(x){return x.id===editPId;})||{}).order||maxO:maxO+1
   };
@@ -1690,6 +1731,10 @@ editProd = function(id){
   document.getElementById('imgData').value=p.img||'';
   document.getElementById('imgPrev').innerHTML=p.img?'<img src="'+p.img+'">':'<span>📷</span>';
   setStatus(p.status||'ativo');
+  posYAtual = (p.posy!=null && p.posy!=='') ? parseInt(p.posy,10) : 50;
+  zoomAtual = (p.zoom!=null && p.zoom!=='') ? parseInt(p.zoom,10) : 100;
+  var sliderE = document.getElementById('posYSlider'); if(sliderE) sliderE.value = posYAtual;
+  var zoomE = document.getElementById('zoomSlider'); if(zoomE) zoomE.value = zoomAtual;
   setEncaixe(p.encaixe||'cover');
   // Carregar mídias extras
   extraMedias = (p.medias||[]).slice();
@@ -1706,6 +1751,10 @@ clearProd = function(){
   setStatus('ativo');
   extraMedias=[];
   renderExtraMediaGrid();
+  posYAtual = 50;
+  zoomAtual = 100;
+  var sliderE2 = document.getElementById('posYSlider'); if(sliderE2) sliderE2.value = 50;
+  var zoomE2 = document.getElementById('zoomSlider'); if(zoomE2) zoomE2.value = 100;
   setEncaixe('cover');
 };
 
