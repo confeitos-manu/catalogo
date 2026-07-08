@@ -13,6 +13,20 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;');
 }
 
+// Retorna a URL só se for um link público de verdade (http/https).
+// Fotos salvas como base64 (data:image/...) não funcionam como preview no WhatsApp.
+function imagemPublica(url) {
+  return url && /^https?:\/\//.test(url) ? url : null;
+}
+
+// Pega a primeira mídia da galeria que seja uma FOTO (não vídeo) com link público
+function primeiraMediaUrl(medias) {
+  const foto = medias.find(function (m) {
+    return m && m.data && /^https?:\/\//.test(m.data) && (m.type || 'image') === 'image';
+  });
+  return foto ? foto.data : null;
+}
+
 function paginaNaoEncontrada(res) {
   res.status(404).send(`<!DOCTYPE html>
 <html lang="pt-BR"><head><meta charset="UTF-8">
@@ -21,7 +35,19 @@ function paginaNaoEncontrada(res) {
 <body style="font-family:sans-serif;text-align:center;padding:60px 20px;color:#333;">
 <h2>🌸 Produto não encontrado</h2>
 <p>Esse item pode ter sido removido ou o código mudou.</p>
-<a href="/catalogo" style="color:#0095f6;">Ver catálogo completo</a>
+<a href="/" style="color:#0095f6;">Ver catálogo completo</a>
+</body></html>`);
+}
+
+function paginaEsgotada(res, nome) {
+  res.status(200).send(`<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Esgotado — Confeitos da Manu</title></head>
+<body style="font-family:sans-serif;text-align:center;padding:60px 20px;color:#333;">
+<h2>😕 Essa variação esgotou</h2>
+<p>${nome ? 'De "' + nome + '"' : 'Esse item'} não está disponível no momento, mas talvez outras opções estejam!</p>
+<a href="/" style="color:#0095f6;">Ver catálogo completo</a>
 </body></html>`);
 }
 
@@ -29,7 +55,7 @@ module.exports = async (req, res) => {
   const cod = (req.query.cod || '').trim();
   if (!cod) return paginaNaoEncontrada(res);
 
-  let produto;
+  let produto, variante;
   try {
     const r = await fetch(
       `${SB_URL}/rest/v1/catalogo?cod=eq.${encodeURIComponent(cod)}&status=eq.ativo&limit=1`,
@@ -37,17 +63,34 @@ module.exports = async (req, res) => {
     );
     const rows = await r.json();
     produto = rows && rows[0];
+
+    // Não achou pelo código principal? Procura entre as variações (fotos com código próprio)
+    if (!produto) {
+      const rAll = await fetch(
+        `${SB_URL}/rest/v1/catalogo?status=eq.ativo&limit=1000`,
+        { headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` } }
+      );
+      const todos = await rAll.json();
+      for (const p of (todos || [])) {
+        const m = (p.medias || []).find((x) => x && x.cod === cod);
+        if (m) { produto = p; variante = m; break; }
+      }
+    }
   } catch (err) {
     console.error('Erro ao buscar produto:', err);
   }
 
   if (!produto) return paginaNaoEncontrada(res);
+  if (variante && variante.esgotado) return paginaEsgotada(res, produto.nome);
 
-  const nome = produto.nome || 'Produto';
-  const preco = parseFloat(produto.preco) || 0;
+  const nome = (variante && variante.nome) ? variante.nome : (produto.nome || 'Produto');
+  const diferenca = variante && variante.diferenca ? variante.diferenca : '';
+  const preco = parseFloat(variante ? (variante.preco || produto.preco) : produto.preco) || 0;
   const precoFmt = 'R$ ' + preco.toFixed(2).replace('.', ',');
-  const desc = produto.descricao || 'Confeitos da Manu — chocolates artesanais feitos com carinho.';
-  const imagem = produto.img || (produto.medias && produto.medias[0] && produto.medias[0].data) || '';
+  const desc = diferenca || produto.descricao || 'Confeitos da Manu — chocolates artesanais feitos com carinho.';
+  const imagem = variante
+    ? (imagemPublica(variante.data) || imagemPublica(produto.img) || '')
+    : (imagemPublica(produto.img) || (produto.medias && produto.medias.length && primeiraMediaUrl(produto.medias)) || '');
   const urlAtual = `https://${req.headers.host}/produto/${encodeURIComponent(cod)}`;
 
   const msgWA = `Oii! Vim pelo link e quero pedir:\n[#${cod}] ${nome} - ${precoFmt}\n\n${urlAtual}`;
@@ -92,7 +135,7 @@ body{font-family:'Inter',sans-serif;background:#fafafa;color:#111;max-width:480p
 <div class="preco">${escapeHtml(precoFmt)}</div>
 <div class="desc">${escapeHtml(desc)}</div>
 <a class="btn" href="${linkWA}">Pedir esse pelo WhatsApp 🌸</a>
-<a class="voltar" href="/catalogo">← Ver catálogo completo</a>
+<a class="voltar" href="/">← Ver catálogo completo</a>
 </div>
 </body>
 </html>`);
