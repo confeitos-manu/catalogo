@@ -122,8 +122,8 @@ module.exports = async (req, res) => {
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Inter',sans-serif;background:#fafafa;color:#111;max-width:480px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;}
-.foto{width:100%;position:relative;padding-top:125%;background:#f0f0f0;overflow:hidden;}
-.foto img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:${encaixe};object-position:center ${variante ? 50 : posY}%;}
+.foto{width:100%;min-height:280px;background:#f0f0f0;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+.foto img{max-width:100%;max-height:400px;width:auto;height:auto;display:block;margin:auto;}
 .corpo{padding:20px 18px;flex:1;}
 .nome{font-size:1.15rem;font-weight:700;margin-bottom:6px;}
 .preco{font-size:1.3rem;font-weight:700;color:#111;margin-bottom:14px;}
