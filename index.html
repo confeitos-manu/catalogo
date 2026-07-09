@@ -512,8 +512,10 @@ Faça sua encomenda abaixo 👇</div>
             <div id="posYWrap" style="margin-top:8px;">
               <label style="font-size:12px;color:#888;display:block;margin-bottom:2px;">↕️ Posição da foto (mais pra cima / mais pra baixo)</label>
               <input type="range" id="posYSlider" min="0" max="100" value="50" oninput="ajustarPosY(this.value)" style="width:100%;">
+              <div style="display:none;">
               <label style="font-size:12px;color:#888;display:block;margin:6px 0 2px;">🔍 Zoom (ampliar / diminuir)</label>
               <input type="range" id="zoomSlider" min="100" max="220" value="100" oninput="ajustarZoom(this.value)" style="width:100%;">
+              </div>
             </div>
             <p class="ih">A prévia acima já mostra exatamente como vai ficar no catálogo</p>
           </div>
@@ -675,6 +677,12 @@ function totalQtyProduto(pid){
 var editPId=null,editHlId=null,editStId=null,dragSrc=null;
 var curProd=null,curProdQty=1;
 function ldTxt(k,d){try{var s=localStorage.getItem(k);return s?JSON.parse(s):d;}catch(e){return d;}}
+// Garante um valor de posição válido (0-100), evitando fotos "sumindo" por causa de dado corrompido
+function posySafe(v){
+  var n = parseFloat(v);
+  if(isNaN(n) || n<0 || n>100) return 50;
+  return n;
+}
 var msgAbertura1 = ldTxt('msg_ab1', 'Oii! Gostei desse modelo e quero fazer o pedido:');
 var msgAbertura2 = ldTxt('msg_ab2', 'Ola! Gostei desses modelos e quero seguir com o pedido:');
 var msgFechamento = ldTxt('msg_fec', 'Aguardo retorno para combinarmos os detalhes!');
@@ -792,7 +800,7 @@ function openHl(id){
   if(prodsDoDestaque.length){
     prodsEl.innerHTML = prodsDoDestaque.map(function(p){
       return '<div onclick="document.getElementById(\'modalHl\').classList.remove(\'open\');openProd('+p.id+');" style="cursor:pointer;border-radius:10px;overflow:hidden;background:#f5f5f5;">'+
-        (p.img?'<img src="'+p.img+'" style="width:100%;aspect-ratio:4/5;object-fit:cover;object-position:center '+(p.posy!=null?p.posy:50)+'%;transform:scale('+((p.zoom!=null?p.zoom:100)/100)+');transform-origin:center '+(p.posy!=null?p.posy:50)+'%;display:block;">':'<div style="width:100%;aspect-ratio:4/5;display:flex;align-items:center;justify-content:center;font-size:1.8rem;">🌸</div>')+
+        (p.img?'<img src="'+p.img+'" style="width:100%;aspect-ratio:4/5;object-fit:cover;object-position:center '+posySafe(p.posy)+'%;display:block;">':'<div style="width:100%;aspect-ratio:4/5;display:flex;align-items:center;justify-content:center;font-size:1.8rem;">🌸</div>')+
         '<div style="padding:6px 8px;"><div style="font-size:0.75rem;font-weight:600;line-height:1.2;">'+p.nome+'</div><div style="font-size:0.78rem;font-weight:700;">R$ '+p.preco.toFixed(2).replace('.',',')+'</div></div>'+
         '</div>';
     }).join('');
@@ -826,7 +834,7 @@ function render(){
   if(feedTab==='feed'){
     if(!list.length){el.innerHTML='<div style="text-align:center;padding:40px;color:#888">Nenhum produto</div>';return;}
     var cells=list.map(function(p){
-      var img=p.img?'<img src="'+p.img+'" alt="" loading="lazy" style="object-position:center '+(p.posy!=null?p.posy:50)+'%;transform:scale('+((p.zoom!=null?p.zoom:100)/100)+');transform-origin:center '+(p.posy!=null?p.posy:50)+'%;">':'<span style="font-size:2.5rem">🌸</span>';
+      var img=p.img?'<img src="'+p.img+'" alt="" loading="lazy" style="object-position:center '+posySafe(p.posy)+'%;">':'<span style="font-size:2.5rem">🌸</span>';
       var esg=p.status==='esgotado'?'<div class="cell-esg">ESGOTADO</div>':'';
       var cod=p.cod?'<div class="cell-cod">#'+p.cod+'</div>':'';
       return '<div class="feed-cell" onclick="openProd('+p.id+')">'+img+'<div class="cell-overlay"></div>'+esg+cod+'</div>';
@@ -1587,17 +1595,15 @@ function renderCarousel(){
   if(!track) return;
 
   var fit = (curProd && curProd.encaixe==='contain') ? 'contain' : 'cover';
-  var posY = (curProd && curProd.posy!=null) ? curProd.posy : 50;
-  var zoom = (curProd && curProd.zoom!=null) ? curProd.zoom : 100;
+  var posY = posySafe(curProd && curProd.posy);
   track.innerHTML = carouselMedia.map(function(m, idx){
     var pos = idx===0 ? ('center '+posY+'%') : 'center';
-    var transformStyle = idx===0 ? ('transform:scale('+(zoom/100)+');transform-origin:'+pos+';') : '';
     if(m.type==='video'){
       return '<div class="carousel-slide"><video src="'+m.data+'" controls playsinline style="width:100%;height:100%;object-fit:'+fit+'"></video></div>';
     } else if(m.type==='placeholder'){
       return '<div class="carousel-slide"><div class="placeholder">🌸</div></div>';
     } else {
-      return '<div class="carousel-slide"><img src="'+m.data+'" style="width:100%;height:100%;object-fit:'+fit+';object-position:'+pos+';'+transformStyle+(fit==='contain'?'background:#f5f5f5;':'')+'"></div>';
+      return '<div class="carousel-slide"><img src="'+m.data+'" style="width:100%;height:100%;object-fit:'+fit+';object-position:'+pos+';'+(fit==='contain'?'background:#f5f5f5;':'')+'"></div>';
     }
   }).join('');
 
