@@ -92,7 +92,8 @@ module.exports = async (req, res) => {
     ? (imagemPublica(variante.data) || imagemPublica(produto.img) || '')
     : (imagemPublica(produto.img) || (produto.medias && produto.medias.length && primeiraMediaUrl(produto.medias)) || '');
   const encaixe = (produto.encaixe === 'contain') ? 'contain' : 'cover';
-  const posY = (produto.posy != null && produto.posy !== '') ? produto.posy : 50;
+  const posYraw = parseFloat(produto.posy);
+  const posY = (!isNaN(posYraw) && posYraw >= 0 && posYraw <= 100) ? posYraw : 50;
   const zoom = (produto.zoom != null && produto.zoom !== '') ? produto.zoom : 100;
   const urlAtual = `https://${req.headers.host}/produto/${encodeURIComponent(cod)}`;
 
@@ -122,7 +123,7 @@ module.exports = async (req, res) => {
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Inter',sans-serif;background:#fafafa;color:#111;max-width:480px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;}
 .foto{width:100%;position:relative;padding-top:125%;background:#f0f0f0;overflow:hidden;}
-.foto img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:${encaixe};object-position:center ${variante ? 50 : posY}%;transform:scale(${variante ? 1 : zoom/100});transform-origin:center ${variante ? 50 : posY}%;}
+.foto img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:${encaixe};object-position:center ${variante ? 50 : posY}%;}
 .corpo{padding:20px 18px;flex:1;}
 .nome{font-size:1.15rem;font-weight:700;margin-bottom:6px;}
 .preco{font-size:1.3rem;font-weight:700;color:#111;margin-bottom:14px;}
