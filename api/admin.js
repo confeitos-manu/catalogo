@@ -48,13 +48,14 @@ module.exports = async (req, res) => {
         nome: p.nome || '',
         preco: parseFloat(p.preco) || 0,
         img: p.img || '',
+        imgoriginal: p.imgOriginal || '',
         descricao: p.desc || p.descricao || '',
         cat: p.cat || '',
         tam: p.tam || '',
         cod: p.cod || '',
         status: p.status || 'ativo',
         order_num: p.order || 0,
-        medias: (p.medias || []).filter(function (m) { return m && m.data && m.data.startsWith('http'); }),
+        medias: (p.medias || []).filter(function (m) { return m && (m.tipo === 'ref' || (m.data && m.data.startsWith('http'))); }),
         encaixe: p.encaixe || 'cover',
         posy: (p.posy != null) ? p.posy : 50,
         zoom: (p.zoom != null) ? p.zoom : 100
@@ -89,6 +90,36 @@ module.exports = async (req, res) => {
         var r2 = await sbServiceFetch('/rest/v1/destaques', { method: 'POST', body: JSON.stringify(rows) });
         if (!r2.ok) return res.status(500).json({ ok: false, erro: await r2.text() });
       }
+      return res.status(200).json({ ok: true });
+    }
+
+    if (acao === 'salvarInspiracao') {
+      var insp = body.inspiracao || {};
+      var rowInsp = {
+        id_local: insp.id,
+        cod: insp.cod || '',
+        img: insp.img || '',
+        imgoriginal: insp.imgOriginal || '',
+        descricao: insp.desc || '',
+        encaixe: insp.encaixe || 'cover',
+        posy: (insp.posy != null) ? insp.posy : 50,
+        zoom: (insp.zoom != null) ? insp.zoom : 100,
+        order_num: insp.order || 0
+      };
+      var r4 = await sbServiceFetch('/rest/v1/inspiracoes?on_conflict=cod', {
+        method: 'POST',
+        body: JSON.stringify([rowInsp]),
+        prefer: 'resolution=merge-duplicates,return=representation'
+      });
+      if (!r4.ok) return res.status(500).json({ ok: false, erro: await r4.text() });
+      var dados4 = await r4.json();
+      return res.status(200).json({ ok: true, dados: dados4 });
+    }
+
+    if (acao === 'deletarInspiracao') {
+      var codInsp = body.cod;
+      if (!codInsp) return res.status(400).json({ ok: false, erro: 'Código não informado.' });
+      await sbServiceFetch('/rest/v1/inspiracoes?cod=eq.' + encodeURIComponent(codInsp), { method: 'DELETE' });
       return res.status(200).json({ ok: true });
     }
 
