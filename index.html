@@ -265,6 +265,7 @@ async function sbCarregarProdutos(){
       preco: parseFloat(p.preco)||0,
       img: p.img||'',
       imgOriginal: p.imgoriginal||'',
+      tags: p.tags||'',
       desc: p.descricao||'',
       descricao: p.descricao||'',
       cat: p.cat||'',
@@ -377,6 +378,9 @@ Faça sua encomenda abaixo 👇</div>
     <option value="pd">Maior preço</option>
   </select>
 </div>
+
+<!-- CATEGORIAS -->
+<div id="catChips" style="display:flex;gap:6px;overflow-x:auto;padding:2px 12px 10px;-webkit-overflow-scrolling:touch;"></div>
 
 <!-- FEED -->
 <div id="feedArea"></div>
@@ -576,6 +580,7 @@ Faça sua encomenda abaixo 👇</div>
             </div>
           </div>
           <div class="fl"><label>Nome *</label><input type="text" id="pNome" placeholder="Ex: Buquê de Rosas Vermelhas"></div>
+          <div class="fl"><label>🔍 Palavras-chave <span style="font-weight:400;color:#aaa;font-size:0.75rem">(invisíveis, usadas na busca)</span></label><input type="text" id="pTags" placeholder="Ex: stitch, azul, disney, ursinho"><p class="ih">Separe por vírgula</p></div>
           <div class="fl"><label>Descrição</label><textarea id="pDesc" placeholder="Ex: 12 rosas com embalagem premium"></textarea></div>
           <div class="fr">
             <div class="fl"><label>Preço (R$) *</label><input type="number" id="pPreco" step="0.01" min="0"></div>
@@ -743,6 +748,31 @@ var prods=ld('manu_p',null)||defProds();
 var hls=ld('manu_hls',null)||defHls();
 var stories=ld('manu_st',[])||[];
 var cart={},cartMeta={},entrega='comb',feedTab='feed';
+var catAtual='todos';
+
+function setCat(cat){
+  catAtual=cat;
+  render();
+}
+
+function renderCatChips(){
+  var el = document.getElementById('catChips');
+  if(!el) return;
+  var cats = [];
+  prods.forEach(function(p){
+    if(p.status==='escondido') return;
+    var c = p.cat && p.cat.trim() ? p.cat.trim() : 'Outros';
+    if(cats.indexOf(c)===-1) cats.push(c);
+  });
+  if(cats.length<2){ el.innerHTML=''; el.style.display='none'; return; }
+  el.style.display='flex';
+  var todas = ['todos'].concat(cats);
+  el.innerHTML = todas.map(function(c){
+    var ativo = c===catAtual;
+    var label = c==='todos' ? 'Todos' : c;
+    return '<div onclick="setCat(\''+c.replace(/'/g,"\\'")+'\')" style="flex-shrink:0;padding:6px 14px;border-radius:20px;font-size:0.78rem;font-weight:600;cursor:pointer;white-space:nowrap;border:1.5px solid '+(ativo?'#111':'#ddd')+';background:'+(ativo?'#111':'#fff')+';color:'+(ativo?'#fff':'#555')+';">'+label+'</div>';
+  }).join('');
+}
 function cartKey(pid,cod){ return pid+'~'+(cod||''); }
 function qtyInCart(pid,cod){ return cart[cartKey(pid,cod)]||0; }
 function totalQtyProduto(pid){
@@ -894,6 +924,7 @@ function setFeedTab(t){
   document.getElementById('tab-insp').className='feed-tab'+(t==='insp'?' active':'');
   document.getElementById('feedArea').style.display=(t==='insp')?'none':'block';
   document.getElementById('feedToolbar').style.display=(t==='insp')?'none':'flex';
+  document.getElementById('catChips').style.display=(t==='insp')?'none':'flex';
   document.getElementById('inspArea').style.display=(t==='insp')?'block':'none';
   if(t==='insp') renderInspClient();
   else render();
@@ -904,8 +935,10 @@ function render(){
   var s=document.getElementById('sortSel').value;
   var list=prods.filter(function(p){
     if(p.status==='escondido')return false;
-    return !q||p.nome.toLowerCase().indexOf(q)>=0||(p.desc||'').toLowerCase().indexOf(q)>=0;
+    if(catAtual!=='todos' && (p.cat||'Outros')!==catAtual) return false;
+    return !q||p.nome.toLowerCase().indexOf(q)>=0||(p.desc||'').toLowerCase().indexOf(q)>=0||(p.tags||'').toLowerCase().indexOf(q)>=0||(p.cat||'').toLowerCase().indexOf(q)>=0;
   });
+  renderCatChips();
   if(s==='az')list.sort(function(a,b){return a.nome.localeCompare(b.nome);});
   else if(s==='pa')list.sort(function(a,b){return a.preco-b.preco;});
   else if(s==='pd')list.sort(function(a,b){return b.preco-a.preco;});
@@ -2034,6 +2067,7 @@ saveProd = async function(){
     id:editPId||Date.now(),
     nome:nome,
     desc:document.getElementById('pDesc').value.trim(),
+    tags:document.getElementById('pTags').value.trim(),
     preco:preco,
     cat:document.getElementById('pCat').value.trim(),
     tam:document.getElementById('pTam').value.trim(),
@@ -2095,6 +2129,7 @@ editProd = function(id){
   document.getElementById('editId').value=id;
   document.getElementById('pNome').value=p.nome;
   document.getElementById('pDesc').value=p.desc||'';
+  document.getElementById('pTags').value=p.tags||'';
   document.getElementById('pPreco').value=p.preco;
   document.getElementById('pCat').value=p.cat||'';
   document.getElementById('pTam').value=p.tam||'';
@@ -2118,7 +2153,7 @@ editProd = function(id){
 var _origClearProd = clearProd;
 clearProd = function(){
   editPId=null;
-  ['editId','pNome','pDesc','pPreco','pCat','pTam','pCod','imgData'].forEach(function(id){document.getElementById(id).value='';});
+  ['editId','pNome','pDesc','pPreco','pCat','pTam','pCod','imgData','pTags'].forEach(function(id){document.getElementById(id).value='';});
   document.getElementById('imgPrev').innerHTML='<span>📷</span>';
   setStatus('ativo');
   extraMedias=[];
