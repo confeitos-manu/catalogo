@@ -53,6 +53,17 @@ body{font-family:'Inter',sans-serif;background:#fafafa;color:#111;max-width:480p
 .feed-toolbar{background:#fff;padding:8px 12px;display:flex;gap:8px;border-bottom:1px solid #eee;}
 .feed-search{flex:1;padding:7px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.83rem;font-family:'Inter',sans-serif;outline:none;background:#fafafa;}
 .feed-sort{padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:0.8rem;font-family:'Inter',sans-serif;background:#fafafa;outline:none;}
+.feed-selbtn{padding:7px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.78rem;font-weight:600;font-family:'Inter',sans-serif;background:#fafafa;color:#555;cursor:pointer;white-space:nowrap;}
+.feed-selbtn.active{background:#111;color:#fff;border-color:#111;}
+.sel-check{position:absolute;top:5px;left:5px;width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,0.9);border:2px solid #bbb;z-index:3;display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:900;color:transparent;}
+.sel-check.on{background:#111;border-color:#111;color:#fff;}
+.sel-bar{position:fixed;left:0;right:0;bottom:0;z-index:850;background:#111;color:#fff;padding:12px 16px;display:none;align-items:center;justify-content:space-between;gap:10px;box-shadow:0 -4px 16px rgba(0,0,0,0.2);}
+.sel-bar.show{display:flex;}
+.sel-bar-count{font-size:0.85rem;font-weight:600;}
+.sel-bar-actions{display:flex;gap:8px;}
+.sel-bar-btn{border:none;border-radius:50px;padding:9px 16px;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;}
+.sel-bar-send{background:#25D366;color:#fff;}
+.sel-bar-cancel{background:rgba(255,255,255,0.15);color:#fff;}
 
 /* GRID FEED */
 .feed-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;background:#eee;}
@@ -92,9 +103,14 @@ body{font-family:'Inter',sans-serif;background:#fafafa;color:#111;max-width:480p
 .profile-avatar.has-story img{border:3px solid #fff;border-radius:50%;}
 
 /* MODAL PRODUTO */
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:500;display:none;align-items:flex-end;justify-content:center;}
-.modal-bg.open{display:flex;}
-.modal-prod{background:#fff;width:100%;max-width:480px;border-radius:18px 18px 0 0;height:92vh;height:92dvh;display:flex;flex-direction:column;overflow:hidden;}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:500;display:flex;align-items:flex-end;justify-content:center;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .28s ease,visibility 0s linear .28s;}
+.modal-bg.open{opacity:1;visibility:visible;pointer-events:auto;transition:opacity .28s ease,visibility 0s linear 0s;}
+/* Vincular produto abre por cima do modal Gerenciar (mbg, z-index:600) */
+#modalVincular{z-index:700;}
+.modal-prod{background:#fff;width:100%;max-width:480px;border-radius:18px 18px 0 0;height:92vh;height:92dvh;display:flex;flex-direction:column;overflow:hidden;transform:translateY(24px);transition:transform .32s cubic-bezier(.22,1,.36,1);}
+.modal-bg.open .modal-prod{transform:translateY(0);}
+.modal-drag-handle{width:100%;padding:9px 0 7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:grab;touch-action:none;}
+.modal-drag-handle::before{content:'';width:38px;height:4px;border-radius:4px;background:#ddd;}
 .modal-prod-img{width:100%;background:#f5f5f5;display:flex;align-items:center;justify-content:center;font-size:4rem;overflow:hidden;}
 .modal-prod-img img{width:100%;height:100%;object-fit:cover;}
 .modal-prod-body{padding:16px;}
@@ -104,6 +120,18 @@ body{font-family:'Inter',sans-serif;background:#fafafa;color:#111;max-width:480p
 .mprod-cat{font-size:0.75rem;color:#888;margin-bottom:4px;}
 .mprod-tam{display:inline-block;background:#f0f0f0;border-radius:20px;padding:3px 10px;font-size:0.72rem;font-weight:600;margin-bottom:10px;}
 .mprod-desc{font-size:0.85rem;color:#444;line-height:1.5;margin-bottom:16px;}
+.op-grupo{margin-bottom:14px;}
+.op-grupo-head{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+.op-grupo-nome{font-weight:700;font-size:0.86rem;}
+.op-grupo-tag{font-size:0.65rem;font-weight:700;padding:2px 8px;border-radius:20px;}
+.op-grupo-tag.obg{background:#fde8e8;color:#c0392b;}
+.op-grupo-tag.opc{background:#f0f0f0;color:#888;}
+.op-grupo-tag.mult{background:#e8f3ff;color:#1a6fc4;}
+.op-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border:1px solid #eee;border-radius:10px;margin-bottom:6px;cursor:pointer;}
+.op-item.on{border-color:#111;background:#fafafa;}
+.op-item-nome{flex:1;font-size:0.83rem;}
+.op-item-preco{font-size:0.8rem;font-weight:700;color:#666;}
+.op-obs textarea{width:100%;padding:9px 11px;border:1px solid #ddd;border-radius:10px;font-size:0.83rem;font-family:'Inter',sans-serif;resize:vertical;min-height:56px;outline:none;}
 .mprod-add{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
 .mprod-qc{display:flex;align-items:center;gap:8px;background:#fafafa;border:1px solid #eee;border-radius:50px;padding:4px 12px;}
 .mprod-qb{background:none;border:none;font-size:1.2rem;cursor:pointer;color:#111;width:24px;height:24px;display:flex;align-items:center;justify-content:center;}
@@ -165,6 +193,10 @@ body{font-family:'Inter',sans-serif;background:#fafafa;color:#111;max-width:480p
 .mbg{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:600;display:none;align-items:flex-end;justify-content:center;}
 .mbg.open{display:flex;}
 .md{background:#fff;width:100%;max-width:480px;border-radius:18px 18px 0 0;max-height:92vh;max-height:92dvh;display:flex;flex-direction:column;}
+@media (min-width:900px){
+  .mbg{align-items:center;}
+  .md{max-width:820px;width:90vw;max-height:88vh;border-radius:18px;}
+}
 .mdh{padding:14px 16px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;}
 .mdh h2{font-weight:700;font-size:0.95rem;}
 .mdb{padding:14px 16px;overflow-y:auto;flex:1;}
@@ -175,7 +207,7 @@ body{font-family:'Inter',sans-serif;background:#fafafa;color:#111;max-width:480p
 .fl{margin-bottom:10px;}
 .fr{display:flex;gap:8px;}
 .fr .fl{flex:1;}
-.ip{width:65px;height:65px;border-radius:10px;background:#f5f5f5;display:flex;align-items:center;justify-content:center;font-size:1.6rem;overflow:hidden;border:1px dashed #ccc;cursor:pointer;}
+.ip{width:65px;height:65px;border-radius:10px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:1.6rem;overflow:hidden;border:1px dashed #ccc;cursor:pointer;}
 .ip img{width:100%;height:100%;object-fit:cover;}
 .ih{font-size:0.7rem;color:#888;margin-top:2px;}
 .fa{display:flex;gap:7px;margin-top:8px;}
@@ -222,9 +254,9 @@ body{font-family:'Inter',sans-serif;background:#fafafa;color:#111;max-width:480p
 .encaixe-btn.active{border-color:#111;background:#111;color:#fff;}
 .carousel-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.6);cursor:pointer;transition:background .2s;}
 .carousel-dot.on{background:#fff;}
-.carousel{position:relative;width:100%;overflow:hidden;background:#000;max-height:60vh;max-height:60dvh;min-height:250px;height:100%;}
+.carousel{position:relative;width:100%;overflow:hidden;background:#fff;max-height:60vh;max-height:60dvh;min-height:250px;height:100%;}
 .carousel-track{display:flex;transition:transform .3s ease;height:100%;min-height:250px;}
-.carousel-slide{min-width:100%;height:100%;min-height:250px;flex-shrink:0;background:#000;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+.carousel-slide{min-width:100%;height:100%;min-height:250px;flex-shrink:0;background:#fff;overflow:hidden;display:flex;align-items:center;justify-content:center;}
 .carousel-slide img{width:100%;height:100%;object-fit:cover;}
 .carousel-dots{position:absolute;bottom:10px;left:0;right:0;display:flex;justify-content:center;gap:5px;z-index:5;}
 .carousel-btn{position:absolute;top:50%;transform:translateY(-50%);z-index:6;width:32px;height:32px;border-radius:50%;border:none;background:rgba(0,0,0,0.35);color:#fff;font-size:1.3rem;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;}
@@ -265,6 +297,7 @@ async function sbCarregarProdutos(){
       preco: parseFloat(p.preco)||0,
       img: p.img||'',
       imgOriginal: p.imgoriginal||'',
+      imgAbertura: p.imgabertura||'',
       tags: p.tags||'',
       desc: p.descricao||'',
       descricao: p.descricao||'',
@@ -276,7 +309,8 @@ async function sbCarregarProdutos(){
       medias: medias,
       encaixe: p.encaixe||'cover',
       posy: p.posy!=null ? p.posy : 50,
-      zoom: p.zoom!=null ? p.zoom : 100
+      zoom: p.zoom!=null ? p.zoom : 100,
+      gruposOpcionais: p.grupos_opcionais||[]
     };
   });
 }
@@ -377,6 +411,7 @@ Faça sua encomenda abaixo 👇</div>
     <option value="pa">Menor preço</option>
     <option value="pd">Maior preço</option>
   </select>
+  <button class="feed-selbtn" id="selBtn" onclick="toggleModoSelecao()">☑️ Selecionar</button>
 </div>
 
 <!-- CATEGORIAS -->
@@ -417,8 +452,9 @@ Faça sua encomenda abaixo 👇</div>
 <!-- MODAL PRODUTO -->
 <div class="modal-bg" id="modalProd">
   <div class="modal-prod" id="modalProdInner">
+    <div class="modal-drag-handle" id="prodDragHandle"></div>
     <button onclick="closeProd()" style="position:fixed;top:12px;right:12px;z-index:600;background:rgba(255,255,255,0.95);border:1px solid #eee;border-radius:50%;width:36px;height:36px;font-size:1.2rem;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.2);">✕</button>
-    <div style="position:relative;width:100%;background:#000;flex-shrink:0;overflow:hidden;min-height:300px;">
+    <div style="position:relative;width:100%;background:#fff;flex-shrink:0;overflow:hidden;min-height:300px;">
       <div class="carousel" id="prodCarousel" style="height:100%;">
         <div class="carousel-track" id="carouselTrack"></div>
         <button class="carousel-btn prev" id="carouselPrev" onclick="carouselNav(-1)" style="display:none">‹</button>
@@ -438,7 +474,7 @@ Faça sua encomenda abaixo 👇</div>
       <div id="mpTam"></div>
       <div id="mpVariantes" style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0;"></div>
       <div id="mpVarInfo" style="font-size:0.8rem;color:#666;margin-bottom:6px;"></div>
-      <div class="mprod-desc" id="mpDesc"></div>
+      <div id="mpOpcionais"></div>
       <div class="mprod-add">
         <div class="mprod-qc">
           <button class="mprod-qb" onclick="mpQty(-1)">−</button>
@@ -448,6 +484,7 @@ Faça sua encomenda abaixo 👇</div>
         <button class="mprod-badd" id="mpAddBtn" onclick="mpAdd()">Adicionar ao pedido</button>
         <button class="mprod-qb" title="Compartilhar" onclick="shareProd()" style="border:1px solid #eee;border-radius:50%;width:38px;height:38px;">🔗</button>
       </div>
+      <div class="mprod-desc" id="mpDesc"></div>
     </div>
   </div>
 </div>
@@ -456,7 +493,7 @@ Faça sua encomenda abaixo 👇</div>
 <div class="modal-bg" id="modalInsp">
   <div class="modal-prod">
     <button onclick="document.getElementById('modalInsp').classList.remove('open')" style="position:fixed;top:12px;right:12px;z-index:600;background:rgba(255,255,255,0.95);border:1px solid #eee;border-radius:50%;width:36px;height:36px;font-size:1.2rem;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.2);">✕</button>
-    <div style="width:100%;background:#000;flex-shrink:0;overflow:hidden;min-height:300px;display:flex;align-items:center;justify-content:center;">
+    <div style="width:100%;background:#fff;flex-shrink:0;overflow:hidden;min-height:300px;display:flex;align-items:center;justify-content:center;">
       <img id="inspFotoGrande" src="" style="max-width:100%;max-height:70vh;width:auto;height:auto;display:block;margin:auto;">
     </div>
     <div class="modal-prod-body" style="padding-top:16px;">
@@ -510,6 +547,7 @@ Faça sua encomenda abaixo 👇</div>
   </div>
   <div class="sbf">
     <div class="trow"><span class="tlb">Itens selecionados</span><span class="tvl" id="cartTotal">0 itens</span></div>
+    <div class="trow"><span class="tlb">Valor estimado</span><span class="tvl" id="cartValorTotal">R$ 0,00</span></div>
     <button class="bwp" id="btnWA" onclick="sendWA()" disabled>
       <svg width="17" height="17" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.122.554 4.112 1.523 5.84L.057 23.486a.5.5 0 0 0 .607.61l5.757-1.505A11.94 11.94 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.886 0-3.655-.497-5.188-1.367l-.372-.215-3.856 1.008 1.03-3.742-.234-.386A9.944 9.944 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
       Pedir pelo WhatsApp
@@ -537,6 +575,7 @@ Faça sua encomenda abaixo 👇</div>
           <button class="at" onclick="showAT('msg')">💬 Mensagem</button>
           <button class="at" onclick="showAT('destaques')">⭕ Destaques</button>
           <button class="at" onclick="showAT('inspiracao')">✨ Inspiração</button>
+          <button class="at" onclick="showAT('opcionais')">🎁 Adicionais</button>
         </div>
         <!-- LISTA PRODS -->
         <div id="at-prods">
@@ -561,10 +600,18 @@ Faça sua encomenda abaixo 👇</div>
               <input type="range" id="posYSlider" min="0" max="100" value="50" oninput="ajustarPosY(this.value)" style="width:100%;">
               <div>
               <label style="font-size:12px;color:#888;display:block;margin:6px 0 2px;">🔍 Zoom (ampliar / diminuir)</label>
-              <input type="range" id="zoomSlider" min="100" max="220" value="100" oninput="ajustarZoom(this.value)" style="width:100%;">
+              <input type="range" id="zoomSlider" min="50" max="220" value="100" oninput="ajustarZoom(this.value)" style="width:100%;">
               </div>
             </div>
             <p class="ih">A prévia acima já mostra exatamente como vai ficar no catálogo</p>
+          </div>
+          <div class="fl">
+            <label>🖼️ Foto ao abrir o produto <span style="font-weight:400;color:#aaa;font-size:0.75rem">(opcional — se não escolher, usa a foto da capa)</span></label>
+            <div class="ip" id="imgAbPrev" onclick="document.getElementById('imgAbFile').click()" style="width:100%;height:auto;aspect-ratio:4/5;border-radius:12px;background:#fafafa;"><span>📷</span></div>
+            <p class="ih">Essa foto aparece inteira (sem cortar) só quando o cliente clica no produto — a capa do feed não muda.</p>
+            <input type="file" id="imgAbFile" accept="image/*" style="display:none" onchange="handleImgAbertura(this)">
+            <input type="hidden" id="imgAbData">
+            <div class="fa"><button type="button" class="bs" onclick="limparImgAbertura()">🗑️ Remover foto de abertura</button></div>
           </div>
           <div class="fl" id="extraMediaSection">
             <label>📸 Fotos extras (carrossel)</label>
@@ -582,6 +629,11 @@ Faça sua encomenda abaixo 👇</div>
           <div class="fl"><label>Nome *</label><input type="text" id="pNome" placeholder="Ex: Buquê de Rosas Vermelhas"></div>
           <div class="fl"><label>🔍 Palavras-chave <span style="font-weight:400;color:#aaa;font-size:0.75rem">(invisíveis, usadas na busca)</span></label><input type="text" id="pTags" placeholder="Ex: stitch, azul, disney, ursinho"><p class="ih">Separe por vírgula</p></div>
           <div class="fl"><label>Descrição</label><textarea id="pDesc" placeholder="Ex: 12 rosas com embalagem premium"></textarea></div>
+          <div class="fl">
+            <label>🎁 Adicionais deste produto (opcional)</label>
+            <p class="ih">Marque quais grupos de opcionais o cliente vai poder escolher ao abrir esse produto</p>
+            <div id="pOpcionaisSelect" style="max-height:180px;overflow-y:auto;border:1px solid #eee;border-radius:10px;padding:8px;"></div>
+          </div>
           <div class="fr">
             <div class="fl"><label>Preço (R$) *</label><input type="number" id="pPreco" step="0.01" min="0"></div>
             <div class="fl"><label>Categoria</label><input type="text" id="pCat" list="catListDatalist" placeholder="Ex: Buquês"><datalist id="catListDatalist"></datalist></div>
@@ -640,13 +692,42 @@ Faça sua encomenda abaixo 👇</div>
               <label style="font-size:12px;color:#888;display:block;margin-bottom:2px;">↕️ Posição da foto</label>
               <input type="range" id="inspPosYSlider" min="0" max="100" value="50" oninput="ajustarPosYInsp(this.value)" style="width:100%;">
               <label style="font-size:12px;color:#888;display:block;margin:6px 0 2px;">🔍 Zoom</label>
-              <input type="range" id="inspZoomSlider" min="100" max="220" value="100" oninput="ajustarZoomInsp(this.value)" style="width:100%;">
+              <input type="range" id="inspZoomSlider" min="50" max="220" value="100" oninput="ajustarZoomInsp(this.value)" style="width:100%;">
             </div>
           </div>
           <div class="fl"><label>Legenda (opcional)</label><input type="text" id="inspDescInput" placeholder="Ex: Buquê personalizado com ursinho"></div>
           <div class="fa">
             <button class="bp" onclick="saveInsp()">💾 Salvar</button>
             <button class="bs" onclick="clearInsp()">Cancelar</button>
+          </div>
+        </div>
+        <!-- ADICIONAIS (grupos reutilizáveis de opcionais) -->
+        <div id="at-opcionais" style="display:none">
+          <p style="font-size:.73rem;color:#888;margin-bottom:8px;">Cadastre grupos de opções (ex: "Adicionais", "Cartão", "Presente Cortesia") aqui uma vez e depois marque em cada produto quais grupos ele aceita.</p>
+          <div id="opAdmList" style="margin-bottom:14px;"></div>
+          <input type="hidden" id="opEditId">
+          <div class="fl"><label>Nome do grupo *</label><input type="text" id="opNome" placeholder="Ex: Adicionais, Cartão Personalizado, Presente Cortesia"></div>
+          <div class="fl">
+            <label>Tipo de escolha</label>
+            <select id="opTipo" onchange="atualizarCampoMaxOp()">
+              <option value="obrigatorio">🔴 Obrigatório — cliente tem que escolher 1</option>
+              <option value="opcional">⚪ Opcional — cliente pode escolher 1 ou pular</option>
+              <option value="multipla">☑️ Múltipla escolha — cliente marca vários</option>
+            </select>
+          </div>
+          <div class="fl" id="opMaxWrap" style="display:none;"><label>Máximo de opções que pode marcar</label><input type="number" id="opMax" min="1" value="10"></div>
+          <div class="fl">
+            <label>Opções deste grupo</label>
+            <div id="opItensList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;"></div>
+            <div style="display:flex;gap:6px;">
+              <input type="text" id="opItemNome" placeholder="Nome (ex: Ferrero T3)" style="flex:2;padding:8px 11px;border:1px solid #ddd;border-radius:8px;font-size:0.85rem;">
+              <input type="number" id="opItemPreco" placeholder="+R$" step="0.01" style="flex:1;padding:8px 11px;border:1px solid #ddd;border-radius:8px;font-size:0.85rem;">
+              <button type="button" class="bs" onclick="addItemOpcional()">+ Add</button>
+            </div>
+          </div>
+          <div class="fa">
+            <button class="bp" onclick="saveGrupoOpcional()">💾 Salvar grupo</button>
+            <button class="bs" onclick="clearGrupoOpcional()">Cancelar</button>
           </div>
         </div>
         <!-- PERFIL -->
@@ -716,6 +797,13 @@ Faça sua encomenda abaixo 👇</div>
   <span class="cart-float-count" id="cartFloatCount" style="display:none">0</span>
 </button>
 <div class="toast" id="toast"></div>
+<div class="sel-bar" id="selBar">
+  <span class="sel-bar-count" id="selBarCount">0 selecionados</span>
+  <div class="sel-bar-actions">
+    <button class="sel-bar-btn sel-bar-cancel" onclick="toggleModoSelecao()">Cancelar</button>
+    <button class="sel-bar-btn sel-bar-send" onclick="enviarSelecionados()">📤 Enviar no WhatsApp</button>
+  </div>
+</div>
 
 <script>
 var WA='5549998058794';
@@ -746,6 +834,7 @@ function defHls(){return[
 
 var prods=ld('manu_p',null)||defProds();
 var hls=ld('manu_hls',null)||defHls();
+var gruposOpcionais = ld('manu_op', []) || [];
 var stories=ld('manu_st',[])||[];
 var cart={},cartMeta={},entrega='comb',feedTab='feed';
 var catAtual='todos';
@@ -962,7 +1051,10 @@ function render(){
       var img=p.img?'<img src="'+p.img+'" alt="" loading="lazy" style="object-fit:cover;object-position:center '+posySafe(p.posy)+'%;">':'<div class="cell-fallback"><span style="font-size:2.5rem">🌸</span></div>';
       var esg=p.status==='esgotado'?'<div class="cell-esg">ESGOTADO</div>':'';
       var cod=p.cod?'<div class="cell-cod">#'+p.cod+'</div>':'';
-      return '<div class="feed-cell" onclick="openProd('+p.id+')">'+img+'<div class="cell-overlay"></div>'+esg+cod+'</div>';
+      var sel = produtosSelecionados.indexOf(p.id)>-1;
+      var check = modoSelecao ? '<div class="sel-check'+(sel?' on':'')+'">✓</div>' : '';
+      var clique = modoSelecao ? 'toggleSelecionarProduto('+p.id+')' : 'openProd('+p.id+')';
+      return '<div class="feed-cell" onclick="'+clique+'">'+check+img+'<div class="cell-overlay"></div>'+esg+cod+'</div>';
     }).join('');
     el.innerHTML='<div class="feed-grid">'+cells+'</div>';
   } else {
@@ -971,8 +1063,11 @@ function render(){
       var img=p.img?'<img src="'+p.img+'" alt="" loading="lazy" style="width:90px;height:90px;object-fit:cover;border-radius:10px;flex-shrink:0;">':'<div style="width:90px;height:90px;background:#f0f0f0;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:2rem;flex-shrink:0;">🌸</div>';
       var esg=p.status==='esgotado'?'<span style="background:#fde8e8;color:#c0392b;font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:20px;margin-left:6px;">ESGOTADO</span>':'';
       var qty=totalQtyProduto(p.id);
+      var sel = produtosSelecionados.indexOf(p.id)>-1;
+      var check = modoSelecao ? '<div style="width:24px;height:24px;border-radius:50%;border:2px solid '+(sel?'#111':'#ccc')+';background:'+(sel?'#111':'#fff')+';color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:900;flex-shrink:0;align-self:center;">'+(sel?'✓':'')+'</div>' : '';
       var btn=p.status==='esgotado'?'<button style="padding:6px 14px;border-radius:50px;border:1px solid #ddd;background:#f5f5f5;font-size:0.78rem;font-weight:600;color:#999;" disabled>Esgotado</button>':'<button style="padding:6px 14px;border-radius:50px;border:none;background:#111;color:#fff;font-size:0.78rem;font-weight:600;cursor:pointer;"'+(qty>0?' style="background:#25a244"':'')+' onclick="openProd('+p.id+')">'+( qty>0?'✓ OK':'Adicionar')+'</button>';
-      return '<div style="display:flex;gap:12px;padding:12px 14px;border-bottom:1px solid #f0f0f0;background:#fff;cursor:pointer;" onclick="openProd('+p.id+')">'+img+'<div style="flex:1;padding-top:2px;"><div style="font-size:0.7rem;color:#888;margin-bottom:2px;">'+(p.cat||'')+(p.cod?' · #'+p.cod:'')+'</div><div style="font-weight:600;font-size:0.9rem;margin-bottom:3px;">'+p.nome+esg+'</div>'+(p.tam?'<div style="font-size:0.72rem;color:#666;margin-bottom:4px;">'+p.tam+'</div>':'')+'<div style="font-weight:700;font-size:0.95rem;margin-bottom:8px;">R$ '+p.preco.toFixed(2).replace('.',',')+'</div>'+btn+'</div></div>';
+      var clique = modoSelecao ? 'toggleSelecionarProduto('+p.id+')' : 'openProd('+p.id+')';
+      return '<div style="display:flex;gap:12px;padding:12px 14px;border-bottom:1px solid #f0f0f0;background:#fff;cursor:pointer;" onclick="'+clique+'">'+check+img+'<div style="flex:1;padding-top:2px;"><div style="font-size:0.7rem;color:#888;margin-bottom:2px;">'+(p.cat||'')+(p.cod?' · #'+p.cod:'')+'</div><div style="font-weight:600;font-size:0.9rem;margin-bottom:3px;">'+p.nome+esg+'</div>'+(p.tam?'<div style="font-size:0.72rem;color:#666;margin-bottom:4px;">'+p.tam+'</div>':'')+'<div style="font-weight:700;font-size:0.95rem;margin-bottom:8px;">R$ '+p.preco.toFixed(2).replace('.',',')+'</div>'+(modoSelecao?'':btn)+'</div></div>';
     }).join('');
     el.innerHTML='<div>'+cards+'</div>';
   }
@@ -1003,18 +1098,69 @@ function openProd(id){
   document.getElementById('modalProd').classList.add('open');
 }
 function closeProd(){document.getElementById('modalProd').classList.remove('open');}
+
+// Arrastar a alcinha pra baixo fecha o produto, igual gesto nativo de bottom sheet
+(function initDragToClose(){
+  var handle = document.getElementById('prodDragHandle');
+  var painel = document.getElementById('modalProdInner');
+  if(!handle || !painel) return;
+  var startY=0, atualY=0, arrastando=false;
+  handle.addEventListener('touchstart', function(e){
+    startY = e.touches[0].clientY;
+    atualY = 0;
+    arrastando = true;
+    painel.style.transition = 'none';
+  }, {passive:true});
+  handle.addEventListener('touchmove', function(e){
+    if(!arrastando) return;
+    atualY = Math.max(0, e.touches[0].clientY - startY);
+    painel.style.transform = 'translateY('+atualY+'px)';
+  }, {passive:true});
+  handle.addEventListener('touchend', function(){
+    if(!arrastando) return;
+    arrastando = false;
+    painel.style.transition = '';
+    painel.style.transform = '';
+    if(atualY > 110){ closeProd(); }
+  });
+})();
 function mpQty(d){curProdQty=Math.max(1,curProdQty+d);document.getElementById('mpQty').textContent=curProdQty;}
+function chaveOpcionaisAtual(){
+  var partes = [];
+  Object.keys(curOpcionaisSelecionados).sort().forEach(function(gid){
+    var sel = curOpcionaisSelecionados[gid];
+    if(Array.isArray(sel)){ sel.map(function(x){return x.idx;}).sort(function(a,b){return a-b;}).forEach(function(idx){ partes.push(gid+':'+idx); }); }
+    else { partes.push(gid+':'+sel.idx); }
+  });
+  if(curObservacao) partes.push('obs:'+curObservacao);
+  return partes.join('|');
+}
+function listaOpcionaisSelecionados(){
+  var lista = [];
+  Object.keys(curOpcionaisSelecionados).forEach(function(gid){
+    var sel = curOpcionaisSelecionados[gid];
+    if(Array.isArray(sel)){ sel.forEach(function(x){ lista.push({nome:x.nome, preco:x.preco}); }); }
+    else if(sel){ lista.push({nome:sel.nome, preco:sel.preco}); }
+  });
+  return lista;
+}
 function mpAdd(){
   if(!curProd||curProd.status==='esgotado')return;
   if(curVariant && curVariant.esgotado){ toast('Essa variação está esgotada 😕'); return; }
+  var faltando = opcionaisObrigatoriosFaltando(curProd);
+  if(faltando.length){ toast('⚠️ Escolha: '+faltando.join(', ')); return; }
   var cod = curVariant ? curVariant.cod : curProd.cod;
-  var preco = curVariant ? curVariant.preco : curProd.preco;
+  var precoBase = curVariant ? curVariant.preco : curProd.preco;
+  var opcionaisEscolhidos = listaOpcionaisSelecionados();
+  var extra = calcularExtraOpcionais();
+  var preco = precoBase + extra;
   var nomeExibido = (curVariant && curVariant.nome) ? curVariant.nome : curProd.nome;
   var diferenca = (curVariant && curVariant.diferenca) ? curVariant.diferenca : '';
   var img = (curVariant && carouselMedia[curVariant.idx] && carouselMedia[curVariant.idx].data) || curProd.img;
-  var key = cartKey(curProd.id, cod);
+  var sufixoOpc = chaveOpcionaisAtual();
+  var key = cartKey(curProd.id, cod) + (sufixoOpc ? ('::'+sufixoOpc) : '');
   cart[key]=curProdQty;
-  cartMeta[key]={pid:curProd.id, nome:nomeExibido, diferenca:diferenca, tam:curProd.tam, img:img, cod:cod, preco:preco};
+  cartMeta[key]={pid:curProd.id, nome:nomeExibido, diferenca:diferenca, tam:curProd.tam, img:img, cod:cod, preco:preco, opcionais:opcionaisEscolhidos, obs:curObservacao};
   updateCart();render();
   document.getElementById('mpAddBtn').textContent='✓ Adicionado';
   document.getElementById('mpAddBtn').className='mprod-badd ok';
@@ -1036,6 +1182,14 @@ function updateCart(){
 
   var count=Object.values(cart).reduce(function(a,b){return a+b;},0);
   document.getElementById('cartTotal').textContent=count+(count===1?' item':' itens');
+  var valorTotal=0;
+  Object.entries(cart).forEach(function(e){
+    if(e[1]<=0) return;
+    var meta=cartMeta[e[0]];
+    if(meta && meta.preco!=null) valorTotal += meta.preco*e[1];
+  });
+  var elVT = document.getElementById('cartValorTotal');
+  if(elVT) elVT.textContent = 'R$ '+valorTotal.toFixed(2).replace('.',',');
   document.getElementById('btnWA').disabled=count===0;
   renderCart();
 }
@@ -1051,7 +1205,9 @@ function renderCart(){
       meta={pid:p.id,nome:p.nome,tam:p.tam,img:p.img,cod:p.cod,preco:p.preco};
     }
     var qty=e[1];
-    return '<div class="ci"><div class="cith">'+(meta.img?'<img src="'+meta.img+'" alt="">':'🌸')+'</div><div class="ciin"><div class="cinm">'+(meta.cod?'#'+meta.cod+' · ':'')+meta.nome+'</div>'+(meta.diferenca?'<div class="cisz">✨ '+meta.diferenca+'</div>':'')+(meta.tam?'<div class="cisz">'+meta.tam+'</div>':'')+'<div class="cipr">R$ '+meta.preco.toFixed(2).replace('.',',')+'</div><div class="cict"><button class="ciqb" onclick="chQty(\''+key+'\',-1)">-</button><span class="ciq">'+qty+'</span><button class="ciqb" onclick="chQty(\''+key+'\',1)">+</button></div></div><button class="cirm" onclick="rmItem(\''+key+'\')">✕</button></div>';
+    var opcTxt = (meta.opcionais&&meta.opcionais.length) ? '<div class="cisz">🎁 '+meta.opcionais.map(function(o){return o.nome;}).join(', ')+'</div>' : '';
+    var obsTxt = meta.obs ? '<div class="cisz">📝 '+meta.obs+'</div>' : '';
+    return '<div class="ci"><div class="cith">'+(meta.img?'<img src="'+meta.img+'" alt="">':'🌸')+'</div><div class="ciin"><div class="cinm">'+(meta.cod?'#'+meta.cod+' · ':'')+meta.nome+'</div>'+(meta.diferenca?'<div class="cisz">✨ '+meta.diferenca+'</div>':'')+(meta.tam?'<div class="cisz">'+meta.tam+'</div>':'')+opcTxt+obsTxt+'<div class="cipr">R$ '+meta.preco.toFixed(2).replace('.',',')+'</div><div class="cict"><button class="ciqb" onclick="chQty(\''+key+'\',-1)">-</button><span class="ciq">'+qty+'</span><button class="ciqb" onclick="chQty(\''+key+'\',1)">+</button></div></div><button class="cirm" onclick="rmItem(\''+key+'\')">✕</button></div>';
   }).join('');
 }
 function chQty(key,d){var n=Math.max(0,(cart[key]||0)+d);if(n===0)delete cart[key];else cart[key]=n;updateCart();}
@@ -1064,6 +1220,7 @@ function sendWA(){
   if(!items.length)return;
   var n=String.fromCharCode(10);
   var msg=(items.length===1?msgAbertura1:msgAbertura2)+n+n;
+  var totalGeral=0;
   items.forEach(function(e){
     var key=e[0];
     var meta=cartMeta[key];
@@ -1073,12 +1230,61 @@ function sendWA(){
     var dif=meta.diferenca?' ['+meta.diferenca+']':'';
     var cod=meta.cod?'[#'+meta.cod+'] ':'';
     var pr='R$ '+meta.preco.toFixed(2).replace('.',',');
+    totalGeral += meta.preco*qty;
     msg+='- '+cod+meta.nome+dif+tam+(qty>1?' x'+qty:'')+' - '+pr+(qty>1?' cada':'')+n;
+    if(meta.opcionais && meta.opcionais.length){ msg+='  🎁 '+meta.opcionais.map(function(o){return o.nome;}).join(', ')+n; }
+    if(meta.obs){ msg+='  📝 '+meta.obs+n; }
     if(meta.cod) msg+=produtoLink(meta.cod)+n;
   });
+  msg+=n+'💰 Total estimado: R$ '+totalGeral.toFixed(2).replace('.',',')+n;
   msg+=n+(entrega==='ent'?msgPreferencia+': Entrega':entrega==='ret'?msgPreferencia+': Retirada':msgPreferencia+': Combinar depois')+n;
   msg+=n+msgFechamento;
   window.open('https://wa.me/'+WA+'?text='+encodeURIComponent(msg),'_blank');
+}
+
+// ===== SELEÇÃO MÚLTIPLA (enviar várias opções pro cliente de uma vez) =====
+var modoSelecao = false;
+var produtosSelecionados = [];
+
+function toggleModoSelecao(){
+  modoSelecao = !modoSelecao;
+  if(!modoSelecao) produtosSelecionados = [];
+  document.getElementById('selBtn').classList.toggle('active', modoSelecao);
+  document.getElementById('selBtn').textContent = modoSelecao ? '✕ Cancelar' : '☑️ Selecionar';
+  atualizarBarraSelecao();
+  render();
+}
+
+function toggleSelecionarProduto(id){
+  var idx = produtosSelecionados.indexOf(id);
+  if(idx>-1) produtosSelecionados.splice(idx,1);
+  else produtosSelecionados.push(id);
+  atualizarBarraSelecao();
+  render();
+}
+
+function atualizarBarraSelecao(){
+  var bar = document.getElementById('selBar');
+  var n = produtosSelecionados.length;
+  bar.classList.toggle('show', modoSelecao && n>0);
+  document.getElementById('selBarCount').textContent = n + (n===1?' selecionado':' selecionados');
+}
+
+function enviarSelecionados(){
+  if(!produtosSelecionados.length) return;
+  var itens = prods.filter(function(p){return produtosSelecionados.indexOf(p.id)>-1;});
+  var msg = 'Separei essas opções pra você:\n\n';
+  itens.forEach(function(p,i){
+    var cod = p.cod || '';
+    msg += (i+1)+'. *'+p.nome+'* — R$ '+p.preco.toFixed(2).replace('.',',')+'\n';
+    msg += (cod ? produtoLink(cod) : location.origin) + '\n\n';
+  });
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(msg).then(function(){ toast('📋 Mensagem copiada! Cole no WhatsApp do cliente.'); }).catch(function(){});
+  }
+  // Abre o WhatsApp já com a mensagem pronta — a pessoa escolhe pra quem enviar
+  window.open('https://wa.me/?text='+encodeURIComponent(msg), '_blank');
+  toggleModoSelecao();
 }
 
 // Monta o link individual do produto (gera preview com foto no WhatsApp)
@@ -1139,7 +1345,7 @@ async function uploadMedias(prodId, mediasBase64){
     var dataParaEnviar = m.data;
     var dataOriginalParaEnviar = m.data;
     if(m.type!=='video'){
-      dataParaEnviar = await assarFotoCortada(m.data, 50, 100, 1080, 1350);
+      dataParaEnviar = await assarFotoCortada(m.data, (m.posy!=null?m.posy:50), (m.zoom!=null?m.zoom:100), 1080, 1350);
     }
     // Upload base64 para Storage (foto final)
     var url = await uploadParaStorage(dataParaEnviar, 'prod_' + prodId + '_' + i);
@@ -1165,6 +1371,26 @@ async function sbCarregarInspiracoes(){
       order: r.order_num||i
     };
   });
+}
+
+async function sbCarregarGruposOpcionais(){
+  var rows = await sbFetch('/rest/v1/opcionais_grupos?order=order_num.asc&limit=200');
+  if(!rows) return null;
+  return rows.map(function(g,i){
+    return {
+      id: g.id_local || ('grp'+Date.now()+i),
+      nome: g.nome||'',
+      tipo: g.tipo||'opcional', // 'obrigatorio' | 'opcional' | 'multipla'
+      maxEscolhas: g.max_escolhas||null,
+      itens: g.itens||[] // [{nome, preco}]
+    };
+  });
+}
+
+async function sbSalvarGruposOpcionais(lista){
+  var res = await chamarAdmin('salvarGruposOpcionais', {grupos:lista||[]});
+  if(!res){ console.error('Erro ao salvar grupos de adicionais.'); return; }
+  console.log('Supabase: '+(lista?lista.length:0)+' grupos de adicionais salvos!');
 }
 
 async function sbCarregarDestaques(){
@@ -1258,7 +1484,7 @@ function showAT(t){
   if(t==='msg') setTimeout(carregarCamposMensagem, 50);
   if(t==='destaques') renderHlProdSelect([]);
   // Esconder todos os painéis explicitamente
-  var todos=['prods','novo','perfil','destaques','stories','msg','inspiracao'];
+  var todos=['prods','novo','perfil','destaques','stories','msg','inspiracao','opcionais'];
   todos.forEach(function(n){
     var el=document.getElementById('at-'+n);
     if(el) el.style.display='none';
@@ -1281,6 +1507,8 @@ function showAT(t){
   if(t==='novo'&&!editPId)clearProd();
   if(t==='novo')renderCatDatalist();
   if(t==='inspiracao')renderInspAdmList();
+  if(t==='opcionais'){clearGrupoOpcional();renderOpAdmList();}
+  if(t==='novo')renderPOpcionaisSelect();
 }
 
 // ADMIN PRODS
@@ -1331,6 +1559,23 @@ function handleImg(inp){
   };
   r.readAsDataURL(f);
 }
+// Foto opcional mostrada só quando o produto é aberto (sem cortar, foto inteira)
+function handleImgAbertura(inp){
+  var f=inp.files[0];if(!f)return;
+  var r=new FileReader();
+  r.onload=function(e){
+    comprimirImagem(e.target.result, 1600, 0.85).then(function(dataComprimido){
+      document.getElementById('imgAbData').value=dataComprimido;
+      document.getElementById('imgAbPrev').innerHTML='<img src="'+dataComprimido+'" style="width:100%;height:100%;object-fit:contain;background:#fff;">';
+    });
+  };
+  r.readAsDataURL(f);
+}
+function limparImgAbertura(){
+  document.getElementById('imgAbData').value='';
+  document.getElementById('imgAbFile').value='';
+  document.getElementById('imgAbPrev').innerHTML='<span>📷</span>';
+}
 function setStatus(s){document.getElementById('pStatus').value=s;['ativo','esgotado','escondido'].forEach(function(t){document.getElementById('st-'+t).classList.toggle('active',t===s);});}
 function saveProd(){
   var nome=document.getElementById('pNome').value.trim();
@@ -1346,6 +1591,196 @@ function saveProd(){
   toast(editPId?'Produto atualizado!':'Produto adicionado!');editPId=null;
 }
 function clearProd(){editPId=null;['editId','pNome','pDesc','pPreco','pCat','pTam','pCod','imgData'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('imgPrev').innerHTML='<span>📷</span>';setStatus('ativo');}
+
+// ADMIN OPCIONAIS (grupos de adicionais reutilizáveis)
+var editOpId=null, opItensAtual=[];
+
+function atualizarCampoMaxOp(){
+  var tipo = document.getElementById('opTipo').value;
+  document.getElementById('opMaxWrap').style.display = (tipo==='multipla') ? 'block' : 'none';
+}
+
+function renderOpItens(){
+  var el = document.getElementById('opItensList');
+  if(!opItensAtual.length){ el.innerHTML='<p class="ih">Nenhuma opção ainda.</p>'; return; }
+  el.innerHTML = opItensAtual.map(function(it,i){
+    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid #eee;border-radius:8px;background:#fafafa;">'+
+      '<span style="flex:1;font-size:0.82rem;">'+it.nome+'</span>'+
+      '<span style="font-size:0.8rem;font-weight:600;color:#666;">+R$ '+parseFloat(it.preco||0).toFixed(2).replace('.',',')+'</span>'+
+      '<button type="button" class="bd" onclick="delItemOpcional('+i+')">✕</button>'+
+      '</div>';
+  }).join('');
+}
+function addItemOpcional(){
+  var nome = document.getElementById('opItemNome').value.trim();
+  var preco = parseFloat(document.getElementById('opItemPreco').value)||0;
+  if(!nome){ alert('Informe o nome da opção.'); return; }
+  opItensAtual.push({nome:nome, preco:preco});
+  document.getElementById('opItemNome').value='';
+  document.getElementById('opItemPreco').value='';
+  renderOpItens();
+}
+function delItemOpcional(i){ opItensAtual.splice(i,1); renderOpItens(); }
+
+function renderOpAdmList(){
+  var el = document.getElementById('opAdmList');
+  if(!el) return;
+  if(!gruposOpcionais.length){ el.innerHTML='<p style="font-size:.79rem;color:#888">Nenhum grupo cadastrado.</p>'; return; }
+  var rotulos = {obrigatorio:'🔴 Obrigatório', opcional:'⚪ Opcional', multipla:'☑️ Múltipla'};
+  el.innerHTML = gruposOpcionais.map(function(g){
+    return '<div class="ait" style="cursor:default;">'+
+      '<div class="aiin"><div class="ainm">'+g.nome+'</div><div class="aisb">'+(rotulos[g.tipo]||g.tipo)+' · '+(g.itens||[]).length+' opções</div></div>'+
+      '<div class="aiact"><button class="be" onclick="editGrupoOpcional(\''+g.id+'\')">Editar</button><button class="bd" onclick="deletarGrupoOpcional(\''+g.id+'\')">Excluir</button></div>'+
+      '</div>';
+  }).join('');
+}
+
+function editGrupoOpcional(id){
+  var g = gruposOpcionais.find(function(x){return x.id===id;});
+  if(!g) return;
+  editOpId=id;
+  document.getElementById('opEditId').value=id;
+  document.getElementById('opNome').value=g.nome;
+  document.getElementById('opTipo').value=g.tipo||'opcional';
+  document.getElementById('opMax').value=g.maxEscolhas||10;
+  atualizarCampoMaxOp();
+  opItensAtual = (g.itens||[]).slice();
+  renderOpItens();
+}
+
+function saveGrupoOpcional(){
+  var nome = document.getElementById('opNome').value.trim();
+  if(!nome){ alert('Informe o nome do grupo.'); return; }
+  if(!opItensAtual.length){ alert('Adicione ao menos uma opção nesse grupo.'); return; }
+  var tipo = document.getElementById('opTipo').value;
+  var g = {
+    id: editOpId || ('grp'+Date.now()),
+    nome: nome,
+    tipo: tipo,
+    maxEscolhas: tipo==='multipla' ? (parseInt(document.getElementById('opMax').value,10)||10) : null,
+    itens: opItensAtual.slice()
+  };
+  if(editOpId){ var i=gruposOpcionais.findIndex(function(x){return x.id===editOpId;}); if(i>=0) gruposOpcionais[i]=g; }
+  else gruposOpcionais.push(g);
+  try{ localStorage.setItem('manu_op', JSON.stringify(gruposOpcionais)); }catch(e){}
+  sbSalvarGruposOpcionais(gruposOpcionais);
+  renderOpAdmList();
+  renderPOpcionaisSelect();
+  clearGrupoOpcional();
+  toast('🎁 Grupo de adicionais salvo!');
+}
+
+function deletarGrupoOpcional(id){
+  if(!confirm('Excluir esse grupo de adicionais? Isso vai tirar ele de todos os produtos que o usam.')) return;
+  gruposOpcionais = gruposOpcionais.filter(function(x){return x.id!==id;});
+  try{ localStorage.setItem('manu_op', JSON.stringify(gruposOpcionais)); }catch(e){}
+  sbSalvarGruposOpcionais(gruposOpcionais);
+  renderOpAdmList();
+  renderPOpcionaisSelect();
+}
+
+function clearGrupoOpcional(){
+  editOpId=null;
+  document.getElementById('opEditId').value='';
+  document.getElementById('opNome').value='';
+  document.getElementById('opTipo').value='obrigatorio';
+  document.getElementById('opMax').value=10;
+  atualizarCampoMaxOp();
+  opItensAtual=[];
+  renderOpItens();
+}
+
+// Checkboxes no formulário do produto pra marcar quais grupos ele aceita
+function renderPOpcionaisSelect(){
+  var el = document.getElementById('pOpcionaisSelect');
+  if(!el) return;
+  if(!gruposOpcionais.length){ el.innerHTML='<p class="ih">Nenhum grupo cadastrado ainda. Crie em "🎁 Adicionais".</p>'; return; }
+  var atuais = (prods.find(function(x){return x.id===editPId;})||{}).gruposOpcionais || [];
+  el.innerHTML = gruposOpcionais.map(function(g){
+    var marcado = atuais.indexOf(g.id)>-1;
+    return '<label style="display:flex;align-items:center;gap:8px;padding:6px 2px;font-size:0.82rem;cursor:pointer;border-bottom:1px solid #f5f5f5;">'+
+      '<input type="checkbox" class="pOpcCheck" value="'+g.id+'" '+(marcado?'checked':'')+' style="width:16px;height:16px;flex-shrink:0;">'+
+      '<span>'+g.nome+'</span></label>';
+  }).join('');
+}
+
+// ===== ADICIONAIS NA TELA DO PRODUTO =====
+var curOpcionaisSelecionados = {}; // { grupoId: {nome,preco} | [{nome,preco},...] }
+var curObservacao = '';
+
+function renderOpcionaisProduto(p){
+  var el = document.getElementById('mpOpcionais');
+  if(!el) return;
+  curOpcionaisSelecionados = {};
+  curObservacao = '';
+  var ids = p.gruposOpcionais || [];
+  var grupos = ids.map(function(gid){ return gruposOpcionais.find(function(g){return g.id===gid;}); }).filter(Boolean);
+  if(!grupos.length){ el.innerHTML=''; return; }
+  el.innerHTML = grupos.map(function(g){
+    var tagCls = g.tipo==='obrigatorio'?'obg':(g.tipo==='multipla'?'mult':'opc');
+    var tagTxt = g.tipo==='obrigatorio'?'Obrigatório · escolha 1':(g.tipo==='multipla'?('Escolha até '+(g.maxEscolhas||10)):'Opcional');
+    var itens = (g.itens||[]).map(function(it,idx){
+      return '<div class="op-item" id="opit-'+g.id+'-'+idx+'" onclick="selecionarOpcao(\''+g.id+'\','+idx+',\''+g.tipo+'\')">'+
+        '<span class="op-item-nome">'+it.nome+'</span>'+
+        '<span class="op-item-preco">+R$ '+parseFloat(it.preco||0).toFixed(2).replace('.',',')+'</span>'+
+        '</div>';
+    }).join('');
+    return '<div class="op-grupo" data-grupo="'+g.id+'" data-tipo="'+g.tipo+'">'+
+      '<div class="op-grupo-head"><span class="op-grupo-nome">'+g.nome+'</span><span class="op-grupo-tag '+tagCls+'">'+tagTxt+'</span></div>'+
+      itens+
+      '</div>';
+  }).join('') + '<div class="op-grupo op-obs"><div class="op-grupo-head"><span class="op-grupo-nome">📝 Alguma observação?</span></div><textarea maxlength="140" placeholder="Ex: entregar até 14h, cor específica..." oninput="curObservacao=this.value"></textarea></div>';
+}
+
+function selecionarOpcao(grupoId, idx, tipo){
+  var g = gruposOpcionais.find(function(x){return x.id===grupoId;});
+  if(!g) return;
+  var item = (g.itens||[])[idx];
+  if(!item) return;
+  if(tipo==='multipla'){
+    var atual = curOpcionaisSelecionados[grupoId] || [];
+    var pos = atual.findIndex(function(x){return x.idx===idx;});
+    if(pos>-1){
+      atual.splice(pos,1);
+    } else {
+      var max = g.maxEscolhas||10;
+      if(atual.length>=max){ toast('Máximo de '+max+' opções nesse grupo'); return; }
+      atual.push({nome:item.nome, preco:item.preco, idx:idx});
+    }
+    curOpcionaisSelecionados[grupoId] = atual;
+  } else {
+    // obrigatório ou opcional: só 1, clicar de novo desmarca (só se for opcional)
+    var jaSelecionado = curOpcionaisSelecionados[grupoId] && curOpcionaisSelecionados[grupoId].idx===idx;
+    if(jaSelecionado && tipo==='opcional'){
+      delete curOpcionaisSelecionados[grupoId];
+    } else {
+      curOpcionaisSelecionados[grupoId] = {nome:item.nome, preco:item.preco, idx:idx};
+    }
+  }
+  // Atualiza visual dos itens desse grupo
+  var g_el = document.querySelector('.op-grupo[data-grupo="'+grupoId+'"]');
+  if(g_el){
+    (g.itens||[]).forEach(function(it,i){
+      var elIt = document.getElementById('opit-'+grupoId+'-'+i);
+      if(!elIt) return;
+      var sel = curOpcionaisSelecionados[grupoId];
+      var ativo = Array.isArray(sel) ? sel.some(function(x){return x.idx===i;}) : (sel && sel.idx===i);
+      elIt.classList.toggle('on', !!ativo);
+    });
+  }
+  atualizarPrecoVariante();
+}
+
+// Confere se todos os grupos obrigatórios do produto atual foram preenchidos
+function opcionaisObrigatoriosFaltando(p){
+  var ids = p.gruposOpcionais || [];
+  var faltando = [];
+  ids.forEach(function(gid){
+    var g = gruposOpcionais.find(function(x){return x.id===gid;});
+    if(g && g.tipo==='obrigatorio' && !curOpcionaisSelecionados[gid]) faltando.push(g.nome);
+  });
+  return faltando;
+}
 
 // ADMIN DESTAQUES
 function renderHlAdm(){
@@ -1678,7 +2113,7 @@ function assarFotoCortada(dataUrl, posY, zoom, outW, outH){
       var canvas = document.createElement('canvas');
       canvas.width = outW; canvas.height = outH;
       var ctx = canvas.getContext('2d');
-      ctx.fillStyle = '#f5f5f5';
+      ctx.fillStyle = '#ffffff';
       ctx.fillRect(0,0,outW,outH);
       ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
       resolve(canvas.toDataURL('image/jpeg', 0.85));
@@ -1742,7 +2177,8 @@ function renderExtraMediaGrid(){
   if(!el) return;
   el.innerHTML = extraMedias.map(function(m,i){
     if(m.tipo==='ref'){
-      var pRef = prods.find(function(x){return x.cod===m.cod;});
+      var codRefAdm = (m.cod||'').trim().toLowerCase();
+      var pRef = prods.find(function(x){return (x.cod||'').trim().toLowerCase()===codRefAdm;});
       var thumb = pRef && pRef.img ? '<img src="'+pRef.img+'">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:1.8rem;">🌸</div>';
       var legenda = pRef ? ('#'+pRef.cod+' · '+pRef.nome) : ('#'+m.cod+' (produto não encontrado)');
       return '<div class="extra-media-item" style="display:flex;flex-direction:column;">'+
@@ -1754,7 +2190,14 @@ function renderExtraMediaGrid(){
     }
     var tag = m.type==='video'
       ? '<video src="'+m.data+'" style="width:100%;height:100%;object-fit:cover" muted></video>'
-      : '<img src="'+m.data+'">';
+      : '<img src="'+m.data+'" style="object-position:center '+(m.posy!=null?m.posy:50)+'%;transform:scale('+((m.zoom!=null?m.zoom:100)/100)+');transform-origin:center '+(m.posy!=null?m.posy:50)+'%;">';
+    var ajusteFoto = m.type==='video' ? '' :
+      '<div style="margin-top:4px;">'+
+      '<label style="font-size:0.6rem;color:#888;display:block;">↕️ Posição</label>'+
+      '<input type="range" min="0" max="100" value="'+(m.posy!=null?m.posy:50)+'" oninput="ajustarExtraPosY('+i+',this.value)" style="width:100%;height:14px;">'+
+      '<label style="font-size:0.6rem;color:#888;display:block;">🔍 Zoom</label>'+
+      '<input type="range" min="50" max="220" value="'+(m.zoom!=null?m.zoom:100)+'" oninput="ajustarExtraZoom('+i+',this.value)" style="width:100%;height:14px;">'+
+      '</div>';
     var variante = m.type==='video' ? '' :
       '<div style="display:flex;gap:4px;margin-top:4px;align-items:center;">'+
       '<input placeholder="Cód." value="'+(m.cod||'')+'" oninput="setMediaVar('+i+',\'cod\',this.value)" onblur="formatarCodVariante('+i+',this)" maxlength="5" style="width:54px;font-size:0.68rem;padding:3px 4px;border:1px solid #ddd;border-radius:6px;">'+
@@ -1765,9 +2208,26 @@ function renderExtraMediaGrid(){
       '<label style="display:flex;align-items:center;gap:3px;font-size:0.65rem;margin-top:3px;color:#c0392b;"><input type="checkbox" '+(m.esgotado?'checked':'')+' onchange="setMediaVar('+i+',\'esgotado\',this.checked)" style="width:12px;height:12px;">Esgotado</label>';
     return '<div class="extra-media-item" style="display:flex;flex-direction:column;">'+
       '<div class="extra-media-thumb">'+tag+'<button class="extra-media-del" onclick="delExtraMedia('+i+')">×</button></div>'+
+      ajusteFoto+
       variante+
       '</div>';
   }).join('');
+}
+
+// Ajusta posição/zoom de uma foto extra específica, atualizando a prévia sem re-renderizar a grade inteira (evita perder o foco do slider)
+function ajustarExtraPosY(i, valor){
+  if(!extraMedias[i]) return;
+  extraMedias[i].posy = parseInt(valor,10);
+  var grid = document.getElementById('extraMediaGrid');
+  var img = grid && grid.children[i] && grid.children[i].querySelector('img');
+  if(img){ img.style.objectPosition = 'center '+valor+'%'; img.style.transformOrigin = 'center '+valor+'%'; }
+}
+function ajustarExtraZoom(i, valor){
+  if(!extraMedias[i]) return;
+  extraMedias[i].zoom = parseInt(valor,10);
+  var grid = document.getElementById('extraMediaGrid');
+  var img = grid && grid.children[i] && grid.children[i].querySelector('img');
+  if(img){ img.style.transform = 'scale('+(valor/100)+')'; }
 }
 
 // Define o código ou preço de variação de uma foto específica da galeria
@@ -1832,9 +2292,10 @@ function confirmarVincularProduto(){
 function buildCarousel(prod){
   carouselMedia = [];
 
-  // Foto principal (variação base do produto)
-  var mainImg = prod.img || prod.imgUrl || '';
-  if(mainImg) carouselMedia.push({type:'image', data:mainImg, cod:prod.cod||'', preco:prod.preco});
+  // Foto principal ao abrir o produto (usa a "foto de abertura" se existir; senão, a capa)
+  var mainImg = prod.imgAbertura || prod.img || prod.imgUrl || '';
+  var mainFit = prod.imgAbertura ? 'contain' : 'cover';
+  if(mainImg) carouselMedia.push({type:'image', data:mainImg, fit:mainFit, cod:prod.cod||'', preco:prod.preco});
   else carouselMedia.push({type:'placeholder', cod:prod.cod||'', preco:prod.preco});
 
   // Buscar medias: do produto ou do localStorage
@@ -1852,12 +2313,15 @@ function buildCarousel(prod){
     if(!m) return;
     // Produto vinculado: busca os dados reais do produto referenciado
     if(m.tipo==='ref'){
-      var pRef = prods.find(function(x){return x.cod===m.cod;});
-      if(pRef && pRef.img){
+      var codRef = (m.cod||'').trim().toLowerCase();
+      var pRef = prods.find(function(x){return (x.cod||'').trim().toLowerCase()===codRef;});
+      if(pRef){
         carouselMedia.push({
-          type:'image', data:pRef.img, cod:pRef.cod, preco:pRef.preco,
+          type: pRef.img ? 'image' : 'placeholder', data:pRef.img||'', cod:pRef.cod, preco:pRef.preco,
           esgotado: pRef.status==='esgotado', nome:pRef.nome, diferenca:pRef.desc||''
         });
+      } else {
+        console.warn('[Vinculação] Produto #'+m.cod+' vinculado não foi encontrado na lista de produtos.');
       }
       return;
     }
@@ -1960,8 +2424,19 @@ function destacarVariante(){
   });
 }
 
+function calcularExtraOpcionais(){
+  var extra = 0;
+  Object.keys(curOpcionaisSelecionados).forEach(function(gid){
+    var sel = curOpcionaisSelecionados[gid];
+    if(!sel) return;
+    if(Array.isArray(sel)){ sel.forEach(function(it){ extra += parseFloat(it.preco)||0; }); }
+    else { extra += parseFloat(sel.preco)||0; }
+  });
+  return extra;
+}
 function atualizarPrecoVariante(){
   var preco = curVariant ? curVariant.preco : (curProd?curProd.preco:0);
+  preco += calcularExtraOpcionais();
   var el = document.getElementById('mpPreco');
   if(el) el.textContent = 'R$ '+preco.toFixed(2).replace('.',',');
 }
@@ -1970,20 +2445,76 @@ function initSwipe(){
   var el=document.getElementById('carouselTrack');
   if(!el||el._swipe) return;
   el._swipe=true;
-  var startX=0, startY=0;
+  var startX=0, startY=0, deltaX=0, largura=0, arrastando=false, travouEixo=null;
   el.addEventListener('touchstart',function(e){
+    if(carouselMedia.length<2) return;
     startX=e.touches[0].clientX;
     startY=e.touches[0].clientY;
+    deltaX=0;
+    travouEixo=null;
+    largura = el.getBoundingClientRect().width;
+    arrastando=true;
+    el.style.transition='none';
   },{passive:true});
-  el.addEventListener('touchend',function(e){
-    var dx=e.changedTouches[0].clientX-startX;
-    var dy=e.changedTouches[0].clientY-startY;
-    // Só desliza se movimento horizontal maior que vertical
-    if(Math.abs(dx)>40 && Math.abs(dx)>Math.abs(dy)){
-      if(dx<0) carouselNav(1);
-      else carouselNav(-1);
+  el.addEventListener('touchmove',function(e){
+    if(!arrastando) return;
+    var dx=e.touches[0].clientX-startX;
+    var dy=e.touches[0].clientY-startY;
+    // Decide na primeira movimentação se é gesto horizontal (foto) ou vertical (scroll da página)
+    if(travouEixo===null && (Math.abs(dx)>6 || Math.abs(dy)>6)){
+      travouEixo = Math.abs(dx)>Math.abs(dy) ? 'x' : 'y';
     }
+    if(travouEixo!=='x') return;
+    deltaX = dx;
+    // Sem resistência nas pontas — o clone da primeira/última foto já está ali do lado, então "dá a volta" liso
+    el.style.transform = 'translateX(calc(-'+((carouselIdx+1)*100)+'% + '+deltaX+'px))';
   },{passive:true});
+  el.addEventListener('touchend',function(){
+    if(!arrastando) return;
+    arrastando=false;
+    if(travouEixo==='x' && Math.abs(deltaX)>largura*0.18){
+      if(deltaX<0) carouselNav(1); else carouselNav(-1);
+    } else {
+      moverTrackPara(carouselIdx+1, true); // volta pro slide atual, animado
+    }
+  });
+}
+
+// Move o track pra uma posição visual (0 = clone da última, 1..n = fotos reais, n+1 = clone da primeira)
+function moverTrackPara(posVisual, animado){
+  var track = document.getElementById('carouselTrack');
+  if(!track) return;
+  track.style.transition = animado ? '' : 'none';
+  track.style.transform = 'translateX(-'+(posVisual*100)+'%)';
+  if(!animado){ track.offsetHeight; track.style.transition=''; } // força reflow antes de reativar a transição
+}
+
+function atualizarDotsCount(){
+  var dotsWrap = document.getElementById('carouselDots');
+  if(dotsWrap){
+    Array.from(dotsWrap.children).forEach(function(d,i){ d.classList.toggle('on', i===carouselIdx); });
+  }
+  var count = document.getElementById('carouselCount');
+  if(count){
+    var slideAtual = carouselMedia[carouselIdx];
+    count.textContent = (slideAtual && slideAtual.cod) ? '#'+slideAtual.cod : (carouselIdx+1)+'/'+carouselMedia.length;
+  }
+}
+// Mantido por compatibilidade (mesmo nome usado antes)
+function renderCarouselPosicao(){ moverTrackPara(carouselIdx+1, true); atualizarDotsCount(); }
+
+function slideHTML(m){
+  if(!m) return '';
+  if(m.type==='video'){
+    return '<div class="carousel-slide"><video src="'+m.data+'" controls playsinline style="max-width:100%;max-height:100%;width:auto;height:auto;display:block;margin:auto;"></video></div>';
+  } else if(m.type==='placeholder'){
+    return '<div class="carousel-slide"><div class="placeholder">🌸</div></div>';
+  } else {
+    var fitStyle = m.fit==='contain'
+      ? 'max-width:100%;max-height:100%;width:auto;height:auto;display:block;margin:auto;'
+      : 'width:100%;height:100%;object-fit:cover;';
+    return '<div class="carousel-slide"><img src="'+m.data+'" style="'+fitStyle+'"></div>';
+  }
 }
 
 function renderCarousel(){
@@ -1993,20 +2524,15 @@ function renderCarousel(){
   var next = document.getElementById('carouselNext');
   var count = document.getElementById('carouselCount');
   if(!track) return;
-
-  track.innerHTML = carouselMedia.map(function(m){
-    if(m.type==='video'){
-      return '<div class="carousel-slide"><video src="'+m.data+'" controls playsinline style="max-width:100%;max-height:100%;width:auto;height:auto;display:block;margin:auto;"></video></div>';
-    } else if(m.type==='placeholder'){
-      return '<div class="carousel-slide"><div class="placeholder">🌸</div></div>';
-    } else {
-      return '<div class="carousel-slide"><img src="'+m.data+'" style="max-width:100%;max-height:100%;width:auto;height:auto;display:block;margin:auto;"></div>';
-    }
-  }).join('');
-
-  track.style.transform = 'translateX(-'+carouselIdx*100+'%)';
-
   var n = carouselMedia.length;
+
+  // Clona a última foto antes da primeira e a primeira depois da última — assim o arrasto "dá a volta" sem fim
+  var html = carouselMedia.map(slideHTML).join('');
+  if(n>1) html = slideHTML(carouselMedia[n-1]) + html + slideHTML(carouselMedia[0]);
+  track.innerHTML = html;
+
+  moverTrackPara(carouselIdx + (n>1?1:0), false);
+
   dots.innerHTML = n > 1 ? carouselMedia.map(function(_,i){
     return '<div class="carousel-dot'+(i===carouselIdx?' on':'')+'" onclick="goCarousel('+i+')"></div>';
   }).join('') : '';
@@ -2022,10 +2548,21 @@ function renderCarousel(){
 }
 
 function carouselNav(dir){
-  carouselIdx = (carouselIdx + dir + carouselMedia.length) % carouselMedia.length;
-  renderCarousel();
+  var n = carouselMedia.length;
+  if(n<2) return;
+  var dandoAVolta = (dir===1 && carouselIdx===n-1) || (dir===-1 && carouselIdx===0);
+  carouselIdx = (carouselIdx + dir + n) % n;
+  if(dandoAVolta){
+    // Anima até o clone (que fica bem ao lado) e, assim que a animação acaba, pula sem transição pra foto real equivalente — o clone é idêntico, então o "pulo" é invisível
+    moverTrackPara(dir===1 ? n+1 : 0, true);
+    setTimeout(function(){ moverTrackPara(carouselIdx+1, false); }, 300);
+  } else {
+    moverTrackPara(carouselIdx+1, true);
+  }
+  atualizarDotsCount();
+  syncVariantePeloSlide();
 }
-function goCarousel(i){ carouselIdx=i; renderCarousel(); }
+function goCarousel(i){ carouselIdx=i; moverTrackPara(i+1, true); atualizarDotsCount(); syncVariantePeloSlide(); }
 
 // ===== PATCH: openProd usa carrossel =====
 var _origOpenProd = openProd;
@@ -2041,10 +2578,29 @@ openProd = function(id){
   document.getElementById('mpTam').innerHTML=p.tam?'<div class="mprod-tam">'+p.tam+'</div>':'';
   document.getElementById('mpDesc').textContent=p.desc||'';
   document.getElementById('mpQty').textContent=curProdQty;
+  renderOpcionaisProduto(p);
   atualizarPrecoVariante();
   atualizarBotaoAdd();
   document.getElementById('modalProd').classList.add('open');
+  if(!modalProdHistPushed){
+    history.pushState({catalogoModal:'produto'}, '', location.href);
+    modalProdHistPushed = true;
+  }
 };
+var modalProdHistPushed = false;
+closeProd = function(){
+  document.getElementById('modalProd').classList.remove('open');
+  if(modalProdHistPushed){
+    modalProdHistPushed = false;
+    history.back();
+  }
+};
+window.addEventListener('popstate', function(){
+  if(document.getElementById('modalProd').classList.contains('open')){
+    modalProdHistPushed = false;
+    document.getElementById('modalProd').classList.remove('open');
+  }
+});
 
 function atualizarBotaoAdd(){
   if(!curProd) return;
@@ -2074,6 +2630,8 @@ saveProd = async function(){
     toast('⏳ Preparando foto...');
     imgFinal = await assarFotoCortada(imgOriginalAtual, posYAtual, zoomAtual, 1080, 1350);
   }
+  var imgAberturaAtual = document.getElementById('imgAbData').value;
+  var gruposMarcados = Array.from(document.querySelectorAll('.pOpcCheck:checked')).map(function(c){return c.value;});
 
   var p={
     id:editPId||Date.now(),
@@ -2087,10 +2645,12 @@ saveProd = async function(){
     status:document.getElementById('pStatus').value||'ativo',
     img:imgFinal,
     imgOriginal:imgOriginalAtual,
+    imgAbertura: imgAberturaAtual,
     encaixe: encaixeAtual,
     posy: posYAtual,
     zoom: zoomAtual,
     medias: extraMedias.slice(), // mídias extras
+    gruposOpcionais: gruposMarcados,
     order:editPId?(prods.find(function(x){return x.id===editPId;})||{}).order||maxO:maxO+1
   };
   var codesConflito = codigosDuplicados(p);
@@ -2110,10 +2670,14 @@ saveProd = async function(){
   var capaOriginalUpload = (p.imgOriginal && p.imgOriginal.startsWith('data:'))
     ? uploadParaStorage(p.imgOriginal, 'prod_' + prodId + '_original')
     : Promise.resolve(p.imgOriginal);
-  Promise.all([uploadMedias(prodId, mediasParaUpload), capaUpload, capaOriginalUpload]).then(function(res){
+  var aberturaUpload = (p.imgAbertura && p.imgAbertura.startsWith('data:'))
+    ? uploadParaStorage(p.imgAbertura, 'prod_' + prodId + '_abertura')
+    : Promise.resolve(p.imgAbertura);
+  Promise.all([uploadMedias(prodId, mediasParaUpload), capaUpload, capaOriginalUpload, aberturaUpload]).then(function(res){
     p.medias = res[0];
     p.img = res[1] || p.img;
     p.imgOriginal = res[2] || p.imgOriginal;
+    p.imgAbertura = res[3] || p.imgAbertura;
     // Atualizar produto na lista
     var idx = prods.findIndex(function(x){return x.id===prodId;});
     if(idx>=0) prods[idx]=p; else prods.push(p);
@@ -2149,6 +2713,8 @@ editProd = function(id){
   var fotoParaAjustar = p.imgOriginal || p.img || '';
   document.getElementById('imgData').value=fotoParaAjustar;
   document.getElementById('imgPrev').innerHTML=fotoParaAjustar?'<img src="'+fotoParaAjustar+'">':'<span>📷</span>';
+  document.getElementById('imgAbData').value = p.imgAbertura||'';
+  document.getElementById('imgAbPrev').innerHTML = p.imgAbertura ? '<img src="'+p.imgAbertura+'" style="width:100%;height:100%;object-fit:contain;background:#fff;">' : '<span>📷</span>';
   setStatus(p.status||'ativo');
   posYAtual = (p.posy!=null && p.posy!=='') ? parseInt(p.posy,10) : 50;
   zoomAtual = (p.zoom!=null && p.zoom!=='') ? parseInt(p.zoom,10) : 100;
@@ -2167,6 +2733,7 @@ clearProd = function(){
   editPId=null;
   ['editId','pNome','pDesc','pPreco','pCat','pTam','pCod','imgData','pTags'].forEach(function(id){document.getElementById(id).value='';});
   document.getElementById('imgPrev').innerHTML='<span>📷</span>';
+  limparImgAbertura();
   setStatus('ativo');
   extraMedias=[];
   renderExtraMediaGrid();
@@ -2175,6 +2742,7 @@ clearProd = function(){
   var sliderE2 = document.getElementById('posYSlider'); if(sliderE2) sliderE2.value = 50;
   var zoomE2 = document.getElementById('zoomSlider'); if(zoomE2) zoomE2.value = 100;
   setEncaixe('cover');
+  renderPOpcionaisSelect();
 };
 
 // ===== PATCH: sbSalvarProdutos inclui medias =====
@@ -2212,6 +2780,15 @@ applyPerfil();renderStories();renderHls();updateCart();
     }
   }catch(err){
     console.error('Erro ao carregar inspirações do Supabase:', err);
+  }
+  try{
+    var sbOp = await sbCarregarGruposOpcionais();
+    if(sbOp){
+      gruposOpcionais = sbOp;
+      try{localStorage.setItem('manu_op', JSON.stringify(gruposOpcionais));}catch(e){}
+    }
+  }catch(err){
+    console.error('Erro ao carregar grupos de adicionais do Supabase:', err);
   }
   render();
   renderHls();
