@@ -272,7 +272,7 @@ body{font-family:'Inter',sans-serif;background:#fafafa;color:#111;max-width:480p
 .encaixe-btn.active{border-color:#111;background:#111;color:#fff;}
 .carousel-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.6);cursor:pointer;transition:background .2s;}
 .carousel-dot.on{background:#fff;}
-.carousel{position:relative;width:100%;overflow:hidden;background:#fff;height:72vh;height:72dvh;min-height:250px;}
+.carousel{position:absolute;inset:0;overflow:hidden;background:#fff;}
 .carousel-track{display:flex;transition:transform .3s ease;height:100%;min-height:250px;touch-action:pan-y;}
 .carousel-slide{min-width:100%;height:100%;min-height:250px;flex-shrink:0;background:#fff;overflow:hidden;display:flex;align-items:center;justify-content:center;}
 .carousel-slide img{width:100%;height:100%;object-fit:cover;}
@@ -472,7 +472,7 @@ Faça sua encomenda abaixo 👇</div>
   <div class="modal-prod" id="modalProdInner">
     <button onclick="closeProd()" style="position:fixed;top:12px;right:12px;z-index:600;background:rgba(255,255,255,0.95);border:1px solid #eee;border-radius:50%;width:36px;height:36px;font-size:1.2rem;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.2);">✕</button>
     <div style="position:relative;width:100%;background:#fff;aspect-ratio:4/5;overflow:hidden;">
-      <div class="carousel" id="prodCarousel" style="height:100%;">
+      <div class="carousel" id="prodCarousel">
         <div class="carousel-track" id="carouselTrack"></div>
         <button class="carousel-btn prev" id="carouselPrev" onclick="carouselNav(-1)" style="display:none">‹</button>
         <button class="carousel-btn next" id="carouselNext" onclick="carouselNav(1)" style="display:none">›</button>
@@ -2134,6 +2134,7 @@ function setEncaixe(tipo){
 function assarFotoCortada(dataUrl, posY, zoom, outW, outH){
   return new Promise(function(resolve){
     var img = new Image();
+    if(dataUrl && dataUrl.indexOf('data:')!==0) img.crossOrigin = 'anonymous'; // necessário pra recortar foto que já está hospedada (URL remota)
     img.onload = function(){
       var scale = Math.max(outW/img.width, outH/img.height) * ((zoom||100)/100);
       var drawW = img.width*scale, drawH = img.height*scale;
@@ -2145,7 +2146,12 @@ function assarFotoCortada(dataUrl, posY, zoom, outW, outH){
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0,0,outW,outH);
       ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
-      resolve(canvas.toDataURL('image/jpeg', 0.85));
+      try{
+        resolve(canvas.toDataURL('image/jpeg', 0.85));
+      }catch(errCanvas){
+        console.error('Erro ao recortar foto remota (CORS?):', errCanvas);
+        resolve(dataUrl); // mantém a foto como estava, sem quebrar o salvamento
+      }
     };
     img.onerror = function(){ resolve(dataUrl); };
     img.src = dataUrl;
@@ -2347,7 +2353,7 @@ function buildCarousel(prod){
       if(pRef){
         carouselMedia.push({
           type: pRef.img ? 'image' : 'placeholder', data:pRef.img||'', cod:pRef.cod, preco:pRef.preco,
-          esgotado: pRef.status==='esgotado', nome:pRef.nome, diferenca:pRef.desc||''
+          esgotado: pRef.status==='esgotado', nome:pRef.nome, ehRef:true, descRef:pRef.desc||''
         });
       } else {
         console.warn('[Vinculação] Produto #'+m.cod+' vinculado não foi encontrado na lista de produtos.');
@@ -2412,7 +2418,7 @@ function syncVariantePeloSlide(){
   if(!curProd) return;
   var m = carouselMedia[carouselIdx];
   if(m && m.cod){
-    curVariant = {idx:carouselIdx, cod:m.cod, preco:(m.preco!=null?m.preco:curProd.preco), esgotado:!!m.esgotado, nome:m.nome||'', diferenca:m.diferenca||''};
+    curVariant = {idx:carouselIdx, cod:m.cod, preco:(m.preco!=null?m.preco:curProd.preco), esgotado:!!m.esgotado, nome:m.nome||'', diferenca:m.diferenca||'', ehRef:!!m.ehRef, descRef:m.descRef||''};
     destacarVariante();
     atualizarPrecoVariante();
     atualizarInfoVariante();
@@ -2438,6 +2444,12 @@ function atualizarInfoVariante(){
     catEl.textContent = (curProd.cat||'') + (codExibido ? ' · #'+codExibido : '');
   }
   el.textContent = (curVariant && curVariant.diferenca) ? '✨ ' + curVariant.diferenca : '';
+  // Legenda (descrição) inteira: se o slide atual é de um produto VINCULADO, mostra só a descrição
+  // dele — nunca junto com a do produto original, pra não virar bagunça de duas legendas
+  var descEl = document.getElementById('mpDesc');
+  if(descEl && curProd){
+    descEl.textContent = (curVariant && curVariant.ehRef) ? (curVariant.descRef||'') : (curProd.desc||'');
+  }
 }
 
 function destacarVariante(){
@@ -2542,10 +2554,10 @@ function slideHTML(m){
   } else if(m.type==='placeholder'){
     return '<div class="carousel-slide"><div class="placeholder">🌸</div></div>';
   } else {
-    var fitStyle = m.fit==='contain'
-      ? 'max-width:100%;max-height:100%;width:auto;height:auto;display:block;margin:auto;'
-      : 'width:100%;height:100%;object-fit:cover;';
-    return '<div class="carousel-slide"><img src="'+m.data+'" style="'+fitStyle+'"></div>';
+    // max-width/max-height em vez de object-fit:cover — o Safari do iPhone tem bug renderizando
+    // object-fit dentro de height:100% encaixado (já resolvemos isso antes). Como as fotos já vêm
+    // pré-cortadas na mesma proporção do quadro, visualmente fica idêntico, só muda o motor do CSS.
+    return '<div class="carousel-slide"><img src="'+m.data+'" style="max-width:100%;max-height:100%;width:auto;height:auto;display:block;margin:auto;"></div>';
   }
 }
 
@@ -2659,8 +2671,9 @@ saveProd = async function(){
 
   var imgOriginalAtual = document.getElementById('imgData').value;
   var imgFinal = imgOriginalAtual;
-  // Se a foto é nova (ainda não publicada) e o modo é "Cortar", já gera a versão cortada de verdade
-  if(imgOriginalAtual && imgOriginalAtual.startsWith('data:') && encaixeAtual==='cover'){
+  // Sempre que o modo for "Cortar", gera a versão cortada de verdade com a posição/zoom atuais —
+  // antes só fazia isso pra foto recém-enviada; se você só ajustasse o zoom de uma foto já publicada, não tinha efeito
+  if(imgOriginalAtual && encaixeAtual==='cover'){
     toast('⏳ Preparando foto...');
     imgFinal = await assarFotoCortada(imgOriginalAtual, posYAtual, zoomAtual, 1080, 1350);
   }
