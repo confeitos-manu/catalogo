@@ -51,6 +51,7 @@ module.exports = async (req, res) => {
         imgoriginal: p.imgOriginal || '',
         imgabertura: p.imgAbertura || '',
         descricao: p.desc || p.descricao || '',
+        tags: p.tags || '',
         cat: p.cat || '',
         tam: p.tam || '',
         cod: p.cod || '',
