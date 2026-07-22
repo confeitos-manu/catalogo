@@ -49,6 +49,7 @@ module.exports = async (req, res) => {
         preco: parseFloat(p.preco) || 0,
         img: p.img || '',
         imgoriginal: p.imgOriginal || '',
+        imgabertura: p.imgAbertura || '',
         descricao: p.desc || p.descricao || '',
         cat: p.cat || '',
         tam: p.tam || '',
@@ -58,7 +59,8 @@ module.exports = async (req, res) => {
         medias: (p.medias || []).filter(function (m) { return m && (m.tipo === 'ref' || (m.data && m.data.startsWith('http'))); }),
         encaixe: p.encaixe || 'cover',
         posy: (p.posy != null) ? p.posy : 50,
-        zoom: (p.zoom != null) ? p.zoom : 100
+        zoom: (p.zoom != null) ? p.zoom : 100,
+        grupos_opcionais: p.gruposOpcionais || []
       };
       var r1 = await sbServiceFetch('/rest/v1/catalogo?on_conflict=cod', {
         method: 'POST',
@@ -74,6 +76,23 @@ module.exports = async (req, res) => {
       var cod = body.cod;
       if (!cod) return res.status(400).json({ ok: false, erro: 'Código não informado.' });
       await sbServiceFetch('/rest/v1/catalogo?cod=eq.' + encodeURIComponent(cod), { method: 'DELETE' });
+      return res.status(200).json({ ok: true });
+    }
+
+    if (acao === 'salvarGruposOpcionais') {
+      var listaOp = body.grupos || [];
+      await sbServiceFetch('/rest/v1/opcionais_grupos?order_num=gte.0', { method: 'DELETE' });
+      if (listaOp.length) {
+        var rowsOp = listaOp.map(function (g, i) {
+          return {
+            id_local: g.id, nome: g.nome || '', tipo: g.tipo || 'opcional',
+            max_escolhas: g.maxEscolhas || null,
+            itens: g.itens || [], order_num: i
+          };
+        });
+        var rOp = await sbServiceFetch('/rest/v1/opcionais_grupos', { method: 'POST', body: JSON.stringify(rowsOp) });
+        if (!rOp.ok) return res.status(500).json({ ok: false, erro: await rOp.text() });
+      }
       return res.status(200).json({ ok: true });
     }
 
