@@ -2754,7 +2754,15 @@ editProd = function(id){
   zoomAtual = (p.zoom!=null && p.zoom!=='') ? parseInt(p.zoom,10) : 100;
   var sliderE = document.getElementById('posYSlider'); if(sliderE) sliderE.value = posYAtual;
   var zoomE = document.getElementById('zoomSlider'); if(zoomE) zoomE.value = zoomAtual;
-  setEncaixe(p.encaixe||'cover');
+  imgNaturalW = 0; imgNaturalH = 0; // reseta pra não usar o tamanho da foto do produto anterior
+  if(fotoParaAjustar){
+    carregarDimensoesReais(fotoParaAjustar, function(w,h){
+      imgNaturalW = w; imgNaturalH = h;
+      setEncaixe(p.encaixe||'cover');
+    });
+  } else {
+    setEncaixe(p.encaixe||'cover');
+  }
   // Carregar mídias extras
   extraMedias = (p.medias||[]).slice();
   renderExtraMediaGrid();
