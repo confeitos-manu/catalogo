@@ -280,7 +280,7 @@ body{font-family:'Inter',sans-serif;background:#fafafa;color:#111;max-width:480p
 .carousel-btn{position:absolute;top:50%;transform:translateY(-50%);z-index:6;width:32px;height:32px;border-radius:50%;border:none;background:rgba(0,0,0,0.35);color:#fff;font-size:1.3rem;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 .carousel-btn.prev{left:8px;}
 .carousel-btn.next{right:8px;}
-.carousel-count{position:absolute;top:10px;right:10px;z-index:5;background:rgba(0,0,0,0.45);color:#fff;font-size:0.72rem;font-weight:600;padding:3px 8px;border-radius:20px;}
+.carousel-count{position:absolute;top:10px;left:10px;z-index:5;background:rgba(0,0,0,0.45);color:#fff;font-size:0.72rem;font-weight:600;padding:3px 8px;border-radius:20px;}
 .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:8px 18px;border-radius:50px;font-size:0.81rem;font-weight:600;opacity:0;pointer-events:none;transition:opacity .3s;z-index:9999;white-space:nowrap;}
 .toast.show{opacity:1;}
 
@@ -1448,12 +1448,17 @@ function doLogin2(){/* recurso de Stories desativado */}
 function openAdmin(){document.getElementById('adminModal').classList.add('open');document.getElementById('loginSec').style.display='block';document.getElementById('adminPanel').style.display='none';document.getElementById('modalTitle').textContent='🔐 Equipe';document.getElementById('pwInput').value='';document.getElementById('errLogin').style.display='none';}
 function closeAdmin(){document.getElementById('adminModal').classList.remove('open');}
 var ADMIN_SESSION_PW = null;
+var ultimoErroAdmin = '';
 async function chamarAdmin(acao, extra){
   var body = Object.assign({acao:acao, senha:ADMIN_SESSION_PW}, extra||{});
   var r = await fetch('/api/admin', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
   var data = null;
   try{ data = await r.json(); }catch(e){}
-  if(!r.ok || !data || !data.ok){ console.error('Erro admin:', data && data.erro); return null; }
+  if(!r.ok || !data || !data.ok){
+    ultimoErroAdmin = (data && data.erro) || ('Erro '+r.status);
+    console.error('Erro admin:', ultimoErroAdmin);
+    return null;
+  }
   return data;
 }
 
@@ -1548,7 +1553,10 @@ function handleImg(inp){
     comprimirImagem(e.target.result, 1600, 0.82).then(function(dataComprimido){
       document.getElementById('imgData').value=dataComprimido;
       document.getElementById('imgPrev').innerHTML='<img src="'+dataComprimido+'">';
-      setEncaixe(encaixeAtual); // reaplica o enquadramento escolhido na prévia nova
+      carregarDimensoesReais(dataComprimido, function(w,h){
+        imgNaturalW = w; imgNaturalH = h;
+        setEncaixe(encaixeAtual); // reaplica o enquadramento escolhido na prévia nova
+      });
     });
   };
   r.readAsDataURL(f);
@@ -2044,12 +2052,52 @@ window.addEventListener('scroll', function(){
   if(beq) beq.style.opacity = window.scrollY > 60 ? '0' : '1';
 });
 
-function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2500);}
+function toast(msg,duracao){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},duracao||2500);}
 
 // ===== ENCAIXE =====
 var encaixeAtual = 'cover';
 var posYAtual = 50;
 var zoomAtual = 100;
+var imgNaturalW = 0, imgNaturalH = 0;
+
+// Calcula a prévia do corte PIXEL A PIXEL, igual ao corte final (assarFotoCortada) —
+// antes usava um truque de CSS que só encolhia a versão já cortada, sem nunca revelar mais da foto original
+function atualizarPreviewCorte(){
+  var wrap = document.getElementById('imgPrev');
+  var img = wrap && wrap.querySelector('img');
+  if(!img) return;
+  if(encaixeAtual!=='cover'){
+    img.style.position=''; img.style.left=''; img.style.top=''; img.style.maxWidth='';
+    img.style.width='100%'; img.style.height='100%';
+    img.style.objectFit='contain'; img.style.objectPosition='center';
+    img.style.transform=''; img.style.transformOrigin='';
+    wrap.style.background='#f0f0f0';
+    return;
+  }
+  wrap.style.background='#fff';
+  var contW = wrap.clientWidth, contH = wrap.clientHeight;
+  if(!contW||!contH||!imgNaturalW||!imgNaturalH) return;
+  var scale = Math.max(contW/imgNaturalW, contH/imgNaturalH) * (zoomAtual/100);
+  var drawW = imgNaturalW*scale, drawH = imgNaturalH*scale;
+  var offsetX = (contW-drawW)/2;
+  var offsetY = (posYAtual/100) * (contH-drawH);
+  wrap.style.position='relative';
+  img.style.position='absolute';
+  img.style.maxWidth='none';
+  img.style.left = offsetX+'px';
+  img.style.top = offsetY+'px';
+  img.style.width = drawW+'px';
+  img.style.height = drawH+'px';
+  img.style.objectFit=''; img.style.objectPosition='';
+  img.style.transform=''; img.style.transformOrigin='';
+}
+// Carrega a foto num objeto Image só pra descobrir a largura/altura reais (necessário pro cálculo acima)
+function carregarDimensoesReais(dataUrl, callback){
+  var probe = new Image();
+  probe.onload = function(){ callback(probe.naturalWidth, probe.naturalHeight); };
+  probe.onerror = function(){ callback(0,0); };
+  probe.src = dataUrl;
+}
 
 function aplicarTransformPreview(){
   var previewImg = document.querySelector('#imgPrev img');
@@ -2058,16 +2106,12 @@ function aplicarTransformPreview(){
 
 function ajustarPosY(valor){
   posYAtual = parseInt(valor,10);
-  var previewImg = document.querySelector('#imgPrev img');
-  if(previewImg){
-    previewImg.style.objectPosition = 'center '+posYAtual+'%';
-    previewImg.style.transformOrigin = 'center '+posYAtual+'%';
-  }
+  atualizarPreviewCorte();
 }
 
 function ajustarZoom(valor){
   zoomAtual = parseInt(valor,10);
-  aplicarTransformPreview();
+  atualizarPreviewCorte();
 }
 
 function setEncaixe(tipo){
@@ -2079,18 +2123,9 @@ function setEncaixe(tipo){
   var map = {'cover':'quadrado','contain-portrait':'retrato','contain':'paisagem'};
   var el = document.getElementById('enc-'+map[tipo]);
   if(el) el.classList.add('active');
-  // Atualiza a prévia da foto na hora, pra já mostrar como vai ficar
-  var previewImg = document.querySelector('#imgPrev img');
-  var ehCover = (tipo!=='contain' && tipo!=='contain-portrait');
-  if(previewImg){
-    previewImg.style.objectFit = ehCover ? 'cover' : 'contain';
-    previewImg.style.background = ehCover ? 'transparent' : '#f0f0f0';
-    previewImg.style.objectPosition = ehCover ? ('center '+posYAtual+'%') : 'center';
-    previewImg.style.transformOrigin = 'center '+posYAtual+'%';
-    previewImg.style.transform = ehCover ? ('scale('+(zoomAtual/100)+')') : 'none';
-  }
+  atualizarPreviewCorte();
   var posWrap = document.getElementById('posYWrap');
-  if(posWrap) posWrap.style.display = ehCover ? 'block' : 'none';
+  if(posWrap) posWrap.style.display = (tipo==='cover') ? 'block' : 'none';
 }
 
 // Reduz o tamanho de fotos grandes (comuns em câmeras de celular) antes de enviar,
@@ -2686,7 +2721,7 @@ saveProd = async function(){
     render();renderAdmList();clearProd();showAT('prods');
     sbUpsertProduto(p).then(function(ok){
       if(ok){ toast(editPId?'✅ Produto atualizado!':'✅ Produto adicionado!'); }
-      else { toast('⚠️ Salvou aqui, mas falhou ao sincronizar (talvez código repetido). Confira!'); }
+      else { toast('⚠️ Salvou aqui, mas falhou ao sincronizar: '+(ultimoErroAdmin||'motivo desconhecido'), 6000); }
     }).catch(function(e){
       console.error('Erro Supabase:',e);
       toast('⚠️ Falha ao sincronizar com o servidor. Confira sua internet.');
@@ -2792,6 +2827,7 @@ applyPerfil();renderStories();renderHls();updateCart();
   render();
   renderHls();
   applyPerfil();
+  initSwipe();
 })();
 </script>
 </body>
