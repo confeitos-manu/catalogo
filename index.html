@@ -2405,12 +2405,9 @@ function renderVariantes(prod){
 function selectVariant(idx){
   var v = carouselMedia[idx];
   if(!v || !v.cod) return;
-  curVariant = {idx:idx, cod:v.cod, preco:(v.preco!=null?v.preco:curProd.preco), esgotado:!!v.esgotado, nome:v.nome||'', diferenca:v.diferenca||'', ehRef:!!v.ehRef, descRef:v.descRef||''};
-  goCarousel(idx);
-  destacarVariante();
-  atualizarPrecoVariante();
-  atualizarInfoVariante();
-  curProdQty = qtyInCart(curProd.id, curVariant.cod) || 1;
+  carouselIdx = idx;
+  renderCarousel(); // reconstrução completa: mesmo caminho confiável usado ao abrir o produto
+  curProdQty = qtyInCart(curProd.id, v.cod) || 1;
   document.getElementById('mpQty').textContent=curProdQty;
   atualizarBotaoAdd();
 }
@@ -2528,6 +2525,7 @@ function initSwipe(){
   }
   el.addEventListener('touchend', soltarSwipe);
   el.addEventListener('touchcancel', soltarSwipe);
+  el.addEventListener('touchcancel', soltarSwipe);
 }
 
 // Move o track pra uma posição visual (0 = clone da última, 1..n = fotos reais, n+1 = clone da primeira)
@@ -2568,6 +2566,7 @@ function slideHTML(m){
 }
 
 function renderCarousel(){
+  if(carouselWrapTimeout){ clearTimeout(carouselWrapTimeout); carouselWrapTimeout=null; }
   var track = document.getElementById('carouselTrack');
   var dots = document.getElementById('carouselDots');
   var prev = document.getElementById('carouselPrev');
@@ -2597,22 +2596,31 @@ function renderCarousel(){
   }
 }
 
+var carouselWrapTimeout = null;
 function carouselNav(dir){
   var n = carouselMedia.length;
   if(n<2) return;
+  if(carouselWrapTimeout){ clearTimeout(carouselWrapTimeout); carouselWrapTimeout=null; }
   var dandoAVolta = (dir===1 && carouselIdx===n-1) || (dir===-1 && carouselIdx===0);
   carouselIdx = (carouselIdx + dir + n) % n;
   if(dandoAVolta){
     // Anima até o clone (que fica bem ao lado) e, assim que a animação acaba, pula sem transição pra foto real equivalente — o clone é idêntico, então o "pulo" é invisível
     moverTrackPara(dir===1 ? n+1 : 0, true);
-    setTimeout(function(){ moverTrackPara(carouselIdx+1, false); }, 300);
+    var idxNoMomento = carouselIdx;
+    carouselWrapTimeout = setTimeout(function(){
+      carouselWrapTimeout = null;
+      if(carouselIdx===idxNoMomento) moverTrackPara(carouselIdx+1, false); // só pula se ninguém navegou de novo nesse meio tempo
+    }, 300);
   } else {
     moverTrackPara(carouselIdx+1, true);
   }
   atualizarDotsCount();
   syncVariantePeloSlide();
 }
-function goCarousel(i){ carouselIdx=i; moverTrackPara(i+1, true); atualizarDotsCount(); syncVariantePeloSlide(); }
+function goCarousel(i){
+  if(carouselWrapTimeout){ clearTimeout(carouselWrapTimeout); carouselWrapTimeout=null; }
+  carouselIdx=i; moverTrackPara(i+1, true); atualizarDotsCount(); syncVariantePeloSlide();
+}
 
 // ===== PATCH: openProd usa carrossel =====
 var _origOpenProd = openProd;
