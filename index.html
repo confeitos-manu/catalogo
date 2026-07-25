@@ -2851,19 +2851,4 @@ applyPerfil();renderStories();renderHls();updateCart();
     console.error('Erro ao carregar inspirações do Supabase:', err);
   }
   try{
-    var sbOp = await sbCarregarGruposOpcionais();
-    if(sbOp){
-      gruposOpcionais = sbOp;
-      try{localStorage.setItem('manu_op', JSON.stringify(gruposOpcionais));}catch(e){}
-    }
-  }catch(err){
-    console.error('Erro ao carregar grupos de adicionais do Supabase:', err);
-  }
-  render();
-  renderHls();
-  applyPerfil();
-  initSwipe();
-})();
-</script>
-</body>
-</html>
+    var sb
