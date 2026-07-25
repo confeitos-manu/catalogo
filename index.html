@@ -2489,30 +2489,34 @@ function initSwipe(){
   if(!el||el._swipe) return;
   el._swipe=true;
   var startX=0, startY=0, deltaX=0, largura=0, arrastando=false, travouEixo=null;
-  el.addEventListener('pointerdown',function(e){
+  el.addEventListener('touchstart',function(e){
     if(carouselMedia.length<2) return;
-    startX=e.clientX;
-    startY=e.clientY;
+    startX=e.touches[0].clientX;
+    startY=e.touches[0].clientY;
     deltaX=0;
     travouEixo=null;
     largura = el.getBoundingClientRect().width;
     arrastando=true;
     el.style.transition='none';
-    try{ el.setPointerCapture(e.pointerId); }catch(err){}
-  });
-  el.addEventListener('pointermove',function(e){
+  },{passive:true});
+  el.addEventListener('touchmove',function(e){
     if(!arrastando) return;
-    var dx=e.clientX-startX;
-    var dy=e.clientY-startY;
-    // Decide na primeira movimentação se é gesto horizontal (foto) ou vertical (scroll da página)
-    if(travouEixo===null && (Math.abs(dx)>6 || Math.abs(dy)>6)){
-      travouEixo = Math.abs(dx)>Math.abs(dy) ? 'x' : 'y';
+    var dx=e.touches[0].clientX-startX;
+    var dy=e.touches[0].clientY-startY;
+    // Decide o quanto antes se é gesto horizontal (foto) — só cede pro vertical se for bem
+    // claramente rolagem de página. No iPhone a Safari decide MUITO rápido, então precisa
+    // travar em 'x' com pouquíssimo movimento pra não perder a corrida pro scroll nativo.
+    if(travouEixo===null){
+      if(Math.abs(dx)>4){ travouEixo='x'; }
+      else if(Math.abs(dy)>10 && Math.abs(dy)>Math.abs(dx)*1.8){ travouEixo='y'; }
     }
-    if(travouEixo!=='x') return;
+    if(travouEixo!=='x'){ return; } // deixa o Safari rolar a página normalmente
+    // A partir daqui é arrasto de foto: cancela o scroll nativo pra ele parar de "brigar" e puxar pra baixo
+    e.preventDefault();
     deltaX = dx;
     // Sem resistência nas pontas — o clone da primeira/última foto já está ali do lado, então "dá a volta" liso
     el.style.transform = 'translateX(calc(-'+((carouselIdx+1)*100)+'% + '+deltaX+'px))';
-  });
+  },{passive:false});
   function soltarSwipe(){
     if(!arrastando) return;
     arrastando=false;
@@ -2522,8 +2526,8 @@ function initSwipe(){
       moverTrackPara(carouselIdx+1, true); // volta pro slide atual, animado
     }
   }
-  el.addEventListener('pointerup', soltarSwipe);
-  el.addEventListener('pointercancel', soltarSwipe);
+  el.addEventListener('touchend', soltarSwipe);
+  el.addEventListener('touchcancel', soltarSwipe);
 }
 
 // Move o track pra uma posição visual (0 = clone da última, 1..n = fotos reais, n+1 = clone da primeira)
