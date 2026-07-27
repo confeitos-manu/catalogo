@@ -2434,13 +2434,17 @@ function syncVariantePeloSlide(){
   var m = carouselMedia[carouselIdx];
   if(m && m.cod){
     curVariant = {idx:carouselIdx, cod:m.cod, preco:(m.preco!=null?m.preco:curProd.preco), esgotado:!!m.esgotado, nome:m.nome||'', diferenca:m.diferenca||'', ehRef:!!m.ehRef, descRef:m.descRef||''};
-    destacarVariante();
-    atualizarPrecoVariante();
-    atualizarInfoVariante();
-    curProdQty = qtyInCart(curProd.id, curVariant.cod) || 1;
-    var qtyEl=document.getElementById('mpQty'); if(qtyEl) qtyEl.textContent=curProdQty;
-    atualizarBotaoAdd();
+  } else {
+    // Foto extra sem código próprio (não é variação nem produto vinculado) — volta pro produto original,
+    // em vez de deixar o texto travado no que estava antes (essa era a causa raiz do bug)
+    curVariant = {idx:carouselIdx, cod:curProd.cod, preco:curProd.preco, esgotado:false, nome:'', diferenca:'', ehRef:false, descRef:''};
   }
+  destacarVariante();
+  atualizarPrecoVariante();
+  atualizarInfoVariante();
+  curProdQty = qtyInCart(curProd.id, curVariant.cod) || 1;
+  var qtyEl=document.getElementById('mpQty'); if(qtyEl) qtyEl.textContent=curProdQty;
+  atualizarBotaoAdd();
 }
 
 // Mostra o nome/diferença da variação escolhida (ex: "Flor de cetim")
