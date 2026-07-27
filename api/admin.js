@@ -49,7 +49,6 @@ module.exports = async (req, res) => {
         preco: parseFloat(p.preco) || 0,
         img: p.img || '',
         imgoriginal: p.imgOriginal || '',
-        imgabertura: p.imgAbertura || '',
         descricao: p.desc || p.descricao || '',
         tags: p.tags || '',
         cat: p.cat || '',
