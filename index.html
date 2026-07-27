@@ -2536,7 +2536,7 @@ function initSwipe(){
     if(travouEixo==='x' && Math.abs(deltaX)>largura*0.18){
       if(deltaX<0) carouselNav(1); else carouselNav(-1);
     } else {
-      moverTrackPara(carouselIdx+1, true); // volta pro slide atual, animado
+      renderCarousel(); // volta pro slide atual, garantindo foto e texto sempre sincronizados
     }
   }
   el.addEventListener('touchend', soltarSwipe);
@@ -2621,22 +2621,21 @@ function carouselNav(dir){
   var dandoAVolta = (dir===1 && carouselIdx===n-1) || (dir===-1 && carouselIdx===0);
   carouselIdx = (carouselIdx + dir + n) % n;
   if(dandoAVolta){
-    // Anima até o clone (que fica bem ao lado) e, assim que a animação acaba, pula sem transição pra foto real equivalente — o clone é idêntico, então o "pulo" é invisível
+    // Anima até o clone (que fica bem ao lado) e, assim que a animação acaba, reconstrói tudo do zero na posição real — o clone é idêntico, então o "pulo" é invisível
     moverTrackPara(dir===1 ? n+1 : 0, true);
     var idxNoMomento = carouselIdx;
     carouselWrapTimeout = setTimeout(function(){
       carouselWrapTimeout = null;
-      if(carouselIdx===idxNoMomento) moverTrackPara(carouselIdx+1, false); // só pula se ninguém navegou de novo nesse meio tempo
+      if(carouselIdx===idxNoMomento) renderCarousel(); // só reconstrói se ninguém navegou de novo nesse meio tempo
     }, 300);
   } else {
-    moverTrackPara(carouselIdx+1, true);
+    renderCarousel();
   }
-  atualizarDotsCount();
-  syncVariantePeloSlide();
 }
 function goCarousel(i){
   if(carouselWrapTimeout){ clearTimeout(carouselWrapTimeout); carouselWrapTimeout=null; }
-  carouselIdx=i; moverTrackPara(i+1, true); atualizarDotsCount(); syncVariantePeloSlide();
+  carouselIdx=i;
+  renderCarousel();
 }
 
 // ===== PATCH: openProd usa carrossel =====
