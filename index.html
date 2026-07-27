@@ -203,7 +203,7 @@ body{font-family:'Inter',sans-serif;background:#fafafa;color:#111;max-width:480p
   .mbg{align-items:center;}
   .md{max-width:1120px;width:96vw;max-height:94vh;height:94vh;border-radius:18px;}
   #at-novo{column-count:2;column-gap:24px;}
-  #at-novo>.fl,#at-novo>.fr,#at-novo>div#extraMediaSection{break-inside:avoid;margin-bottom:6px;}
+  #at-novo>.form-section{break-inside:avoid;margin-bottom:14px;}
   #at-novo>.fa{column-span:all;margin-top:4px;}
   #at-novo .ih{margin:1px 0 3px;font-size:0.68rem;}
   #at-novo .fl{margin-bottom:6px;}
@@ -231,6 +231,9 @@ body{font-family:'Inter',sans-serif;background:#fafafa;color:#111;max-width:480p
 .ip img{width:100%;height:100%;object-fit:cover;}
 .ih{font-size:0.7rem;color:#888;margin-top:2px;}
 .fa{display:flex;gap:7px;margin-top:8px;}
+.form-section{border:1px solid #eee;border-radius:12px;padding:14px;margin-bottom:14px;background:#fbfbfb;}
+.form-section .fl:last-child{margin-bottom:0;}
+.form-section-title{font-weight:700;font-size:0.82rem;margin-bottom:12px;color:#333;}
 .bp{background:#111;color:#fff;border:none;border-radius:50px;padding:9px 20px;font-size:0.85rem;font-weight:700;cursor:pointer;}
 .bs{background:#f5f5f5;color:#666;border:1px solid #ddd;border-radius:50px;padding:8px 16px;font-size:0.85rem;font-weight:600;cursor:pointer;}
 .atabs{display:flex;gap:5px;margin-bottom:14px;overflow-x:auto;scrollbar-width:none;}
@@ -317,7 +320,6 @@ async function sbCarregarProdutos(){
       preco: parseFloat(p.preco)||0,
       img: p.img||'',
       imgOriginal: p.imgoriginal||'',
-      imgAbertura: p.imgabertura||'',
       tags: p.tags||'',
       desc: p.descricao||'',
       descricao: p.descricao||'',
@@ -473,7 +475,7 @@ Faça sua encomenda abaixo 👇</div>
 <div class="modal-bg" id="modalProd">
   <div class="modal-prod" id="modalProdInner">
     <button onclick="closeProd()" style="position:fixed;top:12px;right:12px;z-index:600;background:rgba(255,255,255,0.95);border:1px solid #eee;border-radius:50%;width:36px;height:36px;font-size:1.2rem;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.2);">✕</button>
-    <div style="position:relative;width:100%;background:#fff;aspect-ratio:4/5;overflow:hidden;transform:translateZ(0);-webkit-transform:translateZ(0);will-change:transform;isolation:isolate;">
+    <div style="position:relative;width:100%;background:#fff;aspect-ratio:4/5;overflow:hidden;transform:translateZ(0);-webkit-transform:translateZ(0);isolation:isolate;">
       <div class="carousel" id="prodCarousel">
         <div class="carousel-track" id="carouselTrack"></div>
         <button class="carousel-btn prev" id="carouselPrev" onclick="carouselNav(-1)" style="display:none">‹</button>
@@ -604,72 +606,82 @@ Faça sua encomenda abaixo 👇</div>
         <!-- FORM NOVO/EDITAR -->
         <div id="at-novo" style="display:none">
           <input type="hidden" id="editId">
-          <div class="fl">
-            <label>Foto</label>
-            <div class="ip" id="imgPrev" onclick="document.getElementById('imgFile').click()" style="width:100%;height:auto;aspect-ratio:4/5;border-radius:12px;"><span>📷</span></div>
-            <p class="ih">Clique para escolher</p>
-            <input type="file" id="imgFile" accept="image/*" style="display:none" onchange="handleImg(this)">
-            <input type="hidden" id="imgData">
-            <div class="encaixe-opts">
-              <div class="encaixe-btn active" id="enc-quadrado" onclick="setEncaixe('cover')">🔲 Cortar (preenche o quadrado)</div>
-              <div class="encaixe-btn" id="enc-paisagem" onclick="setEncaixe('contain')">🖼️ Ajustar (mostra a foto inteira)</div>
+
+          <div class="form-section">
+            <div class="form-section-title">📋 Informações básicas</div>
+            <div class="fl"><label>Nome *</label><input type="text" id="pNome" placeholder="Ex: Buquê de Rosas Vermelhas"></div>
+            <div class="fr">
+              <div class="fl"><label>Preço (R$) *</label><input type="number" id="pPreco" step="0.01" min="0"></div>
+              <div class="fl"><label>Categoria</label><input type="text" id="pCat" list="catListDatalist" placeholder="Ex: Buquês"><datalist id="catListDatalist"></datalist></div>
             </div>
-            <div id="posYWrap" style="margin-top:8px;">
-              <label style="font-size:12px;color:#888;display:block;margin-bottom:2px;">↕️ Posição da foto (mais pra cima / mais pra baixo)</label>
-              <input type="range" id="posYSlider" min="0" max="100" value="50" oninput="ajustarPosY(this.value)" style="width:100%;">
-              <div>
-              <label style="font-size:12px;color:#888;display:block;margin:6px 0 2px;">🔍 Zoom (ampliar / diminuir)</label>
-              <input type="range" id="zoomSlider" min="50" max="220" value="100" oninput="ajustarZoom(this.value)" style="width:100%;">
+            <div class="fr">
+              <div class="fl"><label>Tamanho</label><input type="text" id="pTam" placeholder="Ex: Médio"></div>
+              <div class="fl"><label>Código (#)</label><input type="text" id="pCod" maxlength="5" style="text-align:center;font-weight:700;letter-spacing:.1em"></div>
+            </div>
+            <div class="fl">
+              <label>Status</label>
+              <div style="display:flex;gap:6px;margin-top:3px;">
+                <button class="stbtn active" id="st-ativo" onclick="setStatus('ativo')">✅ Ativo</button>
+                <button class="stbtn" id="st-esgotado" onclick="setStatus('esgotado')">🔴 Esgotado</button>
+                <button class="stbtn" id="st-escondido" onclick="setStatus('escondido')">👁️ Esconder</button>
+              </div>
+              <input type="hidden" id="pStatus" value="ativo">
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">🖼️ Foto principal (capa do feed)</div>
+            <div class="fl">
+              <div class="ip" id="imgPrev" onclick="document.getElementById('imgFile').click()" style="width:100%;height:auto;aspect-ratio:4/5;border-radius:12px;"><span>📷</span></div>
+              <p class="ih">Clique para escolher</p>
+              <input type="file" id="imgFile" accept="image/*" style="display:none" onchange="handleImg(this)">
+              <input type="hidden" id="imgData">
+              <div class="encaixe-opts">
+                <div class="encaixe-btn active" id="enc-quadrado" onclick="setEncaixe('cover')">🔲 Cortar (preenche o quadrado)</div>
+                <div class="encaixe-btn" id="enc-paisagem" onclick="setEncaixe('contain')">🖼️ Ajustar (mostra a foto inteira)</div>
+              </div>
+              <div id="posYWrap" style="margin-top:8px;">
+                <label style="font-size:12px;color:#888;display:block;margin-bottom:2px;">↕️ Posição da foto (mais pra cima / mais pra baixo)</label>
+                <input type="range" id="posYSlider" min="0" max="100" value="50" oninput="ajustarPosY(this.value)" style="width:100%;">
+                <div>
+                <label style="font-size:12px;color:#888;display:block;margin:6px 0 2px;">🔍 Zoom (ampliar / diminuir)</label>
+                <input type="range" id="zoomSlider" min="50" max="220" value="100" oninput="ajustarZoom(this.value)" style="width:100%;">
+                </div>
+              </div>
+              <p class="ih">A prévia acima já mostra exatamente como vai ficar no catálogo</p>
+            </div>
+          </div>
+
+          <div class="form-section" id="extraMediaSection">
+            <div class="form-section-title">📸 Fotos extras e vinculados (carrossel)</div>
+            <div class="fl">
+              <div class="extra-media-grid" id="extraMediaGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:6px;"></div>
+              <div style="display:flex;gap:6px;">
+                <label style="flex:1;display:flex;align-items:center;justify-content:center;aspect-ratio:3/1;border:2px dashed #ddd;border-radius:8px;cursor:pointer;font-size:1.3rem;color:#bbb;background:#fafafa;">
+                  ＋ Adicionar fotos/vídeos
+                  <input type="file" id="extraMediaFile" accept="image/*,video/*" multiple style="display:none" onchange="handleExtraMedia(this)">
+                </label>
+                <div onclick="abrirVincularProduto()" style="flex:1;display:flex;align-items:center;justify-content:center;aspect-ratio:3/1;border:2px dashed #ddd;border-radius:8px;cursor:pointer;font-size:0.75rem;color:#888;background:#fafafa;text-align:center;padding:4px;">
+                  🔗 Vincular produto já cadastrado (adicional)
+                </div>
               </div>
             </div>
-            <p class="ih">A prévia acima já mostra exatamente como vai ficar no catálogo</p>
           </div>
-          <div class="fl">
-            <label>🖼️ Foto ao abrir o produto <span style="font-weight:400;color:#aaa;font-size:0.75rem">(opcional — se não escolher, usa a foto da capa)</span></label>
-            <div class="ip" id="imgAbPrev" onclick="document.getElementById('imgAbFile').click()" style="width:100%;height:auto;aspect-ratio:4/5;border-radius:12px;background:#fafafa;"><span>📷</span></div>
-            <p class="ih">Essa foto aparece inteira (sem cortar) só quando o cliente clica no produto — a capa do feed não muda.</p>
-            <input type="file" id="imgAbFile" accept="image/*" style="display:none" onchange="handleImgAbertura(this)">
-            <input type="hidden" id="imgAbData">
-            <div class="fa"><button type="button" class="bs" onclick="limparImgAbertura()">🗑️ Remover foto de abertura</button></div>
+
+          <div class="form-section">
+            <div class="form-section-title">📝 Descrição e busca</div>
+            <div class="fl"><label>Descrição</label><textarea id="pDesc" placeholder="Ex: 12 rosas com embalagem premium"></textarea></div>
+            <div class="fl"><label>🔍 Palavras-chave <span style="font-weight:400;color:#aaa;font-size:0.75rem">(invisíveis, usadas na busca)</span></label><input type="text" id="pTags" placeholder="Ex: stitch, azul, disney, ursinho"><p class="ih">Separe por vírgula</p></div>
           </div>
-          <div class="fl" id="extraMediaSection">
-            <label>📸 Fotos extras (carrossel)</label>
-            <div class="extra-media-grid" id="extraMediaGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:6px;"></div>
-            <div style="display:flex;gap:6px;">
-              <label style="flex:1;display:flex;align-items:center;justify-content:center;aspect-ratio:3/1;border:2px dashed #ddd;border-radius:8px;cursor:pointer;font-size:1.3rem;color:#bbb;background:#fafafa;">
-                ＋ Adicionar fotos/vídeos
-                <input type="file" id="extraMediaFile" accept="image/*,video/*" multiple style="display:none" onchange="handleExtraMedia(this)">
-              </label>
-              <div onclick="abrirVincularProduto()" style="flex:1;display:flex;align-items:center;justify-content:center;aspect-ratio:3/1;border:2px dashed #ddd;border-radius:8px;cursor:pointer;font-size:0.75rem;color:#888;background:#fafafa;text-align:center;padding:4px;">
-                🔗 Vincular produto já cadastrado (adicional)
-              </div>
+
+          <div class="form-section">
+            <div class="form-section-title">🎁 Adicionais deste produto</div>
+            <div class="fl">
+              <p class="ih" style="margin-top:0;">Marque quais grupos de opcionais o cliente vai poder escolher ao abrir esse produto</p>
+              <div id="pOpcionaisSelect" style="max-height:180px;overflow-y:auto;border:1px solid #eee;border-radius:10px;padding:8px;background:#fff;"></div>
             </div>
           </div>
-          <div class="fl"><label>Nome *</label><input type="text" id="pNome" placeholder="Ex: Buquê de Rosas Vermelhas"></div>
-          <div class="fl"><label>🔍 Palavras-chave <span style="font-weight:400;color:#aaa;font-size:0.75rem">(invisíveis, usadas na busca)</span></label><input type="text" id="pTags" placeholder="Ex: stitch, azul, disney, ursinho"><p class="ih">Separe por vírgula</p></div>
-          <div class="fl"><label>Descrição</label><textarea id="pDesc" placeholder="Ex: 12 rosas com embalagem premium"></textarea></div>
-          <div class="fl">
-            <label>🎁 Adicionais deste produto (opcional)</label>
-            <p class="ih">Marque quais grupos de opcionais o cliente vai poder escolher ao abrir esse produto</p>
-            <div id="pOpcionaisSelect" style="max-height:180px;overflow-y:auto;border:1px solid #eee;border-radius:10px;padding:8px;"></div>
-          </div>
-          <div class="fr">
-            <div class="fl"><label>Preço (R$) *</label><input type="number" id="pPreco" step="0.01" min="0"></div>
-            <div class="fl"><label>Categoria</label><input type="text" id="pCat" list="catListDatalist" placeholder="Ex: Buquês"><datalist id="catListDatalist"></datalist></div>
-          </div>
-          <div class="fr">
-            <div class="fl"><label>Tamanho</label><input type="text" id="pTam" placeholder="Ex: Médio"></div>
-            <div class="fl"><label>Código (#)</label><input type="text" id="pCod" maxlength="5" style="text-align:center;font-weight:700;letter-spacing:.1em"></div>
-          </div>
-          <div class="fl">
-            <label>Status</label>
-            <div style="display:flex;gap:6px;margin-top:3px;">
-              <button class="stbtn active" id="st-ativo" onclick="setStatus('ativo')">✅ Ativo</button>
-              <button class="stbtn" id="st-esgotado" onclick="setStatus('esgotado')">🔴 Esgotado</button>
-              <button class="stbtn" id="st-escondido" onclick="setStatus('escondido')">👁️ Esconder</button>
-            </div>
-            <input type="hidden" id="pStatus" value="ativo">
-          </div>
+
           <div class="fa">
             <button class="bp" onclick="saveProd()">💾 Salvar</button>
             <button class="bs" onclick="clearProd()">Cancelar</button>
@@ -1563,23 +1575,6 @@ function handleImg(inp){
   };
   r.readAsDataURL(f);
 }
-// Foto opcional mostrada só quando o produto é aberto (sem cortar, foto inteira)
-function handleImgAbertura(inp){
-  var f=inp.files[0];if(!f)return;
-  var r=new FileReader();
-  r.onload=function(e){
-    comprimirImagem(e.target.result, 1600, 0.85).then(function(dataComprimido){
-      document.getElementById('imgAbData').value=dataComprimido;
-      document.getElementById('imgAbPrev').innerHTML='<img src="'+dataComprimido+'" style="width:100%;height:100%;object-fit:contain;background:#fff;">';
-    });
-  };
-  r.readAsDataURL(f);
-}
-function limparImgAbertura(){
-  document.getElementById('imgAbData').value='';
-  document.getElementById('imgAbFile').value='';
-  document.getElementById('imgAbPrev').innerHTML='<span>📷</span>';
-}
 function setStatus(s){document.getElementById('pStatus').value=s;['ativo','esgotado','escondido'].forEach(function(t){document.getElementById('st-'+t).classList.toggle('active',t===s);});}
 function saveProd(){
   var nome=document.getElementById('pNome').value.trim();
@@ -2209,6 +2204,28 @@ function handleExtraMedia(inp){
   inp.value='';
 }
 
+// Calcula a prévia do corte da foto extra PIXEL A PIXEL (mesmo princípio da foto principal) —
+// evita o bug de "diminuir o zoom encolhe a foto inteira" que o truque de CSS causava
+function posicionarFotoExtra(imgEl, posy, zoom){
+  if(!imgEl || !imgEl.naturalWidth) return;
+  var wrap = imgEl.parentElement;
+  if(!wrap) return;
+  var contW = wrap.clientWidth, contH = wrap.clientHeight;
+  if(!contW||!contH) return;
+  var scale = Math.max(contW/imgEl.naturalWidth, contH/imgEl.naturalHeight) * (zoom/100);
+  var drawW = imgEl.naturalWidth*scale, drawH = imgEl.naturalHeight*scale;
+  imgEl.style.position = 'absolute';
+  imgEl.style.left = ((contW-drawW)/2)+'px';
+  imgEl.style.top = ((posy/100)*(contH-drawH))+'px';
+  imgEl.style.width = drawW+'px';
+  imgEl.style.height = drawH+'px';
+  imgEl.style.maxWidth = 'none';
+  imgEl.style.objectFit = '';
+  imgEl.style.objectPosition = '';
+  imgEl.style.transform = '';
+  imgEl.style.transformOrigin = '';
+}
+
 function renderExtraMediaGrid(){
   var el = document.getElementById('extraMediaGrid');
   if(!el) return;
@@ -2227,7 +2244,7 @@ function renderExtraMediaGrid(){
     }
     var tag = m.type==='video'
       ? '<video src="'+m.data+'" style="width:100%;height:100%;object-fit:cover" muted></video>'
-      : '<img src="'+m.data+'" style="object-position:center '+(m.posy!=null?m.posy:50)+'%;transform:scale('+((m.zoom!=null?m.zoom:100)/100)+');transform-origin:center '+(m.posy!=null?m.posy:50)+'%;">';
+      : '<img src="'+m.data+'" onload="posicionarFotoExtra(this,'+(m.posy!=null?m.posy:50)+','+(m.zoom!=null?m.zoom:100)+')">';
     var ajusteFoto = m.type==='video' ? '' :
       '<div style="margin-top:4px;">'+
       '<label style="font-size:0.6rem;color:#888;display:block;">↕️ Posição</label>'+
@@ -2257,14 +2274,14 @@ function ajustarExtraPosY(i, valor){
   extraMedias[i].posy = parseInt(valor,10);
   var grid = document.getElementById('extraMediaGrid');
   var img = grid && grid.children[i] && grid.children[i].querySelector('img');
-  if(img){ img.style.objectPosition = 'center '+valor+'%'; img.style.transformOrigin = 'center '+valor+'%'; }
+  posicionarFotoExtra(img, extraMedias[i].posy, extraMedias[i].zoom!=null?extraMedias[i].zoom:100);
 }
 function ajustarExtraZoom(i, valor){
   if(!extraMedias[i]) return;
   extraMedias[i].zoom = parseInt(valor,10);
   var grid = document.getElementById('extraMediaGrid');
   var img = grid && grid.children[i] && grid.children[i].querySelector('img');
-  if(img){ img.style.transform = 'scale('+(valor/100)+')'; }
+  posicionarFotoExtra(img, extraMedias[i].posy!=null?extraMedias[i].posy:50, extraMedias[i].zoom);
 }
 
 // Define o código ou preço de variação de uma foto específica da galeria
@@ -2329,10 +2346,9 @@ function confirmarVincularProduto(){
 function buildCarousel(prod){
   carouselMedia = [];
 
-  // Foto principal ao abrir o produto (usa a "foto de abertura" se existir; senão, a capa)
-  var mainImg = prod.imgAbertura || prod.img || prod.imgUrl || '';
-  var mainFit = prod.imgAbertura ? 'contain' : 'cover';
-  if(mainImg) carouselMedia.push({type:'image', data:mainImg, fit:mainFit, cod:prod.cod||'', preco:prod.preco});
+  // Foto principal ao abrir o produto (sempre a capa)
+  var mainImg = prod.img || prod.imgUrl || '';
+  if(mainImg) carouselMedia.push({type:'image', data:mainImg, fit:'cover', cod:prod.cod||'', preco:prod.preco});
   else carouselMedia.push({type:'placeholder', cod:prod.cod||'', preco:prod.preco});
 
   // Buscar medias: do produto ou do localStorage
@@ -2579,6 +2595,7 @@ function renderCarousel(){
   var html = carouselMedia.map(slideHTML).join('');
   if(n>1) html = slideHTML(carouselMedia[n-1]) + html + slideHTML(carouselMedia[0]);
   track.innerHTML = html;
+  track.offsetHeight; // força o navegador a processar o conteúdo novo antes de reposicionar (evita foto "presa")
 
   moverTrackPara(carouselIdx + (n>1?1:0), false);
 
@@ -2640,6 +2657,7 @@ openProd = function(id){
   atualizarPrecoVariante();
   atualizarBotaoAdd();
   document.getElementById('modalProd').classList.add('open');
+  travarScrollFundo();
   var painelScroll = document.getElementById('modalProdInner');
   if(painelScroll) painelScroll.scrollTop = 0;
   if(!modalProdHistPushed){
@@ -2648,8 +2666,26 @@ openProd = function(id){
   }
 };
 var modalProdHistPushed = false;
+var scrollYAntesDoModal = 0;
+function travarScrollFundo(){
+  scrollYAntesDoModal = window.scrollY || document.documentElement.scrollTop || 0;
+  document.body.style.position = 'fixed';
+  document.body.style.top = (-scrollYAntesDoModal) + 'px';
+  document.body.style.left = '0';
+  document.body.style.right = '0';
+  document.body.style.width = '100%';
+}
+function destravarScrollFundo(){
+  document.body.style.position = '';
+  document.body.style.top = '';
+  document.body.style.left = '';
+  document.body.style.right = '';
+  document.body.style.width = '';
+  window.scrollTo(0, scrollYAntesDoModal);
+}
 closeProd = function(){
   document.getElementById('modalProd').classList.remove('open');
+  destravarScrollFundo();
   if(modalProdHistPushed){
     modalProdHistPushed = false;
     history.back();
@@ -2659,6 +2695,7 @@ window.addEventListener('popstate', function(){
   if(document.getElementById('modalProd').classList.contains('open')){
     modalProdHistPushed = false;
     document.getElementById('modalProd').classList.remove('open');
+    destravarScrollFundo();
   }
 });
 
@@ -2691,7 +2728,6 @@ saveProd = async function(){
     toast('⏳ Preparando foto...');
     imgFinal = await assarFotoCortada(imgOriginalAtual, posYAtual, zoomAtual, 1080, 1350);
   }
-  var imgAberturaAtual = document.getElementById('imgAbData').value;
   var gruposMarcados = Array.from(document.querySelectorAll('.pOpcCheck:checked')).map(function(c){return c.value;});
 
   var p={
@@ -2706,7 +2742,6 @@ saveProd = async function(){
     status:document.getElementById('pStatus').value||'ativo',
     img:imgFinal,
     imgOriginal:imgOriginalAtual,
-    imgAbertura: imgAberturaAtual,
     encaixe: encaixeAtual,
     posy: posYAtual,
     zoom: zoomAtual,
@@ -2731,14 +2766,10 @@ saveProd = async function(){
   var capaOriginalUpload = (p.imgOriginal && p.imgOriginal.startsWith('data:'))
     ? uploadParaStorage(p.imgOriginal, 'prod_' + prodId + '_original')
     : Promise.resolve(p.imgOriginal);
-  var aberturaUpload = (p.imgAbertura && p.imgAbertura.startsWith('data:'))
-    ? uploadParaStorage(p.imgAbertura, 'prod_' + prodId + '_abertura')
-    : Promise.resolve(p.imgAbertura);
-  Promise.all([uploadMedias(prodId, mediasParaUpload), capaUpload, capaOriginalUpload, aberturaUpload]).then(function(res){
+  Promise.all([uploadMedias(prodId, mediasParaUpload), capaUpload, capaOriginalUpload]).then(function(res){
     p.medias = res[0];
     p.img = res[1] || p.img;
     p.imgOriginal = res[2] || p.imgOriginal;
-    p.imgAbertura = res[3] || p.imgAbertura;
     // Atualizar produto na lista
     var idx = prods.findIndex(function(x){return x.id===prodId;});
     if(idx>=0) prods[idx]=p; else prods.push(p);
@@ -2774,8 +2805,6 @@ editProd = function(id){
   var fotoParaAjustar = p.imgOriginal || p.img || '';
   document.getElementById('imgData').value=fotoParaAjustar;
   document.getElementById('imgPrev').innerHTML=fotoParaAjustar?'<img src="'+fotoParaAjustar+'">':'<span>📷</span>';
-  document.getElementById('imgAbData').value = p.imgAbertura||'';
-  document.getElementById('imgAbPrev').innerHTML = p.imgAbertura ? '<img src="'+p.imgAbertura+'" style="width:100%;height:100%;object-fit:contain;background:#fff;">' : '<span>📷</span>';
   setStatus(p.status||'ativo');
   posYAtual = (p.posy!=null && p.posy!=='') ? parseInt(p.posy,10) : 50;
   zoomAtual = (p.zoom!=null && p.zoom!=='') ? parseInt(p.zoom,10) : 100;
@@ -2802,7 +2831,6 @@ clearProd = function(){
   editPId=null;
   ['editId','pNome','pDesc','pPreco','pCat','pTam','pCod','imgData','pTags'].forEach(function(id){document.getElementById(id).value='';});
   document.getElementById('imgPrev').innerHTML='<span>📷</span>';
-  limparImgAbertura();
   setStatus('ativo');
   extraMedias=[];
   renderExtraMediaGrid();
