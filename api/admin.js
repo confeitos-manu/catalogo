@@ -61,7 +61,8 @@ module.exports = async (req, res) => {
         posy: (p.posy != null) ? p.posy : 50,
         zoom: (p.zoom != null) ? p.zoom : 100,
         grupos_opcionais: p.gruposOpcionais || [],
-        mostrar_insp: !!p.mostrarInsp
+        mostrar_insp: !!p.mostrarInsp,
+        ordem_feed: p.ordemFeed || 0
       };
       var r1 = await sbServiceFetch('/rest/v1/catalogo?on_conflict=cod', {
         method: 'POST',
