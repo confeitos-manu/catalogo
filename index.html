@@ -285,7 +285,7 @@ body{font-family:'Inter',sans-serif;background:#fafafa;color:#111;max-width:480p
 .carousel-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.6);cursor:pointer;transition:background .2s;}
 .carousel-dot.on{background:#fff;}
 .carousel{position:absolute;inset:0;overflow:hidden;background:#fff;}
-.carousel-track{display:flex;transition:transform .3s ease;height:100%;min-height:250px;touch-action:pan-y;}
+.carousel-track{display:flex;transition:transform .32s cubic-bezier(.22,1,.36,1);height:100%;min-height:250px;touch-action:pan-y;}
 .carousel-slide{min-width:100%;height:100%;min-height:250px;flex-shrink:0;background:#fff;overflow:hidden;display:flex;align-items:center;justify-content:center;}
 .carousel-slide img{width:100%;height:100%;object-fit:cover;}
 .carousel-dots{position:absolute;bottom:10px;left:0;right:0;display:flex;justify-content:center;gap:5px;z-index:5;}
@@ -340,7 +340,8 @@ async function sbCarregarProdutos(){
       posy: p.posy!=null ? p.posy : 50,
       zoom: p.zoom!=null ? p.zoom : 100,
       gruposOpcionais: p.grupos_opcionais||[],
-      mostrarInsp: !!p.mostrar_insp
+      mostrarInsp: !!p.mostrar_insp,
+      ordemFeed: p.ordem_feed||0
     };
   });
 }
@@ -604,6 +605,7 @@ Faça sua encomenda abaixo 👇</div>
           <button class="at" onclick="showAT('msg')">💬 Mensagem</button>
           <button class="at" onclick="showAT('destaques')">⭕ Destaques</button>
           <button class="at" onclick="showAT('inspiracao')">✨ Inspiração</button>
+          <button class="at" onclick="showAT('ordemfeed')">🔀 Ordem do Feed</button>
           <button class="at" onclick="showAT('opcionais')">🎁 Adicionais</button>
         </div>
         <!-- LISTA PRODS -->
@@ -666,7 +668,7 @@ Faça sua encomenda abaixo 👇</div>
             <div class="fl">
               <div class="extra-media-grid" id="extraMediaGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:6px;"></div>
               <div style="display:flex;gap:6px;">
-                <label style="flex:1;display:flex;align-items:center;justify-content:center;aspect-ratio:3/1;border:2px dashed #ddd;border-radius:8px;cursor:pointer;font-size:1.3rem;color:#bbb;background:#fafafa;">
+                <label style="flex:1;display:flex;align-items:center;justify-content:center;aspect-ratio:3/1;border:2px dashed #ddd;border-radius:8px;cursor:pointer;font-size:1.3rem;color:#bbb;background:#fafafa;" onclick="guardarScrollExtraMedia()">
                   ＋ Adicionar fotos/vídeos
                   <input type="file" id="extraMediaFile" accept="image/*,video/*" multiple style="display:none" onchange="handleExtraMedia(this)">
                 </label>
@@ -740,6 +742,11 @@ Faça sua encomenda abaixo 👇</div>
             <button class="bp" onclick="saveInsp()">💾 Salvar</button>
             <button class="bs" onclick="clearInsp()">Cancelar</button>
           </div>
+        </div>
+        <!-- ORDEM DO FEED (grade única, arrastável, misturando manuais e fotos de produtos) -->
+        <div id="at-ordemfeed" style="display:none">
+          <p style="font-size:.73rem;color:#888;margin-bottom:8px;">Arraste pra organizar a ordem de tudo que aparece no Feed — fotos manuais e fotos de produtos marcadas "✨ Mostrar no Feed", todas juntas. Isso não mexe na ordem da lista de Produtos.</p>
+          <div id="ordemFeedGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;"></div>
         </div>
         <!-- ADICIONAIS (grupos reutilizáveis de opcionais) -->
         <div id="at-opcionais" style="display:none">
@@ -927,7 +934,11 @@ var editPId=null,editHlId=null,editStId=null,dragSrc=null;
 var admListScrollY=0; // guarda a posição do scroll da lista de produtos pra devolver o usuário no mesmo lugar depois de editar/salvar (igual Instagram)
 function guardarScrollAdminList(){var m=document.querySelector('.mdb');if(m)admListScrollY=m.scrollTop;}
 function restaurarScrollAdminList(){var m=document.querySelector('.mdb');if(m)setTimeout(function(){m.scrollTop=admListScrollY;},0);}
+var extraMediaScrollY=0; // mesma ideia, mas pro scroll DENTRO do formulário de edição de um produto, ao subir fotos extras uma a uma
+function guardarScrollExtraMedia(){var m=document.querySelector('.mdb');if(m)extraMediaScrollY=m.scrollTop;}
+function restaurarScrollExtraMedia(){var m=document.querySelector('.mdb');if(m)setTimeout(function(){m.scrollTop=extraMediaScrollY;},0);}
 var curProd=null,curProdQty=1;
+var ultimoAddInfo=null; // {key, qty} do último "Adicionar" bem-sucedido nesta visita ao produto — define se o botão vira "Ver pedido" ou "Adicionar mais"
 function ldTxt(k,d){try{var s=localStorage.getItem(k);return s?JSON.parse(s):d;}catch(e){return d;}}
 // Garante um valor de posição válido (0-100), evitando fotos "sumindo" por causa de dado corrompido
 function posySafe(v){
@@ -1177,7 +1188,7 @@ function openProd(id){
 }
 function closeProd(){document.getElementById('modalProd').classList.remove('open');}
 
-function mpQty(d){curProdQty=Math.max(1,curProdQty+d);document.getElementById('mpQty').textContent=curProdQty;}
+function mpQty(d){curProdQty=Math.max(1,curProdQty+d);document.getElementById('mpQty').textContent=curProdQty;atualizarBotaoAdd();}
 function chaveOpcionaisAtual(){
   var partes = [];
   Object.keys(curOpcionaisSelecionados).sort().forEach(function(gid){
@@ -1217,8 +1228,10 @@ function mpAdd(){
   cart[key]=(cart[key]||0)+curProdQty; // soma à quantidade já existente no carrinho, em vez de substituir
   cartMeta[key]={pid:curProd.id, nome:nomeExibido, diferenca:diferenca, tam:curProd.tam, img:img, cod:cod, preco:preco, opcionais:opcionaisEscolhidos, obs:curObservacao};
   updateCart();render();
-  document.getElementById('mpAddBtn').textContent='✓ Adicionado';
-  document.getElementById('mpAddBtn').className='mprod-badd ok';
+  ultimoAddInfo = {key:key, qty:curProdQty};
+  // Fechamento visual: volta a foto pra capa, sinalizando que a ação terminou (goCarousel já atualiza o botão sozinho)
+  if(carouselMedia.length>1 && carouselIdx!==0) goCarousel(0);
+  else atualizarBotaoAdd();
   toast('Adicionado ao pedido! 🛒');
 }
 
@@ -1546,7 +1559,7 @@ function showAT(t){
   if(t==='msg') setTimeout(carregarCamposMensagem, 50);
   if(t==='destaques') renderHlProdSelect([]);
   // Esconder todos os painéis explicitamente
-  var todos=['prods','novo','perfil','destaques','stories','msg','inspiracao','opcionais'];
+  var todos=['prods','novo','perfil','destaques','stories','msg','inspiracao','ordemfeed','opcionais'];
   todos.forEach(function(n){
     var el=document.getElementById('at-'+n);
     if(el) el.style.display='none';
@@ -1569,6 +1582,7 @@ function showAT(t){
   if(t==='novo'&&!editPId)verificarRascunhoProduto();
   if(t==='novo')renderCatDatalist();
   if(t==='inspiracao')renderInspAdmList();
+  if(t==='ordemfeed')renderOrdemFeedAdmin();
   if(t==='opcionais'){clearGrupoOpcional();renderOpAdmList();}
   if(t==='novo')renderPOpcionaisSelect();
 }
@@ -2124,7 +2138,7 @@ function coletarInspiracoesDeProdutos(){
   prods.forEach(function(p){
     // Foto principal (capa), se marcada pra aparecer no Feed
     if(p.mostrarInsp && p.img){
-      lista.push({origem:'produto', prodId:p.id, img:p.img, cod:p.cod||'', posy:(p.posy!=null?p.posy:50), carouselIdx:0});
+      lista.push({origem:'produto', prodId:p.id, img:p.img, cod:p.cod||'', posy:(p.posy!=null?p.posy:50), carouselIdx:0, ordem:(p.ordemFeed||0)});
     }
     // carouselPos acompanha a posição real no carrossel do produto (posição 0 é sempre a capa);
     // fotos ocultadas do produto (ocultarNoProduto) não existem lá, então não contam posição
@@ -2135,7 +2149,8 @@ function coletarInspiracoesDeProdutos(){
       if(m.mostrarInsp && m.type!=='video' && m.tipo!=='ref' && m.data){
         lista.push({
           origem:'produto', prodId:p.id, img:m.data, cod:p.cod||'', posy:(m.posy!=null?m.posy:50),
-          carouselIdx: apareceNoCarrossel ? carouselPos : 0 // se não existe no carrossel, abre na capa
+          carouselIdx: apareceNoCarrossel ? carouselPos : 0, // se não existe no carrossel, abre na capa
+          ordem:(m.ordemFeed||0)
         });
       }
       if(apareceNoCarrossel) carouselPos++;
@@ -2147,11 +2162,12 @@ function coletarInspiracoesDeProdutos(){
 function renderInspClient(){
   var el = document.getElementById('inspGrid');
   if(!el) return;
-  var manual = inspiracoes.slice().sort(function(a,b){return (a.order||0)-(b.order||0);}).map(function(it){
-    return {origem:'manual', id:it.id, img:it.img, cod:it.cod, posy:it.posy};
+  var manual = inspiracoes.slice().map(function(it){
+    return {origem:'manual', id:it.id, img:it.img, cod:it.cod, posy:it.posy, ordem:(it.order||0)};
   });
   var deProdutos = coletarInspiracoesDeProdutos();
-  var lista = manual.concat(deProdutos);
+  // Ordem única: manuais e fotos de produtos ficam misturados, na posição que a Manu escolheu em "Ordem do Feed"
+  var lista = manual.concat(deProdutos).sort(function(a,b){return (a.ordem||0)-(b.ordem||0);});
   if(!lista.length){ el.innerHTML='<div style="text-align:center;padding:40px;color:#888;grid-column:1/-1;">Nenhuma inspiração por aqui ainda</div>'; return; }
   el.innerHTML = lista.map(function(it){
     var clique = it.origem==='produto' ? 'openProd('+it.prodId+','+it.carouselIdx+')' : 'openInsp('+it.id+')';
@@ -2161,6 +2177,80 @@ function renderInspClient(){
       '<div class="cell-cod">#'+it.cod+'</div>'+
       '</div>';
   }).join('');
+}
+
+// ===== ORDEM DO FEED (tela única pra arrastar manuais + fotos de produtos juntos) =====
+var ordemFeedListaAtual = [];
+var dragSrcOrdemFeed = null;
+function coletarItensOrdemFeed(){
+  var lista = [];
+  inspiracoes.forEach(function(it){
+    lista.push({origem:'manual', ordem:(it.order||0), img:it.img, cod:it.cod||'', inspId:it.id});
+  });
+  prods.forEach(function(p){
+    if(p.mostrarInsp && p.img){
+      lista.push({origem:'capa', ordem:(p.ordemFeed||0), img:p.img, cod:p.cod||'', prodId:p.id});
+    }
+    (p.medias||[]).forEach(function(m, mi){
+      if(m && m.mostrarInsp && m.type!=='video' && m.tipo!=='ref' && m.data){
+        lista.push({origem:'media', ordem:(m.ordemFeed||0), img:m.data, cod:p.cod||'', prodId:p.id, mediaIdx:mi});
+      }
+    });
+  });
+  lista.sort(function(a,b){return (a.ordem||0)-(b.ordem||0);});
+  return lista;
+}
+function renderOrdemFeedAdmin(){
+  var el = document.getElementById('ordemFeedGrid');
+  if(!el) return;
+  ordemFeedListaAtual = coletarItensOrdemFeed();
+  if(!ordemFeedListaAtual.length){ el.innerHTML='<p style="font-size:.79rem;color:#888;grid-column:1/-1;">Nenhuma foto marcada pra aparecer no Feed ainda.</p>'; return; }
+  el.innerHTML = ordemFeedListaAtual.map(function(it,i){
+    return '<div draggable="true" data-idx="'+i+'" ondragstart="dsOrdemFeed(event)" ondragover="dovOrdemFeed(event)" ondrop="dpOrdemFeed(event)" ondragend="deOrdemFeed(event)" style="display:block;position:relative;padding:0;border-radius:8px;overflow:hidden;background:#f5f5f5;aspect-ratio:4/5;cursor:grab;">'+
+      '<img src="'+it.img+'" style="width:100%;height:100%;object-fit:cover;display:block;">'+
+      '<div style="position:absolute;top:3px;left:3px;background:rgba(0,0,0,0.6);color:#fff;font-size:0.6rem;padding:2px 6px;border-radius:8px;">'+(it.cod?'#'+it.cod:'—')+'</div>'+
+      '<div style="position:absolute;bottom:3px;right:3px;background:rgba(255,255,255,0.92);font-size:0.62rem;font-weight:700;padding:2px 7px;border-radius:8px;">⠿ '+(i+1)+'</div>'+
+      '</div>';
+  }).join('');
+}
+function dsOrdemFeed(e){dragSrcOrdemFeed=e.currentTarget;e.currentTarget.classList.add('drag');}
+function dovOrdemFeed(e){e.preventDefault();}
+function deOrdemFeed(e){e.currentTarget.classList.remove('drag');}
+function dpOrdemFeed(e){
+  e.preventDefault();
+  var t=e.currentTarget;
+  if(!dragSrcOrdemFeed||dragSrcOrdemFeed===t)return;
+  var iSrc=parseInt(dragSrcOrdemFeed.dataset.idx,10), iAlvo=parseInt(t.dataset.idx,10);
+  if(isNaN(iSrc)||isNaN(iAlvo))return;
+  var item = ordemFeedListaAtual.splice(iSrc,1)[0];
+  ordemFeedListaAtual.splice(iAlvo,0,item);
+  salvarNovaOrdemFeed();
+}
+// Renumera tudo em sequência conforme a ordem visual atual, e salva só quem realmente mudou
+// (essa "posição no Feed" é totalmente independente da ordem da lista de Produtos)
+function salvarNovaOrdemFeed(){
+  ordemFeedListaAtual.forEach(function(it, i){
+    if((it.ordem||0)===i) return; // não mudou, não precisa salvar de novo
+    it.ordem = i;
+    if(it.origem==='manual'){
+      var insp = inspiracoes.find(function(x){return x.id===it.inspId;});
+      if(insp){
+        insp.order = i;
+        try{ localStorage.setItem('manu_insp', JSON.stringify(inspiracoes)); }catch(e){}
+        chamarAdmin('salvarInspiracao', {inspiracao:insp});
+      }
+    } else if(it.origem==='capa'){
+      var p = prods.find(function(x){return x.id===it.prodId;});
+      if(p){ p.ordemFeed = i; sbUpsertProduto(p); }
+    } else if(it.origem==='media'){
+      var p2 = prods.find(function(x){return x.id===it.prodId;});
+      if(p2 && p2.medias && p2.medias[it.mediaIdx]){ p2.medias[it.mediaIdx].ordemFeed = i; sbUpsertProduto(p2); }
+    }
+  });
+  try{ localStorage.setItem('manu_p', JSON.stringify(prods)); }catch(e){}
+  renderOrdemFeedAdmin();
+  renderInspClient();
+  toast('🔀 Ordem do Feed atualizada!');
 }
 
 function openInsp(id){
@@ -2399,12 +2489,12 @@ function handleExtraMedia(inp){
         comprimirImagem(e.target.result, 1600, 0.82).then(function(dataComprimido){
           extraMedias.push({type:type, data:dataComprimido});
           pending--;
-          if(pending===0) renderExtraMediaGrid();
+          if(pending===0){ renderExtraMediaGrid(); restaurarScrollExtraMedia(); }
         });
       } else {
         extraMedias.push({type:type, data:e.target.result});
         pending--;
-        if(pending===0) renderExtraMediaGrid();
+        if(pending===0){ renderExtraMediaGrid(); restaurarScrollExtraMedia(); }
       }
     };
     r.readAsDataURL(f);
@@ -2751,7 +2841,7 @@ function initSwipe(){
     if(travouEixo==='x' && Math.abs(deltaX)>largura*0.18){
       if(deltaX<0) carouselNav(1); else carouselNav(-1);
     } else {
-      renderCarousel(); // volta pro slide atual, garantindo foto e texto sempre sincronizados
+      moverTrackPara(carouselIdx+1, true); // volta suavemente pro slide atual, sem reconstruir tudo com corte seco
     }
   }
   el.addEventListener('touchend', soltarSwipe);
@@ -2841,16 +2931,29 @@ function carouselNav(dir){
     var idxNoMomento = carouselIdx;
     carouselWrapTimeout = setTimeout(function(){
       carouselWrapTimeout = null;
-      if(carouselIdx===idxNoMomento) renderCarousel(); // só reconstrói se ninguém navegou de novo nesse meio tempo
+      // só reposiciona se ninguém navegou de novo nesse meio tempo — pula sem transição pro slide real
+      // equivalente (é a mesma foto do clone, então não há salto visível), sem reconstruir o DOM inteiro
+      // (a reconstrução completa é que causava aquele "soquinho" ocasional ao dar a volta)
+      if(carouselIdx===idxNoMomento){
+        moverTrackPara(carouselIdx+1, false);
+        atualizarDotsCount();
+        syncVariantePeloSlide();
+      }
     }, 300);
   } else {
-    renderCarousel();
+    // Desliza suavemente até a foto seguinte, sem reconstruir o carrossel inteiro —
+    // reconstruir e "teletransportar" (transition:none) era o que dava a sensação de soco ao soltar o dedo
+    moverTrackPara(carouselIdx+1, true);
+    atualizarDotsCount();
+    syncVariantePeloSlide();
   }
 }
 function goCarousel(i){
   if(carouselWrapTimeout){ clearTimeout(carouselWrapTimeout); carouselWrapTimeout=null; }
   carouselIdx=i;
-  renderCarousel();
+  moverTrackPara(carouselIdx+1, true);
+  atualizarDotsCount();
+  syncVariantePeloSlide();
 }
 
 // ===== PATCH: openProd usa carrossel =====
@@ -2859,6 +2962,7 @@ openProd = function(id, startIdx){
   var p = prods.find(function(x){return x.id===id;});
   if(!p) return;
   curProd=p;
+  ultimoAddInfo=null; // começa do zero a cada abertura do produto
   buildCarousel(p, startIdx); // já define curVariant (padrão = variação principal do produto, ou a foto específica clicada na Inspiração)
   var codAtual = curVariant ? curVariant.cod : p.cod;
   curProdQty=qtyInCart(p.id,codAtual)||1;
@@ -2918,8 +3022,23 @@ function atualizarBotaoAdd(){
   var btn=document.getElementById('mpAddBtn');
   var codAtual = curVariant ? curVariant.cod : curProd.cod;
   var jaTem = qtyInCart(curProd.id, codAtual) > 0;
-  if(curProd.status==='esgotado' || (curVariant && curVariant.esgotado)){btn.textContent='Esgotado';btn.disabled=true;btn.className='mprod-badd';}
-  else{btn.textContent=jaTem?'✓ Adicionado':'Adicionar ao pedido';btn.disabled=false;btn.className='mprod-badd'+(jaTem?' ok':'');}
+  if(curProd.status==='esgotado' || (curVariant && curVariant.esgotado)){
+    btn.textContent='Esgotado';btn.disabled=true;btn.className='mprod-badd';btn.onclick=null;
+    return;
+  }
+  var keyAtual = cartKey(curProd.id, codAtual) + (chaveOpcionaisAtual() ? ('::'+chaveOpcionaisAtual()) : '');
+  if(jaTem && ultimoAddInfo && ultimoAddInfo.key===keyAtual && ultimoAddInfo.qty===curProdQty){
+    // Acabou de adicionar essa mesma combinação de variação/opcionais/quantidade — leva direto pro pedido
+    // em vez de continuar somando sem querer a cada toque
+    btn.textContent='🛒 Ver pedido';btn.disabled=false;btn.className='mprod-badd ok';
+    btn.onclick=function(){ toggleCart(); };
+  } else if(jaTem){
+    btn.textContent='+ Adicionar mais '+curProdQty+' ao pedido';btn.disabled=false;btn.className='mprod-badd';
+    btn.onclick=function(){ mpAdd(); };
+  } else {
+    btn.textContent='Adicionar ao pedido';btn.disabled=false;btn.className='mprod-badd';
+    btn.onclick=function(){ mpAdd(); };
+  }
 }
 
 // ===== PATCH: saveProd salva medias =====
@@ -2962,6 +3081,7 @@ saveProd = async function(){
     medias: extraMedias.slice(), // mídias extras
     gruposOpcionais: gruposMarcados,
     mostrarInsp: !!(document.getElementById('pMostrarInsp') && document.getElementById('pMostrarInsp').checked),
+    ordemFeed: (prods.find(function(x){return x.id===editPId;})||{}).ordemFeed||0,
     order:editPId?(prods.find(function(x){return x.id===editPId;})||{}).order||maxO:maxO+1
   };
   var codesConflito = codigosDuplicados(p);
