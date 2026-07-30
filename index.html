@@ -150,9 +150,15 @@ body{font-family:'Inter',sans-serif;background:#fafafa;color:#111;max-width:480p
 
 /* MODAL DESTAQUE */
 .modal-hl{background:#fff;width:100%;max-width:480px;border-radius:18px 18px 0 0;max-height:80vh;max-height:80dvh;overflow-y:auto;padding:20px 16px 30px;}
-.mhl-title{font-weight:700;font-size:1rem;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
-.mhl-icon{font-size:1.4rem;}
-.mhl-text{font-size:0.9rem;color:#333;line-height:1.6;white-space:pre-line;}
+.mhl-title{font-weight:700;font-size:1.05rem;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid #f2f2f2;display:flex;align-items:center;gap:12px;}
+.mhl-icon{font-size:1.25rem;width:42px;height:42px;border-radius:50%;background:#fdecee;color:#dc2743;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.mhl-text{font-size:0.9rem;color:#333;line-height:1.65;}
+.mhl-text p{margin:0 0 14px;}
+.mhl-text p:last-child{margin-bottom:0;}
+.mhl-lista{display:flex;flex-direction:column;gap:10px;margin:0 0 14px;background:#fafafa;border-radius:12px;padding:12px 14px;}
+.mhl-lista:last-child{margin-bottom:0;}
+.mhl-li{display:flex;align-items:center;gap:10px;font-size:0.88rem;}
+.mhl-li-ic{font-size:1rem;width:24px;text-align:center;flex-shrink:0;}
 
 /* CARRINHO */
 .cart-fab{position:fixed;bottom:20px;right:16px;z-index:200;background:#111;color:#fff;border:none;border-radius:50px;padding:10px 18px;font-size:0.85rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;box-shadow:0 4px 16px rgba(0,0,0,0.2);}
@@ -420,13 +426,12 @@ Faça sua encomenda abaixo 👇</div>
 
 <!-- TABS -->
 <div class="feed-tabs">
-  <div class="feed-tab active" id="tab-feed" onclick="setFeedTab('feed')">⊞ Feed</div>
-  <div class="feed-tab" id="tab-lista" onclick="setFeedTab('lista')">☰ Lista</div>
-  <div class="feed-tab" id="tab-insp" onclick="setFeedTab('insp')">✨ Inspiração</div>
+  <div class="feed-tab active" id="tab-feed" onclick="setFeedTab('feed')">✨ Feed</div>
+  <div class="feed-tab" id="tab-produtos" onclick="setFeedTab('produtos')">⊞ Produtos</div>
 </div>
 
-<!-- TOOLBAR -->
-<div class="feed-toolbar" id="feedToolbar">
+<!-- TOOLBAR (aba Produtos) -->
+<div class="feed-toolbar" id="feedToolbar" style="display:none;">
   <input class="feed-search" type="search" placeholder="🔍 Buscar..." id="searchInput" oninput="render()">
   <select class="feed-sort" id="sortSel" onchange="render()">
     <option value="custom" selected>Ordem</option>
@@ -434,17 +439,18 @@ Faça sua encomenda abaixo 👇</div>
     <option value="pa">Menor preço</option>
     <option value="pd">Maior preço</option>
   </select>
+  <button class="feed-selbtn" id="viewBtn" onclick="toggleVisualizacaoProdutos()" title="Alternar entre grade e lista">⊞</button>
   <button class="feed-selbtn" id="selBtn" onclick="toggleModoSelecao()" style="display:none;">☑️ Selecionar</button>
 </div>
 
-<!-- CATEGORIAS -->
-<div id="catChips" style="display:flex;gap:6px;overflow-x:auto;padding:2px 12px 10px;-webkit-overflow-scrolling:touch;"></div>
+<!-- CATEGORIAS (aba Produtos) -->
+<div id="catChips" style="display:none;gap:6px;overflow-x:auto;padding:2px 12px 10px;-webkit-overflow-scrolling:touch;"></div>
 
-<!-- FEED -->
-<div id="feedArea"></div>
+<!-- PRODUTOS (era Feed/Lista: itens com preço fechado) -->
+<div id="feedArea" style="display:none;"></div>
 
-<!-- INSPIRAÇÃO -->
-<div id="inspArea" style="display:none;">
+<!-- FEED (era Inspiração: modelos sem preço fechado, agora a vitrine principal) -->
+<div id="inspArea">
   <div style="background:#fff7ed;border:1px solid #fde7cf;border-radius:12px;padding:12px 14px;margin:10px 12px;font-size:0.82rem;color:#7a5a30;line-height:1.4;">
     ✨ <strong>Esses são modelos que já fizemos!</strong> Quer um modelo mais personalizado? Se inspire e nos conte mais detalhes sobre o que você está procurando 💌 Manda o código pelo WhatsApp que te passamos os valores!
   </div>
@@ -757,7 +763,7 @@ Faça sua encomenda abaixo 👇</div>
               <input type="hidden" id="opItemFotoData">
               <input type="text" id="opItemNome" placeholder="Nome (ex: Ferrero T3)" style="flex:2;padding:8px 11px;border:1px solid #ddd;border-radius:8px;font-size:0.85rem;">
               <input type="number" id="opItemPreco" placeholder="+R$" step="0.01" style="flex:1;padding:8px 11px;border:1px solid #ddd;border-radius:8px;font-size:0.85rem;">
-              <button type="button" class="bs" onclick="addItemOpcional()">+ Add</button>
+              <button type="button" class="bs" id="opItemAddBtn" onclick="addItemOpcional()">+ Add</button>
             </div>
           </div>
           <div class="fa">
@@ -871,7 +877,7 @@ var prods=ld('manu_p',null)||defProds();
 var hls=ld('manu_hls',null)||defHls();
 var gruposOpcionais = ld('manu_op', []) || [];
 var stories=ld('manu_st',[])||[];
-var cart={},cartMeta={},entrega='comb',feedTab='feed';
+var cart={},cartMeta={},entrega='comb',feedTab='feed',produtosView='grid';
 var catAtual='todos';
 
 function setCat(cat){
@@ -916,6 +922,9 @@ function totalQtyProduto(pid){
   return total;
 }
 var editPId=null,editHlId=null,editStId=null,dragSrc=null;
+var admListScrollY=0; // guarda a posição do scroll da lista de produtos pra devolver o usuário no mesmo lugar depois de editar/salvar (igual Instagram)
+function guardarScrollAdminList(){var m=document.querySelector('.mdb');if(m)admListScrollY=m.scrollTop;}
+function restaurarScrollAdminList(){var m=document.querySelector('.mdb');if(m)setTimeout(function(){m.scrollTop=admListScrollY;},0);}
 var curProd=null,curProdQty=1;
 function ldTxt(k,d){try{var s=localStorage.getItem(k);return s?JSON.parse(s):d;}catch(e){return d;}}
 // Garante um valor de posição válido (0-100), evitando fotos "sumindo" por causa de dado corrompido
@@ -1030,11 +1039,39 @@ function renderHls(){
   }).join('');
 }
 
+// Deixa o texto do destaque mais fácil de ler: separa em parágrafos, e quando um bloco
+// termina numa sequência de linhas que já começam com emoji (ex: formas de pagamento),
+// monta uma mini-lista com o emoji como ícone em vez de jogar tudo como texto corrido.
+function renderMhlTexto(texto){
+  if(!texto) return '';
+  var blocos = texto.split(/\n\s*\n/);
+  return blocos.map(function(bloco){
+    var linhas = bloco.split('\n').map(function(l){return l.trim();}).filter(Boolean);
+    var inicioLista = linhas.length;
+    for(var i=linhas.length-1;i>=0;i--){
+      if(/^\p{Emoji}/u.test(linhas[i])) inicioLista=i; else break;
+    }
+    var introLinhas = linhas.slice(0,inicioLista);
+    var listaLinhas = linhas.slice(inicioLista);
+    var html='';
+    if(introLinhas.length){ html += '<p>'+introLinhas.join('<br>')+'</p>'; }
+    if(listaLinhas.length>1){
+      html += '<div class="mhl-lista">'+listaLinhas.map(function(l){
+        var m = l.match(/^(\p{Emoji}\uFE0F?)\s*(.*)$/u);
+        var ic = m ? m[1] : '•', txt = m ? m[2] : l;
+        return '<div class="mhl-li"><span class="mhl-li-ic">'+ic+'</span><span>'+txt+'</span></div>';
+      }).join('')+'</div>';
+    } else if(listaLinhas.length===1){
+      html += '<p>'+listaLinhas[0]+'</p>';
+    }
+    return html;
+  }).join('');
+}
 function openHl(id){
   var h=hls.find(function(x){return x.id===id;});if(!h)return;
   document.getElementById('mhlIcon').textContent=h.emoji||'⭐';
   document.getElementById('mhlNome').textContent=h.nome;
-  document.getElementById('mhlText').textContent=h.texto||'';
+  document.getElementById('mhlText').innerHTML=renderMhlTexto(h.texto||'');
   var prodsEl = document.getElementById('mhlProdutos');
   var codsVinculados = h.produtos || [];
   var prodsDoDestaque = codsVinculados.map(function(cod){ return prods.find(function(p){return p.cod===cod;}); }).filter(Boolean);
@@ -1055,14 +1092,18 @@ function openHl(id){
 function setFeedTab(t){
   feedTab=t;
   document.getElementById('tab-feed').className='feed-tab'+(t==='feed'?' active':'');
-  document.getElementById('tab-lista').className='feed-tab'+(t==='lista'?' active':'');
-  document.getElementById('tab-insp').className='feed-tab'+(t==='insp'?' active':'');
-  document.getElementById('feedArea').style.display=(t==='insp')?'none':'block';
-  document.getElementById('feedToolbar').style.display=(t==='insp')?'none':'flex';
-  document.getElementById('catChips').style.display=(t==='insp')?'none':'flex';
-  document.getElementById('inspArea').style.display=(t==='insp')?'block':'none';
-  if(t==='insp') renderInspClient();
+  document.getElementById('tab-produtos').className='feed-tab'+(t==='produtos'?' active':'');
+  document.getElementById('feedArea').style.display=(t==='produtos')?'block':'none';
+  document.getElementById('feedToolbar').style.display=(t==='produtos')?'flex':'none';
+  document.getElementById('catChips').style.display=(t==='produtos')?'flex':'none';
+  document.getElementById('inspArea').style.display=(t==='feed')?'block':'none';
+  if(t==='feed') renderInspClient();
   else render();
+}
+function toggleVisualizacaoProdutos(){
+  produtosView = produtosView==='grid' ? 'lista' : 'grid';
+  var btn = document.getElementById('viewBtn'); if(btn) btn.textContent = produtosView==='grid' ? '☰' : '⊞';
+  render();
 }
 
 function render(){
@@ -1080,7 +1121,7 @@ function render(){
   else list.sort(function(a,b){return(a.order||0)-(b.order||0);});
   document.getElementById('statProds').textContent=prods.filter(function(p){return p.status!=='escondido';}).length;
   var el=document.getElementById('feedArea');
-  if(feedTab==='feed'){
+  if(produtosView==='grid'){
     if(!list.length){el.innerHTML='<div style="text-align:center;padding:40px;color:#888">Nenhum produto</div>';return;}
     var cells=list.map(function(p){
       var img=p.img?'<img src="'+p.img+'" alt="" loading="lazy" style="object-fit:cover;object-position:center '+posySafe(p.posy)+'%;">':'<div class="cell-fallback"><span style="font-size:2.5rem">🌸</span></div>';
@@ -1149,8 +1190,10 @@ function listaOpcionaisSelecionados(){
   var lista = [];
   Object.keys(curOpcionaisSelecionados).forEach(function(gid){
     var sel = curOpcionaisSelecionados[gid];
-    if(Array.isArray(sel)){ sel.forEach(function(x){ lista.push({nome:x.nome, preco:x.preco}); }); }
-    else if(sel){ lista.push({nome:sel.nome, preco:sel.preco}); }
+    var grupo = gruposOpcionais.find(function(g){return String(g.id)===String(gid);});
+    var grupoNome = grupo ? grupo.nome : '';
+    if(Array.isArray(sel)){ sel.forEach(function(x){ lista.push({grupo:grupoNome, nome:x.nome, preco:x.preco}); }); }
+    else if(sel){ lista.push({grupo:grupoNome, nome:sel.nome, preco:sel.preco}); }
   });
   return lista;
 }
@@ -1169,7 +1212,7 @@ function mpAdd(){
   var img = (curVariant && carouselMedia[curVariant.idx] && carouselMedia[curVariant.idx].data) || curProd.img;
   var sufixoOpc = chaveOpcionaisAtual();
   var key = cartKey(curProd.id, cod) + (sufixoOpc ? ('::'+sufixoOpc) : '');
-  cart[key]=curProdQty;
+  cart[key]=(cart[key]||0)+curProdQty; // soma à quantidade já existente no carrinho, em vez de substituir
   cartMeta[key]={pid:curProd.id, nome:nomeExibido, diferenca:diferenca, tam:curProd.tam, img:img, cod:cod, preco:preco, opcionais:opcionaisEscolhidos, obs:curObservacao};
   updateCart();render();
   document.getElementById('mpAddBtn').textContent='✓ Adicionado';
@@ -1215,7 +1258,7 @@ function renderCart(){
       meta={pid:p.id,nome:p.nome,tam:p.tam,img:p.img,cod:p.cod,preco:p.preco};
     }
     var qty=e[1];
-    var opcTxt = (meta.opcionais&&meta.opcionais.length) ? '<div class="cisz">🎁 '+meta.opcionais.map(function(o){return o.nome;}).join(', ')+'</div>' : '';
+    var opcTxt = (meta.opcionais&&meta.opcionais.length) ? '<div class="cisz">🎁 '+meta.opcionais.map(function(o){return (o.grupo?o.grupo+': ':'')+o.nome;}).join(', ')+'</div>' : '';
     var obsTxt = meta.obs ? '<div class="cisz">📝 '+meta.obs+'</div>' : '';
     return '<div class="ci"><div class="cith">'+(meta.img?'<img src="'+meta.img+'" alt="">':'🌸')+'</div><div class="ciin"><div class="cinm">'+(meta.cod?'#'+meta.cod+' · ':'')+meta.nome+'</div>'+(meta.diferenca?'<div class="cisz">✨ '+meta.diferenca+'</div>':'')+(meta.tam?'<div class="cisz">'+meta.tam+'</div>':'')+opcTxt+obsTxt+'<div class="cipr">R$ '+meta.preco.toFixed(2).replace('.',',')+'</div><div class="cict"><button class="ciqb" onclick="chQty(\''+key+'\',-1)">-</button><span class="ciq">'+qty+'</span><button class="ciqb" onclick="chQty(\''+key+'\',1)">+</button></div></div><button class="cirm" onclick="rmItem(\''+key+'\')">✕</button></div>';
   }).join('');
@@ -1554,7 +1597,7 @@ function dp(e){
   sbUpsertProduto(tg).catch(function(e){console.error('Erro Supabase:',e);});
   renderAdmList();render();
 }
-function editProd(id){var p=prods.find(function(x){return x.id===id;});if(!p)return;editPId=id;document.getElementById('editId').value=id;document.getElementById('pNome').value=p.nome;document.getElementById('pDesc').value=p.desc||'';document.getElementById('pPreco').value=p.preco;document.getElementById('pCat').value=p.cat||'';document.getElementById('pTam').value=p.tam||'';document.getElementById('pCod').value=p.cod||'';document.getElementById('imgData').value=p.img||'';document.getElementById('imgPrev').innerHTML=p.img?'<img src="'+p.img+'">':'<span>📷</span>';setStatus(p.status||'ativo');showAT('novo');}
+function editProd(id){guardarScrollAdminList();var p=prods.find(function(x){return x.id===id;});if(!p)return;editPId=id;document.getElementById('editId').value=id;document.getElementById('pNome').value=p.nome;document.getElementById('pDesc').value=p.desc||'';document.getElementById('pPreco').value=p.preco;document.getElementById('pCat').value=p.cat||'';document.getElementById('pTam').value=p.tam||'';document.getElementById('pCod').value=p.cod||'';document.getElementById('imgData').value=p.img||'';document.getElementById('imgPrev').innerHTML=p.img?'<img src="'+p.img+'">':'<span>📷</span>';setStatus(p.status||'ativo');showAT('novo');}
 function delProd(id){
   if(!confirm('Remover produto?'))return;
   var alvo = prods.find(function(p){return p.id===id;});
@@ -1659,6 +1702,7 @@ function verificarRascunhoProduto(){
 
 // ADMIN OPCIONAIS (grupos de adicionais reutilizáveis)
 var editOpId=null, opItensAtual=[];
+var editOpItemIdx=null, dragSrcOpItem=null;
 
 function atualizarCampoMaxOp(){
   var tipo = document.getElementById('opTipo').value;
@@ -1681,28 +1725,64 @@ function renderOpItens(){
   if(!opItensAtual.length){ el.innerHTML='<p class="ih">Nenhuma opção ainda.</p>'; return; }
   el.innerHTML = opItensAtual.map(function(it,i){
     var foto = it.foto ? '<img src="'+it.foto+'" style="width:32px;height:32px;border-radius:6px;object-fit:cover;flex-shrink:0;">' : '<div style="width:32px;height:32px;border-radius:6px;background:#eee;flex-shrink:0;"></div>';
-    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid #eee;border-radius:8px;background:#fafafa;">'+
+    return '<div class="opit" draggable="true" data-idx="'+i+'" ondragstart="dsOpItem(event)" ondragover="dovOpItem(event)" ondrop="dpOpItem(event)" ondragend="deOpItem(event)" style="display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid #eee;border-radius:8px;background:#fafafa;cursor:grab;">'+
+      '<span style="color:#bbb;font-size:0.9rem;flex-shrink:0;" title="Arraste pra reordenar">⠿</span>'+
       foto+
       '<span style="flex:1;font-size:0.82rem;">'+it.nome+'</span>'+
       '<span style="font-size:0.8rem;font-weight:600;color:#666;">+R$ '+parseFloat(it.preco||0).toFixed(2).replace('.',',')+'</span>'+
+      '<button type="button" class="be" onclick="editItemOpcional('+i+')">✏️</button>'+
       '<button type="button" class="bd" onclick="delItemOpcional('+i+')">✕</button>'+
       '</div>';
   }).join('');
+}
+// Carrega uma opção existente nos campos do formulário pra edição, em vez de precisar excluir e recriar
+function editItemOpcional(i){
+  var it = opItensAtual[i]; if(!it) return;
+  editOpItemIdx = i;
+  document.getElementById('opItemNome').value = it.nome;
+  document.getElementById('opItemPreco').value = it.preco;
+  document.getElementById('opItemFotoData').value = it.foto||'';
+  document.getElementById('opItemFotoPrev').innerHTML = it.foto ? '<img src="'+it.foto+'" style="width:100%;height:100%;object-fit:cover;">' : '<span>📷</span>';
+  var btn = document.getElementById('opItemAddBtn'); if(btn) btn.textContent='💾 Salvar edição';
+}
+// Reordenar as opções arrastando (mesmo princípio usado na lista de produtos)
+function dsOpItem(e){dragSrcOpItem=e.currentTarget;e.currentTarget.classList.add('drag');}
+function dovOpItem(e){e.preventDefault();}
+function deOpItem(e){e.currentTarget.classList.remove('drag');}
+function dpOpItem(e){
+  e.preventDefault();
+  var t=e.currentTarget;
+  if(!dragSrcOpItem||dragSrcOpItem===t)return;
+  var iSrc=parseInt(dragSrcOpItem.dataset.idx,10), iAlvo=parseInt(t.dataset.idx,10);
+  if(isNaN(iSrc)||isNaN(iAlvo))return;
+  var item = opItensAtual.splice(iSrc,1)[0];
+  opItensAtual.splice(iAlvo,0,item);
+  renderOpItens();
 }
 function addItemOpcional(){
   var nome = document.getElementById('opItemNome').value.trim();
   var preco = parseFloat(document.getElementById('opItemPreco').value)||0;
   var foto = document.getElementById('opItemFotoData').value||'';
   if(!nome){ alert('Informe o nome da opção.'); return; }
-  opItensAtual.push({nome:nome, preco:preco, foto:foto});
+  if(editOpItemIdx!=null && opItensAtual[editOpItemIdx]){
+    opItensAtual[editOpItemIdx] = {nome:nome, preco:preco, foto:foto};
+    editOpItemIdx = null;
+  } else {
+    opItensAtual.push({nome:nome, preco:preco, foto:foto});
+  }
   document.getElementById('opItemNome').value='';
   document.getElementById('opItemPreco').value='';
   document.getElementById('opItemFotoData').value='';
   document.getElementById('opItemFotoFile').value='';
   document.getElementById('opItemFotoPrev').innerHTML='<span>📷</span>';
+  var btn = document.getElementById('opItemAddBtn'); if(btn) btn.textContent='+ Add';
   renderOpItens();
 }
-function delItemOpcional(i){ opItensAtual.splice(i,1); renderOpItens(); }
+function delItemOpcional(i){
+  opItensAtual.splice(i,1);
+  if(editOpItemIdx===i){ editOpItemIdx=null; var btn=document.getElementById('opItemAddBtn'); if(btn) btn.textContent='+ Add'; }
+  renderOpItens();
+}
 
 function renderOpAdmList(){
   var el = document.getElementById('opAdmList');
@@ -1727,6 +1807,8 @@ function editGrupoOpcional(id){
   document.getElementById('opMax').value=g.maxEscolhas||10;
   atualizarCampoMaxOp();
   opItensAtual = (g.itens||[]).slice();
+  editOpItemIdx = null;
+  var btnOp = document.getElementById('opItemAddBtn'); if(btnOp) btnOp.textContent='+ Add';
   renderOpItens();
 }
 
@@ -1763,6 +1845,8 @@ function deletarGrupoOpcional(id){
 
 function clearGrupoOpcional(){
   editOpId=null;
+  editOpItemIdx=null;
+  var btnOp2 = document.getElementById('opItemAddBtn'); if(btnOp2) btnOp2.textContent='+ Add';
   document.getElementById('opEditId').value='';
   document.getElementById('opNome').value='';
   document.getElementById('opTipo').value='obrigatorio';
@@ -2036,9 +2120,10 @@ function renderInspAdmList(){
 function coletarInspiracoesDeProdutos(){
   var lista = [];
   prods.forEach(function(p){
-    (p.medias||[]).forEach(function(m){
+    (p.medias||[]).forEach(function(m, mi){
       if(m && m.mostrarInsp && m.type!=='video' && m.tipo!=='ref' && m.data){
-        lista.push({origem:'produto', prodId:p.id, img:m.data, cod:p.cod||'', posy:(m.posy!=null?m.posy:50)});
+        // +1 porque no carrossel do produto a posição 0 é sempre a foto de capa, e as medias começam a partir da posição 1
+        lista.push({origem:'produto', prodId:p.id, img:m.data, cod:p.cod||'', posy:(m.posy!=null?m.posy:50), carouselIdx:mi+1});
       }
     });
   });
@@ -2055,7 +2140,7 @@ function renderInspClient(){
   var lista = manual.concat(deProdutos);
   if(!lista.length){ el.innerHTML='<div style="text-align:center;padding:40px;color:#888;grid-column:1/-1;">Nenhuma inspiração por aqui ainda</div>'; return; }
   el.innerHTML = lista.map(function(it){
-    var clique = it.origem==='produto' ? 'openProd('+it.prodId+')' : 'openInsp('+it.id+')';
+    var clique = it.origem==='produto' ? 'openProd('+it.prodId+','+it.carouselIdx+')' : 'openInsp('+it.id+')';
     return '<div class="feed-cell" onclick="'+clique+'">'+
       (it.img?'<img src="'+it.img+'" alt="" loading="lazy" style="object-fit:cover;object-position:center '+posySafe(it.posy)+'%;">':'<div class="cell-fallback"><span style="font-size:2.5rem">🌸</span></div>')+
       '<div class="cell-overlay"></div>'+
@@ -2453,7 +2538,7 @@ function confirmarVincularProduto(){
 }
 
 // ===== CARROSSEL =====
-function buildCarousel(prod){
+function buildCarousel(prod, startIdx){
   carouselMedia = [];
 
   // Foto principal ao abrir o produto (sempre a capa)
@@ -2497,7 +2582,7 @@ function buildCarousel(prod){
   });
 
   console.log('[Carrossel] Total slides:', carouselMedia.length);
-  carouselIdx = 0;
+  carouselIdx = (typeof startIdx==='number' && startIdx>=0 && startIdx<carouselMedia.length) ? startIdx : 0;
   renderVariantes(prod);
   renderCarousel();
 }
@@ -2754,11 +2839,11 @@ function goCarousel(i){
 
 // ===== PATCH: openProd usa carrossel =====
 var _origOpenProd = openProd;
-openProd = function(id){
+openProd = function(id, startIdx){
   var p = prods.find(function(x){return x.id===id;});
   if(!p) return;
   curProd=p;
-  buildCarousel(p); // já define curVariant (padrão = variação principal do produto)
+  buildCarousel(p, startIdx); // já define curVariant (padrão = variação principal do produto, ou a foto específica clicada na Inspiração)
   var codAtual = curVariant ? curVariant.cod : p.cod;
   curProdQty=qtyInCart(p.id,codAtual)||1;
   document.getElementById('mpCat').textContent=(p.cat||'')+(p.cod?' · #'+p.cod:'');
@@ -2894,7 +2979,7 @@ saveProd = async function(){
     sbUpsertProduto(p).then(function(ok){
       if(ok){
         limparRascunhoProduto(); // só apaga o rascunho quando realmente confirmou salvo no servidor
-        clearProd();showAT('prods');
+        clearProd();showAT('prods');restaurarScrollAdminList();
         toast(editPId?'✅ Produto atualizado!':'✅ Produto adicionado!');
       } else {
         toast('⚠️ Salvou aqui, mas falhou ao sincronizar: '+(ultimoErroAdmin||'motivo desconhecido')+'. Seu rascunho foi mantido, tenta de novo.', 7000);
@@ -3010,6 +3095,7 @@ applyPerfil();renderStories();renderHls();updateCart();
     console.error('Erro ao carregar grupos de adicionais do Supabase:', err);
   }
   render();
+  renderInspClient();
   renderHls();
   applyPerfil();
   initSwipe();
