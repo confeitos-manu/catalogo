@@ -914,8 +914,7 @@ function renderCatChips(){
     var c = p.cat && p.cat.trim() ? p.cat.trim() : 'Outros';
     if(cats.indexOf(c)===-1) cats.push(c);
   });
-  if(cats.length<2){ el.innerHTML=''; el.style.display='none'; return; }
-  el.style.display='flex';
+  if(cats.length<2){ el.innerHTML=''; return; } // a visibilidade (mostrar só na aba Produtos) é controlada por setFeedTab, não aqui
   var todas = ['todos'].concat(cats);
   el.innerHTML = todas.map(function(c){
     var ativo = c===catAtual;
