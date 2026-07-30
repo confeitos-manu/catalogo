@@ -339,7 +339,8 @@ async function sbCarregarProdutos(){
       encaixe: p.encaixe||'cover',
       posy: p.posy!=null ? p.posy : 50,
       zoom: p.zoom!=null ? p.zoom : 100,
-      gruposOpcionais: p.grupos_opcionais||[]
+      gruposOpcionais: p.grupos_opcionais||[],
+      mostrarInsp: !!p.mostrar_insp
     };
   });
 }
@@ -656,6 +657,7 @@ Faça sua encomenda abaixo 👇</div>
                 </div>
               </div>
               <p class="ih">A prévia acima já mostra exatamente como vai ficar no catálogo</p>
+              <label style="display:flex;align-items:center;gap:5px;font-size:0.75rem;margin-top:6px;color:#8a5cf6;"><input type="checkbox" id="pMostrarInsp" style="width:14px;height:14px;">✨ Mostrar no Feed</label>
             </div>
           </div>
 
@@ -2116,15 +2118,27 @@ function renderInspAdmList(){
   }).join('');
 }
 
-// Junta as fotos extras de produtos marcadas "Mostrar na Inspiração" com as inspirações avulsas
+// Junta as fotos extras de produtos marcadas "Mostrar no Feed" com as inspirações avulsas
 function coletarInspiracoesDeProdutos(){
   var lista = [];
   prods.forEach(function(p){
-    (p.medias||[]).forEach(function(m, mi){
-      if(m && m.mostrarInsp && m.type!=='video' && m.tipo!=='ref' && m.data){
-        // +1 porque no carrossel do produto a posição 0 é sempre a foto de capa, e as medias começam a partir da posição 1
-        lista.push({origem:'produto', prodId:p.id, img:m.data, cod:p.cod||'', posy:(m.posy!=null?m.posy:50), carouselIdx:mi+1});
+    // Foto principal (capa), se marcada pra aparecer no Feed
+    if(p.mostrarInsp && p.img){
+      lista.push({origem:'produto', prodId:p.id, img:p.img, cod:p.cod||'', posy:(p.posy!=null?p.posy:50), carouselIdx:0});
+    }
+    // carouselPos acompanha a posição real no carrossel do produto (posição 0 é sempre a capa);
+    // fotos ocultadas do produto (ocultarNoProduto) não existem lá, então não contam posição
+    var carouselPos = 1;
+    (p.medias||[]).forEach(function(m){
+      if(!m) return;
+      var apareceNoCarrossel = !m.ocultarNoProduto;
+      if(m.mostrarInsp && m.type!=='video' && m.tipo!=='ref' && m.data){
+        lista.push({
+          origem:'produto', prodId:p.id, img:m.data, cod:p.cod||'', posy:(m.posy!=null?m.posy:50),
+          carouselIdx: apareceNoCarrossel ? carouselPos : 0 // se não existe no carrossel, abre na capa
+        });
       }
+      if(apareceNoCarrossel) carouselPos++;
     });
   });
   return lista;
@@ -2454,7 +2468,8 @@ function renderExtraMediaGrid(){
       '<input placeholder="Nome (ex: Buquê rosa)" value="'+(m.nome||'')+'" oninput="setMediaVar('+i+',\'nome\',this.value)" style="width:100%;font-size:0.68rem;padding:3px 4px;margin-top:3px;border:1px solid #ddd;border-radius:6px;">'+
       '<input placeholder="Diferença (ex: flor de cetim)" value="'+(m.diferenca||'')+'" oninput="setMediaVar('+i+',\'diferenca\',this.value)" style="width:100%;font-size:0.68rem;padding:3px 4px;margin-top:3px;border:1px solid #ddd;border-radius:6px;">'+
       '<label style="display:flex;align-items:center;gap:3px;font-size:0.65rem;margin-top:3px;color:#c0392b;"><input type="checkbox" '+(m.esgotado?'checked':'')+' onchange="setMediaVar('+i+',\'esgotado\',this.checked)" style="width:12px;height:12px;">Esgotado</label>'+
-      '<label style="display:flex;align-items:center;gap:3px;font-size:0.65rem;margin-top:3px;color:#8a5cf6;"><input type="checkbox" '+(m.mostrarInsp?'checked':'')+' onchange="setMediaVar('+i+',\'mostrarInsp\',this.checked)" style="width:12px;height:12px;">✨ Mostrar na Inspiração</label>';
+      '<label style="display:flex;align-items:center;gap:3px;font-size:0.65rem;margin-top:3px;color:#8a5cf6;"><input type="checkbox" '+(m.mostrarInsp?'checked':'')+' onchange="setMediaVar('+i+',\'mostrarInsp\',this.checked)" style="width:12px;height:12px;">✨ Mostrar no Feed</label>'+
+      '<label style="display:flex;align-items:center;gap:3px;font-size:0.65rem;margin-top:3px;color:#888;"><input type="checkbox" '+(m.ocultarNoProduto?'checked':'')+' onchange="setMediaVar('+i+',\'ocultarNoProduto\',this.checked)" style="width:12px;height:12px;">🙈 Ocultar essa foto no produto (aparece só no Feed)</label>';
     return '<div class="extra-media-item" style="display:flex;flex-direction:column;">'+
       '<div class="extra-media-thumb">'+tag+'<button class="extra-media-del" onclick="delExtraMedia('+i+')">×</button></div>'+
       ajusteFoto+
@@ -2559,6 +2574,7 @@ function buildCarousel(prod, startIdx){
 
   medias.forEach(function(m){
     if(!m) return;
+    if(m.ocultarNoProduto) return; // marcada pra aparecer só no Feed, não entra no carrossel do produto
     // Produto vinculado: busca os dados reais do produto referenciado
     if(m.tipo==='ref'){
       var codRef = (m.cod||'').trim().toLowerCase();
@@ -2945,6 +2961,7 @@ saveProd = async function(){
     zoom: zoomAtual,
     medias: extraMedias.slice(), // mídias extras
     gruposOpcionais: gruposMarcados,
+    mostrarInsp: !!(document.getElementById('pMostrarInsp') && document.getElementById('pMostrarInsp').checked),
     order:editPId?(prods.find(function(x){return x.id===editPId;})||{}).order||maxO:maxO+1
   };
   var codesConflito = codigosDuplicados(p);
@@ -3029,6 +3046,7 @@ editProd = function(id){
   // Carregar mídias extras
   extraMedias = (p.medias||[]).slice();
   renderExtraMediaGrid();
+  var chkInsp = document.getElementById('pMostrarInsp'); if(chkInsp) chkInsp.checked = !!p.mostrarInsp;
   showAT('novo');
 };
 
@@ -3047,6 +3065,7 @@ clearProd = function(){
   var zoomE2 = document.getElementById('zoomSlider'); if(zoomE2) zoomE2.value = 100;
   setEncaixe('cover');
   renderPOpcionaisSelect();
+  var chkInsp2 = document.getElementById('pMostrarInsp'); if(chkInsp2) chkInsp2.checked = false;
 };
 
 // ===== PATCH: sbSalvarProdutos inclui medias =====
