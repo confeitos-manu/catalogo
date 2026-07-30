@@ -134,6 +134,7 @@ body{font-family:'Inter',sans-serif;background:#fafafa;color:#111;max-width:480p
 .op-grupo-tag.opc{background:#f0f0f0;color:#888;}
 .op-grupo-tag.mult{background:#e8f3ff;color:#1a6fc4;}
 .op-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border:1px solid #eee;border-radius:10px;margin-bottom:6px;cursor:pointer;}
+.op-item-foto{width:36px;height:36px;border-radius:8px;object-fit:cover;flex-shrink:0;}
 .op-item.on{border-color:#111;background:#fafafa;}
 .op-item-nome{flex:1;font-size:0.83rem;}
 .op-item-preco{font-size:0.8rem;font-weight:700;color:#666;}
@@ -609,14 +610,14 @@ Faça sua encomenda abaixo 👇</div>
 
           <div class="form-section">
             <div class="form-section-title">📋 Informações básicas</div>
-            <div class="fl"><label>Nome *</label><input type="text" id="pNome" placeholder="Ex: Buquê de Rosas Vermelhas"></div>
+            <div class="fl"><label>Nome *</label><input type="text" id="pNome" placeholder="Ex: Buquê de Rosas Vermelhas" oninput="salvarRascunhoProduto()"></div>
             <div class="fr">
-              <div class="fl"><label>Preço (R$) *</label><input type="number" id="pPreco" step="0.01" min="0"></div>
-              <div class="fl"><label>Categoria</label><input type="text" id="pCat" list="catListDatalist" placeholder="Ex: Buquês"><datalist id="catListDatalist"></datalist></div>
+              <div class="fl"><label>Preço (R$) *</label><input type="number" id="pPreco" step="0.01" min="0" oninput="salvarRascunhoProduto()"></div>
+              <div class="fl"><label>Categoria</label><input type="text" id="pCat" list="catListDatalist" placeholder="Ex: Buquês" oninput="salvarRascunhoProduto()"><datalist id="catListDatalist"></datalist></div>
             </div>
             <div class="fr">
-              <div class="fl"><label>Tamanho</label><input type="text" id="pTam" placeholder="Ex: Médio"></div>
-              <div class="fl"><label>Código (#)</label><input type="text" id="pCod" maxlength="5" style="text-align:center;font-weight:700;letter-spacing:.1em"></div>
+              <div class="fl"><label>Tamanho</label><input type="text" id="pTam" placeholder="Ex: Médio" oninput="salvarRascunhoProduto()"></div>
+              <div class="fl"><label>Código (#)</label><input type="text" id="pCod" maxlength="5" style="text-align:center;font-weight:700;letter-spacing:.1em" oninput="salvarRascunhoProduto()"></div>
             </div>
             <div class="fl">
               <label>Status</label>
@@ -670,8 +671,8 @@ Faça sua encomenda abaixo 👇</div>
 
           <div class="form-section">
             <div class="form-section-title">📝 Descrição e busca</div>
-            <div class="fl"><label>Descrição</label><textarea id="pDesc" placeholder="Ex: 12 rosas com embalagem premium"></textarea></div>
-            <div class="fl"><label>🔍 Palavras-chave <span style="font-weight:400;color:#aaa;font-size:0.75rem">(invisíveis, usadas na busca)</span></label><input type="text" id="pTags" placeholder="Ex: stitch, azul, disney, ursinho"><p class="ih">Separe por vírgula</p></div>
+            <div class="fl"><label>Descrição</label><textarea id="pDesc" placeholder="Ex: 12 rosas com embalagem premium" oninput="salvarRascunhoProduto()"></textarea></div>
+            <div class="fl"><label>🔍 Palavras-chave <span style="font-weight:400;color:#aaa;font-size:0.75rem">(invisíveis, usadas na busca)</span></label><input type="text" id="pTags" placeholder="Ex: stitch, azul, disney, ursinho" oninput="salvarRascunhoProduto()"><p class="ih">Separe por vírgula</p></div>
           </div>
 
           <div class="form-section">
@@ -750,7 +751,10 @@ Faça sua encomenda abaixo 👇</div>
           <div class="fl">
             <label>Opções deste grupo</label>
             <div id="opItensList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;"></div>
-            <div style="display:flex;gap:6px;">
+            <div style="display:flex;gap:6px;align-items:center;">
+              <div class="ip" id="opItemFotoPrev" onclick="document.getElementById('opItemFotoFile').click()" style="width:44px;height:44px;flex-shrink:0;border-radius:8px;font-size:1.1rem;" title="Foto opcional"><span>📷</span></div>
+              <input type="file" id="opItemFotoFile" accept="image/*" style="display:none" onchange="handleOpItemFoto(this)">
+              <input type="hidden" id="opItemFotoData">
               <input type="text" id="opItemNome" placeholder="Nome (ex: Ferrero T3)" style="flex:2;padding:8px 11px;border:1px solid #ddd;border-radius:8px;font-size:0.85rem;">
               <input type="number" id="opItemPreco" placeholder="+R$" step="0.01" style="flex:1;padding:8px 11px;border:1px solid #ddd;border-radius:8px;font-size:0.85rem;">
               <button type="button" class="bs" onclick="addItemOpcional()">+ Add</button>
@@ -1517,7 +1521,7 @@ function showAT(t){
   if(t==='destaques')renderHlAdm();
   if(t==='stories')renderStoriesAdm();
   if(t==='perfil')loadPerfilForm();
-  if(t==='novo'&&!editPId)clearProd();
+  if(t==='novo'&&!editPId)verificarRascunhoProduto();
   if(t==='novo')renderCatDatalist();
   if(t==='inspiracao')renderInspAdmList();
   if(t==='opcionais'){clearGrupoOpcional();renderOpAdmList();}
@@ -1570,6 +1574,7 @@ function handleImg(inp){
       carregarDimensoesReais(dataComprimido, function(w,h){
         imgNaturalW = w; imgNaturalH = h;
         setEncaixe(encaixeAtual); // reaplica o enquadramento escolhido na prévia nova
+        salvarRascunhoProduto();
       });
     });
   };
@@ -1591,6 +1596,67 @@ function saveProd(){
 }
 function clearProd(){editPId=null;['editId','pNome','pDesc','pPreco','pCat','pTam','pCod','imgData'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('imgPrev').innerHTML='<span>📷</span>';setStatus('ativo');}
 
+// ===== RASCUNHO AUTOMÁTICO DE PRODUTO NOVO =====
+// Salva o que está sendo digitado a cada mudança, pra não perder nada se a internet falhar ou fechar sem querer
+var rascunhoProdutoVerificado = false;
+function salvarRascunhoProduto(){
+  if(editPId) return; // só rascunha produto NOVO, não interfere numa edição de produto já existente
+  try{
+    var r = {
+      nome: document.getElementById('pNome').value,
+      desc: document.getElementById('pDesc').value,
+      tags: document.getElementById('pTags').value,
+      preco: document.getElementById('pPreco').value,
+      cat: document.getElementById('pCat').value,
+      tam: document.getElementById('pTam').value,
+      cod: document.getElementById('pCod').value,
+      status: document.getElementById('pStatus').value,
+      imgData: document.getElementById('imgData').value,
+      encaixe: encaixeAtual, posy: posYAtual, zoom: zoomAtual,
+      salvoEm: Date.now()
+    };
+    if(!r.nome && !r.desc && !r.imgData && !r.preco){ localStorage.removeItem('manu_rascunho_produto'); return; }
+    localStorage.setItem('manu_rascunho_produto', JSON.stringify(r));
+  }catch(e){ console.error('Erro ao salvar rascunho (talvez a foto seja grande demais pro navegador guardar):', e); }
+}
+function limparRascunhoProduto(){
+  try{ localStorage.removeItem('manu_rascunho_produto'); }catch(e){}
+}
+function verificarRascunhoProduto(){
+  if(rascunhoProdutoVerificado){ clearProd(); return; }
+  rascunhoProdutoVerificado = true;
+  var raw, r;
+  try{ raw = localStorage.getItem('manu_rascunho_produto'); r = raw ? JSON.parse(raw) : null; }catch(e){ r=null; }
+  if(!r){ clearProd(); return; }
+  var min = Math.round((Date.now()-(r.salvoEm||0))/60000);
+  var quando = min<1 ? 'agora há pouco' : (min<60 ? (min+' min atrás') : (Math.round(min/60)+'h atrás'));
+  var continuar = confirm('📝 Você tem um rascunho não salvo'+(r.nome?(' de "'+r.nome+'"'):'')+' ('+quando+').\n\nQuer continuar de onde parou?');
+  if(!continuar){ limparRascunhoProduto(); clearProd(); return; }
+  clearProd();
+  document.getElementById('pNome').value = r.nome||'';
+  document.getElementById('pDesc').value = r.desc||'';
+  document.getElementById('pTags').value = r.tags||'';
+  document.getElementById('pPreco').value = r.preco||'';
+  document.getElementById('pCat').value = r.cat||'';
+  document.getElementById('pTam').value = r.tam||'';
+  document.getElementById('pCod').value = r.cod||'';
+  setStatus(r.status||'ativo');
+  if(r.imgData){
+    document.getElementById('imgData').value = r.imgData;
+    document.getElementById('imgPrev').innerHTML = '<img src="'+r.imgData+'">';
+    imgNaturalW=0; imgNaturalH=0;
+    carregarDimensoesReais(r.imgData, function(w,h){
+      imgNaturalW=w; imgNaturalH=h;
+      posYAtual = r.posy!=null?r.posy:50;
+      zoomAtual = r.zoom!=null?r.zoom:100;
+      var sliderE=document.getElementById('posYSlider'); if(sliderE) sliderE.value=posYAtual;
+      var zoomE=document.getElementById('zoomSlider'); if(zoomE) zoomE.value=zoomAtual;
+      setEncaixe(r.encaixe||'cover');
+    });
+  }
+  toast('📝 Rascunho restaurado!');
+}
+
 // ADMIN OPCIONAIS (grupos de adicionais reutilizáveis)
 var editOpId=null, opItensAtual=[];
 
@@ -1599,11 +1665,24 @@ function atualizarCampoMaxOp(){
   document.getElementById('opMaxWrap').style.display = (tipo==='multipla') ? 'block' : 'none';
 }
 
+function handleOpItemFoto(inp){
+  var f=inp.files[0]; if(!f) return;
+  var r = new FileReader();
+  r.onload = function(e){
+    comprimirImagem(e.target.result, 400, 0.8).then(function(dataComprimido){
+      document.getElementById('opItemFotoData').value = dataComprimido;
+      document.getElementById('opItemFotoPrev').innerHTML = '<img src="'+dataComprimido+'" style="width:100%;height:100%;object-fit:cover;">';
+    });
+  };
+  r.readAsDataURL(f);
+}
 function renderOpItens(){
   var el = document.getElementById('opItensList');
   if(!opItensAtual.length){ el.innerHTML='<p class="ih">Nenhuma opção ainda.</p>'; return; }
   el.innerHTML = opItensAtual.map(function(it,i){
+    var foto = it.foto ? '<img src="'+it.foto+'" style="width:32px;height:32px;border-radius:6px;object-fit:cover;flex-shrink:0;">' : '<div style="width:32px;height:32px;border-radius:6px;background:#eee;flex-shrink:0;"></div>';
     return '<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid #eee;border-radius:8px;background:#fafafa;">'+
+      foto+
       '<span style="flex:1;font-size:0.82rem;">'+it.nome+'</span>'+
       '<span style="font-size:0.8rem;font-weight:600;color:#666;">+R$ '+parseFloat(it.preco||0).toFixed(2).replace('.',',')+'</span>'+
       '<button type="button" class="bd" onclick="delItemOpcional('+i+')">✕</button>'+
@@ -1613,10 +1692,14 @@ function renderOpItens(){
 function addItemOpcional(){
   var nome = document.getElementById('opItemNome').value.trim();
   var preco = parseFloat(document.getElementById('opItemPreco').value)||0;
+  var foto = document.getElementById('opItemFotoData').value||'';
   if(!nome){ alert('Informe o nome da opção.'); return; }
-  opItensAtual.push({nome:nome, preco:preco});
+  opItensAtual.push({nome:nome, preco:preco, foto:foto});
   document.getElementById('opItemNome').value='';
   document.getElementById('opItemPreco').value='';
+  document.getElementById('opItemFotoData').value='';
+  document.getElementById('opItemFotoFile').value='';
+  document.getElementById('opItemFotoPrev').innerHTML='<span>📷</span>';
   renderOpItens();
 }
 function delItemOpcional(i){ opItensAtual.splice(i,1); renderOpItens(); }
@@ -1687,6 +1770,9 @@ function clearGrupoOpcional(){
   atualizarCampoMaxOp();
   opItensAtual=[];
   renderOpItens();
+  var fotoEl=document.getElementById('opItemFotoData'); if(fotoEl) fotoEl.value='';
+  var fotoFileEl=document.getElementById('opItemFotoFile'); if(fotoFileEl) fotoFileEl.value='';
+  var fotoPrevEl=document.getElementById('opItemFotoPrev'); if(fotoPrevEl) fotoPrevEl.innerHTML='<span>📷</span>';
 }
 
 // Checkboxes no formulário do produto pra marcar quais grupos ele aceita
@@ -1719,7 +1805,9 @@ function renderOpcionaisProduto(p){
     var tagCls = g.tipo==='obrigatorio'?'obg':(g.tipo==='multipla'?'mult':'opc');
     var tagTxt = g.tipo==='obrigatorio'?'Obrigatório · escolha 1':(g.tipo==='multipla'?('Escolha até '+(g.maxEscolhas||10)):'Opcional');
     var itens = (g.itens||[]).map(function(it,idx){
+      var foto = it.foto ? '<img class="op-item-foto" src="'+it.foto+'">' : '';
       return '<div class="op-item" id="opit-'+g.id+'-'+idx+'" onclick="selecionarOpcao(\''+g.id+'\','+idx+',\''+g.tipo+'\')">'+
+        foto+
         '<span class="op-item-nome">'+it.nome+'</span>'+
         '<span class="op-item-preco">+R$ '+parseFloat(it.preco||0).toFixed(2).replace('.',',')+'</span>'+
         '</div>';
@@ -1944,13 +2032,31 @@ function renderInspAdmList(){
   }).join('');
 }
 
+// Junta as fotos extras de produtos marcadas "Mostrar na Inspiração" com as inspirações avulsas
+function coletarInspiracoesDeProdutos(){
+  var lista = [];
+  prods.forEach(function(p){
+    (p.medias||[]).forEach(function(m){
+      if(m && m.mostrarInsp && m.type!=='video' && m.tipo!=='ref' && m.data){
+        lista.push({origem:'produto', prodId:p.id, img:m.data, cod:p.cod||'', posy:(m.posy!=null?m.posy:50)});
+      }
+    });
+  });
+  return lista;
+}
+
 function renderInspClient(){
   var el = document.getElementById('inspGrid');
   if(!el) return;
-  var lista = inspiracoes.slice().sort(function(a,b){return (a.order||0)-(b.order||0);});
+  var manual = inspiracoes.slice().sort(function(a,b){return (a.order||0)-(b.order||0);}).map(function(it){
+    return {origem:'manual', id:it.id, img:it.img, cod:it.cod, posy:it.posy};
+  });
+  var deProdutos = coletarInspiracoesDeProdutos();
+  var lista = manual.concat(deProdutos);
   if(!lista.length){ el.innerHTML='<div style="text-align:center;padding:40px;color:#888;grid-column:1/-1;">Nenhuma inspiração por aqui ainda</div>'; return; }
   el.innerHTML = lista.map(function(it){
-    return '<div class="feed-cell" onclick="openInsp('+it.id+')">'+
+    var clique = it.origem==='produto' ? 'openProd('+it.prodId+')' : 'openInsp('+it.id+')';
+    return '<div class="feed-cell" onclick="'+clique+'">'+
       (it.img?'<img src="'+it.img+'" alt="" loading="lazy" style="object-fit:cover;object-position:center '+posySafe(it.posy)+'%;">':'<div class="cell-fallback"><span style="font-size:2.5rem">🌸</span></div>')+
       '<div class="cell-overlay"></div>'+
       '<div class="cell-cod">#'+it.cod+'</div>'+
@@ -2104,11 +2210,13 @@ function aplicarTransformPreview(){
 function ajustarPosY(valor){
   posYAtual = parseInt(valor,10);
   atualizarPreviewCorte();
+  salvarRascunhoProduto();
 }
 
 function ajustarZoom(valor){
   zoomAtual = parseInt(valor,10);
   atualizarPreviewCorte();
+  salvarRascunhoProduto();
 }
 
 function setEncaixe(tipo){
@@ -2123,6 +2231,7 @@ function setEncaixe(tipo){
   atualizarPreviewCorte();
   var posWrap = document.getElementById('posYWrap');
   if(posWrap) posWrap.style.display = (tipo==='cover') ? 'block' : 'none';
+  salvarRascunhoProduto();
 }
 
 // Reduz o tamanho de fotos grandes (comuns em câmeras de celular) antes de enviar,
@@ -2259,7 +2368,8 @@ function renderExtraMediaGrid(){
       '</div>'+
       '<input placeholder="Nome (ex: Buquê rosa)" value="'+(m.nome||'')+'" oninput="setMediaVar('+i+',\'nome\',this.value)" style="width:100%;font-size:0.68rem;padding:3px 4px;margin-top:3px;border:1px solid #ddd;border-radius:6px;">'+
       '<input placeholder="Diferença (ex: flor de cetim)" value="'+(m.diferenca||'')+'" oninput="setMediaVar('+i+',\'diferenca\',this.value)" style="width:100%;font-size:0.68rem;padding:3px 4px;margin-top:3px;border:1px solid #ddd;border-radius:6px;">'+
-      '<label style="display:flex;align-items:center;gap:3px;font-size:0.65rem;margin-top:3px;color:#c0392b;"><input type="checkbox" '+(m.esgotado?'checked':'')+' onchange="setMediaVar('+i+',\'esgotado\',this.checked)" style="width:12px;height:12px;">Esgotado</label>';
+      '<label style="display:flex;align-items:center;gap:3px;font-size:0.65rem;margin-top:3px;color:#c0392b;"><input type="checkbox" '+(m.esgotado?'checked':'')+' onchange="setMediaVar('+i+',\'esgotado\',this.checked)" style="width:12px;height:12px;">Esgotado</label>'+
+      '<label style="display:flex;align-items:center;gap:3px;font-size:0.65rem;margin-top:3px;color:#8a5cf6;"><input type="checkbox" '+(m.mostrarInsp?'checked':'')+' onchange="setMediaVar('+i+',\'mostrarInsp\',this.checked)" style="width:12px;height:12px;">✨ Mostrar na Inspiração</label>';
     return '<div class="extra-media-item" style="display:flex;flex-direction:column;">'+
       '<div class="extra-media-thumb">'+tag+'<button class="extra-media-del" onclick="delExtraMedia('+i+')">×</button></div>'+
       ajusteFoto+
@@ -2759,6 +2869,7 @@ saveProd = async function(){
   }
   if(editPId){var i=prods.findIndex(function(x){return x.id===editPId;});if(i>=0)prods[i]=p;}
   else prods.push(p);
+  render();renderAdmList(); // mostra na hora, localmente, sem esperar o upload terminar
   // Fazer upload das medias e das fotos (final + original) para Supabase Storage
   toast('⏳ Salvando fotos...');
   var prodId = p.id;
@@ -2779,14 +2890,22 @@ saveProd = async function(){
     // Salvar também no localStorage como backup
     try{ localStorage.setItem('medias_'+prodId, JSON.stringify(p.medias)); }catch(e){}
     try{ localStorage.setItem('manu_p', JSON.stringify(prods)); }catch(e){}
-    render();renderAdmList();clearProd();showAT('prods');
+    render();renderAdmList();
     sbUpsertProduto(p).then(function(ok){
-      if(ok){ toast(editPId?'✅ Produto atualizado!':'✅ Produto adicionado!'); }
-      else { toast('⚠️ Salvou aqui, mas falhou ao sincronizar: '+(ultimoErroAdmin||'motivo desconhecido'), 6000); }
+      if(ok){
+        limparRascunhoProduto(); // só apaga o rascunho quando realmente confirmou salvo no servidor
+        clearProd();showAT('prods');
+        toast(editPId?'✅ Produto atualizado!':'✅ Produto adicionado!');
+      } else {
+        toast('⚠️ Salvou aqui, mas falhou ao sincronizar: '+(ultimoErroAdmin||'motivo desconhecido')+'. Seu rascunho foi mantido, tenta de novo.', 7000);
+      }
     }).catch(function(e){
       console.error('Erro Supabase:',e);
-      toast('⚠️ Falha ao sincronizar com o servidor. Confira sua internet.');
+      toast('⚠️ Falha ao sincronizar com o servidor. Seu rascunho foi mantido — confira sua internet e tenta salvar de novo.', 7000);
     });
+  }).catch(function(e){
+    console.error('Erro ao enviar as fotos:',e);
+    toast('⚠️ Falha ao enviar as fotos (internet instável?). Seu rascunho foi mantido — tenta salvar de novo quando a conexão melhorar.', 7000);
   });
   editPId=null;
 };
