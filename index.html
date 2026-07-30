@@ -134,16 +134,24 @@ body{font-family:'Inter',sans-serif;background:#fafafa;color:#111;max-width:480p
 .op-grupo-tag.opc{background:#f0f0f0;color:#888;}
 .op-grupo-tag.mult{background:#e8f3ff;color:#1a6fc4;}
 .op-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border:1px solid #eee;border-radius:10px;margin-bottom:6px;cursor:pointer;}
-.op-item-foto{width:36px;height:36px;border-radius:8px;object-fit:cover;flex-shrink:0;}
+.op-item-foto{width:52px;height:52px;border-radius:8px;object-fit:cover;flex-shrink:0;cursor:zoom-in;}
 .op-item.on{border-color:#111;background:#fafafa;}
-.op-item-nome{flex:1;font-size:0.83rem;}
-.op-item-preco{font-size:0.8rem;font-weight:700;color:#666;}
+.op-item-info{flex:1;min-width:0;}
+.op-item-nome{font-size:0.83rem;display:block;}
+.op-item-desc{font-size:0.72rem;color:#888;display:block;margin-top:2px;line-height:1.3;}
+.op-item-preco{font-size:0.8rem;font-weight:700;color:#666;flex-shrink:0;}
+.op-item-mult{cursor:default;}
+.op-item-qty{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.op-item-qty button{width:24px;height:24px;border-radius:50%;border:1px solid #ddd;background:#fff;font-size:0.9rem;font-weight:700;cursor:pointer;line-height:1;color:#111;}
+.op-item-qty button:active{background:#f0f0f0;}
+.op-item-qty span{min-width:14px;text-align:center;font-size:0.85rem;font-weight:700;}
 .op-obs textarea{width:100%;padding:9px 11px;border:1px solid #ddd;border-radius:10px;font-size:0.83rem;font-family:'Inter',sans-serif;resize:vertical;min-height:56px;outline:none;}
 .mprod-add{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
 .mprod-qc{display:flex;align-items:center;gap:8px;background:#fafafa;border:1px solid #eee;border-radius:50px;padding:4px 12px;}
 .mprod-qb{background:none;border:none;font-size:1.2rem;cursor:pointer;color:#111;width:24px;height:24px;display:flex;align-items:center;justify-content:center;}
 .mprod-qn{font-weight:700;font-size:0.95rem;min-width:18px;text-align:center;}
-.mprod-badd{flex:1;background:#111;color:#fff;border:none;border-radius:50px;padding:11px;font-size:0.9rem;font-weight:700;cursor:pointer;}
+.mprod-badd{flex:1;background:#111;color:#fff;border:none;border-radius:50px;padding:11px 18px;font-size:0.9rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;}
+.mprod-badd-preco{font-weight:800;white-space:nowrap;}
 .mprod-badd.ok{background:#25a244;}
 .mprod-badd:disabled{background:#ccc;cursor:default;}
 .mbtn-close{position:absolute;top:12px;right:12px;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,0.5);border:none;color:#fff;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;}
@@ -272,7 +280,7 @@ body{font-family:'Inter',sans-serif;background:#fafafa;color:#111;max-width:480p
 /* BOTÃO EQUIPE */
 .beq{position:fixed;top:10px;right:10px;z-index:200;background:rgba(255,255,255,0.5);border:1px solid rgba(0,0,0,0.1);color:#bbb;border-radius:50%;width:28px;height:28px;font-size:0.65rem;cursor:pointer;backdrop-filter:blur(4px);transition:opacity .3s;}
 .btn-topo{position:fixed;bottom:80px;right:16px;z-index:200;background:#111;color:#fff;border:none;border-radius:50%;width:40px;height:40px;font-size:1.1rem;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.2);display:none;}
-.cart-float{position:fixed;bottom:20px;right:16px;z-index:999;background:#111;color:#fff;border:none;border-radius:50px;padding:12px 18px;font-size:0.9rem;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.3);display:flex;align-items:center;gap:8px;font-family:"Inter",sans-serif;-webkit-tap-highlight-color:transparent;}
+.cart-float{position:fixed;bottom:86px;right:16px;z-index:999;background:#111;color:#fff;border:none;border-radius:50px;padding:12px 18px;font-size:0.9rem;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.3);display:flex;align-items:center;gap:8px;font-family:"Inter",sans-serif;-webkit-tap-highlight-color:transparent;}
 .cart-float-count{background:#e91e63;color:#fff;border-radius:50%;width:20px;height:20px;font-size:0.7rem;font-weight:900;display:flex;align-items:center;justify-content:center;}
 
 .extra-media-item{position:relative;border-radius:8px;background:#f0f0f0;border:1px solid #eee;}
@@ -504,8 +512,8 @@ Faça sua encomenda abaixo 👇</div>
       <div id="mpTam"></div>
       <div id="mpVariantes" style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0;"></div>
       <div id="mpVarInfo" style="font-size:0.8rem;color:#666;margin-bottom:6px;"></div>
-      <div id="mpOpcionais"></div>
       <div class="mprod-desc" id="mpDesc"></div>
+      <div id="mpOpcionais"></div>
     </div>
     <div class="mprod-add fixo">
       <div class="mprod-qc">
@@ -533,6 +541,17 @@ Faça sua encomenda abaixo 👇</div>
       <div class="mprod-desc" id="inspDesc"></div>
       <a class="mprod-badd" id="inspWaBtn" href="#" style="display:block;text-align:center;text-decoration:none;background:#25a244;">Perguntar valores no WhatsApp 🌸</a>
     </div>
+  </div>
+</div>
+
+<!-- FOTO AMPLIADA DE UM ADICIONAL -->
+<div class="modal-bg" id="modalOpFoto" onclick="if(event.target===this)fecharFotoOpcional()">
+  <div class="modal-prod" style="max-width:420px;background:#fff;border-radius:16px;">
+    <button onclick="fecharFotoOpcional()" style="position:absolute;top:10px;right:10px;z-index:10;background:rgba(255,255,255,0.95);border:1px solid #eee;border-radius:50%;width:32px;height:32px;font-size:1.1rem;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.2);">✕</button>
+    <div style="width:100%;background:#fafafa;display:flex;align-items:center;justify-content:center;min-height:220px;">
+      <img id="opFotoGrande" src="" style="max-width:100%;max-height:60vh;width:auto;height:auto;display:block;margin:auto;">
+    </div>
+    <div style="padding:14px 16px;font-weight:700;font-size:0.95rem;" id="opFotoNome"></div>
   </div>
 </div>
 
@@ -774,6 +793,7 @@ Faça sua encomenda abaixo 👇</div>
               <input type="number" id="opItemPreco" placeholder="+R$" step="0.01" style="flex:1;padding:8px 11px;border:1px solid #ddd;border-radius:8px;font-size:0.85rem;">
               <button type="button" class="bs" id="opItemAddBtn" onclick="addItemOpcional()">+ Add</button>
             </div>
+            <input type="text" id="opItemDescricao" placeholder="Descrição (opcional) — ex: vidrinho de perfume que vai junto com o buquê" style="width:100%;margin-top:6px;padding:8px 11px;border:1px solid #ddd;border-radius:8px;font-size:0.8rem;">
           </div>
           <div class="fa">
             <button class="bp" onclick="saveGrupoOpcional()">💾 Salvar grupo</button>
@@ -970,6 +990,23 @@ function codigosDuplicados(p){
     vistosNoProprio[m.cod] = true;
   });
   return conflitos;
+}
+
+// Confere direto no Supabase (dados ao vivo, não a cópia local que essa aba carregou) se esse código
+// já pertence a outro produto — protege contra duas abas/dispositivos calculando o mesmo código sem saber
+// um do outro, o que causava um produto sobrescrever silenciosamente o outro no mesmo código
+async function verificarCodDisponivel(cod, sbIdAtual){
+  if(!cod) return true;
+  try{
+    var rows = await sbFetch('/rest/v1/catalogo?cod=eq.'+encodeURIComponent(cod)+'&select=id,nome');
+    if(!rows || !rows.length) return true; // ninguém usando esse código ainda
+    // Se o único registro com esse código for o próprio produto que estamos editando, tudo certo
+    if(rows.length===1 && sbIdAtual && rows[0].id===sbIdAtual) return true;
+    return false;
+  }catch(e){
+    console.error('Erro ao conferir código no Supabase:', e);
+    return true; // falha de rede na checagem não deve travar o salvamento
+  }
 }
 
 // RENDER STORIES
@@ -1204,7 +1241,7 @@ function listaOpcionaisSelecionados(){
     var sel = curOpcionaisSelecionados[gid];
     var grupo = gruposOpcionais.find(function(g){return String(g.id)===String(gid);});
     var grupoNome = grupo ? grupo.nome : '';
-    if(Array.isArray(sel)){ sel.forEach(function(x){ lista.push({grupo:grupoNome, nome:x.nome, preco:x.preco}); }); }
+    if(Array.isArray(sel)){ sel.forEach(function(x){ lista.push({grupo:grupoNome, nome:x.nome, preco:x.preco, qty:x.qty||1}); }); }
     else if(sel){ lista.push({grupo:grupoNome, nome:sel.nome, preco:sel.preco}); }
   });
   return lista;
@@ -1272,7 +1309,7 @@ function renderCart(){
       meta={pid:p.id,nome:p.nome,tam:p.tam,img:p.img,cod:p.cod,preco:p.preco};
     }
     var qty=e[1];
-    var opcTxt = (meta.opcionais&&meta.opcionais.length) ? '<div class="cisz">🎁 '+meta.opcionais.map(function(o){return (o.grupo?o.grupo+': ':'')+o.nome;}).join(', ')+'</div>' : '';
+    var opcTxt = (meta.opcionais&&meta.opcionais.length) ? '<div class="cisz">🎁 '+meta.opcionais.map(function(o){return (o.qty&&o.qty>1?o.qty+'x ':'')+(o.grupo?o.grupo+': ':'')+o.nome;}).join(', ')+'</div>' : '';
     var obsTxt = meta.obs ? '<div class="cisz">📝 '+meta.obs+'</div>' : '';
     return '<div class="ci"><div class="cith">'+(meta.img?'<img src="'+meta.img+'" alt="">':'🌸')+'</div><div class="ciin"><div class="cinm">'+(meta.cod?'#'+meta.cod+' · ':'')+meta.nome+'</div>'+(meta.diferenca?'<div class="cisz">✨ '+meta.diferenca+'</div>':'')+(meta.tam?'<div class="cisz">'+meta.tam+'</div>':'')+opcTxt+obsTxt+'<div class="cipr">R$ '+meta.preco.toFixed(2).replace('.',',')+'</div><div class="cict"><button class="ciqb" onclick="chQty(\''+key+'\',-1)">-</button><span class="ciq">'+qty+'</span><button class="ciqb" onclick="chQty(\''+key+'\',1)">+</button></div></div><button class="cirm" onclick="rmItem(\''+key+'\')">✕</button></div>';
   }).join('');
@@ -1299,7 +1336,7 @@ function sendWA(){
     var pr='R$ '+meta.preco.toFixed(2).replace('.',',');
     totalGeral += meta.preco*qty;
     msg+='- '+cod+meta.nome+dif+tam+(qty>1?' x'+qty:'')+' - '+pr+(qty>1?' cada':'')+n;
-    if(meta.opcionais && meta.opcionais.length){ msg+='  🎁 '+meta.opcionais.map(function(o){return o.nome;}).join(', ')+n; }
+    if(meta.opcionais && meta.opcionais.length){ msg+='  🎁 '+meta.opcionais.map(function(o){return (o.qty&&o.qty>1?o.qty+'x ':'')+o.nome;}).join(', ')+n; }
     if(meta.obs){ msg+='  📝 '+meta.obs+n; }
     if(meta.cod) msg+=produtoLink(meta.cod)+n;
   });
@@ -1658,7 +1695,6 @@ function clearProd(){editPId=null;['editId','pNome','pDesc','pPreco','pCat','pTa
 // Salva o que está sendo digitado a cada mudança, pra não perder nada se a internet falhar ou fechar sem querer
 var rascunhoProdutoVerificado = false;
 function salvarRascunhoProduto(){
-  if(editPId) return; // só rascunha produto NOVO, não interfere numa edição de produto já existente
   try{
     var r = {
       nome: document.getElementById('pNome').value,
@@ -1671,11 +1707,44 @@ function salvarRascunhoProduto(){
       status: document.getElementById('pStatus').value,
       imgData: document.getElementById('imgData').value,
       encaixe: encaixeAtual, posy: posYAtual, zoom: zoomAtual,
-      salvoEm: Date.now()
+      salvoEm: Date.now(),
+      // se está editando um produto já existente, guarda o código dele — é como reconhecemos esse rascunho
+      // depois, já que o id interno do produto muda toda vez que a página recarrega
+      editandoCod: editPId ? ((prods.find(function(x){return x.id===editPId;})||{}).cod||'') : ''
     };
     if(!r.nome && !r.desc && !r.imgData && !r.preco){ localStorage.removeItem('manu_rascunho_produto'); return; }
     localStorage.setItem('manu_rascunho_produto', JSON.stringify(r));
   }catch(e){ console.error('Erro ao salvar rascunho (talvez a foto seja grande demais pro navegador guardar):', e); }
+}
+// Quando abre um produto JÁ EXISTENTE pra editar, confere se tem um rascunho não salvo dele
+// (protege contra sair sem querer ou o salvamento falhar no meio, igual já acontecia com produto novo)
+function verificarRascunhoAoEditar(p){
+  try{
+    var raw = localStorage.getItem('manu_rascunho_produto');
+    var r = raw ? JSON.parse(raw) : null;
+    if(!r || !r.editandoCod || r.editandoCod!==p.cod) return; // não é um rascunho desse produto
+    var min = Math.round((Date.now()-(r.salvoEm||0))/60000);
+    var quando = min<1 ? 'agora há pouco' : (min<60 ? (min+' min atrás') : (Math.round(min/60)+'h atrás'));
+    var continuar = confirm('📝 Você tem alterações não salvas nesse produto ('+quando+').\n\nQuer recuperar de onde parou?');
+    if(!continuar){ limparRascunhoProduto(); return; }
+    if(r.nome) document.getElementById('pNome').value = r.nome;
+    if(r.desc) document.getElementById('pDesc').value = r.desc;
+    if(r.tags) document.getElementById('pTags').value = r.tags;
+    if(r.preco) document.getElementById('pPreco').value = r.preco;
+    if(r.cat) document.getElementById('pCat').value = r.cat;
+    if(r.tam) document.getElementById('pTam').value = r.tam;
+    if(r.cod) document.getElementById('pCod').value = r.cod;
+    if(r.status) setStatus(r.status);
+    if(r.imgData){
+      document.getElementById('imgData').value = r.imgData;
+      document.getElementById('imgPrev').innerHTML = '<img src="'+r.imgData+'">';
+      posYAtual = r.posy!=null?r.posy:posYAtual;
+      zoomAtual = r.zoom!=null?r.zoom:zoomAtual;
+      var sliderE=document.getElementById('posYSlider'); if(sliderE) sliderE.value=posYAtual;
+      var zoomE=document.getElementById('zoomSlider'); if(zoomE) zoomE.value=zoomAtual;
+      setEncaixe(r.encaixe||'cover');
+    }
+  }catch(e){ console.error('Erro ao verificar rascunho de edição:', e); }
 }
 function limparRascunhoProduto(){
   try{ localStorage.removeItem('manu_rascunho_produto'); }catch(e){}
@@ -1685,6 +1754,7 @@ function verificarRascunhoProduto(){
   rascunhoProdutoVerificado = true;
   var raw, r;
   try{ raw = localStorage.getItem('manu_rascunho_produto'); r = raw ? JSON.parse(raw) : null; }catch(e){ r=null; }
+  if(r && r.editandoCod){ clearProd(); return; } // esse rascunho é de uma edição em andamento, não de produto novo — não mistura os dois
   if(!r){ clearProd(); return; }
   var min = Math.round((Date.now()-(r.salvoEm||0))/60000);
   var quando = min<1 ? 'agora há pouco' : (min<60 ? (min+' min atrás') : (Math.round(min/60)+'h atrás'));
@@ -1740,10 +1810,11 @@ function renderOpItens(){
   if(!opItensAtual.length){ el.innerHTML='<p class="ih">Nenhuma opção ainda.</p>'; return; }
   el.innerHTML = opItensAtual.map(function(it,i){
     var foto = it.foto ? '<img src="'+it.foto+'" style="width:32px;height:32px;border-radius:6px;object-fit:cover;flex-shrink:0;">' : '<div style="width:32px;height:32px;border-radius:6px;background:#eee;flex-shrink:0;"></div>';
+    var desc = it.descricao ? '<div style="font-size:0.68rem;color:#999;margin-top:1px;">'+it.descricao+'</div>' : '';
     return '<div class="opit" draggable="true" data-idx="'+i+'" ondragstart="dsOpItem(event)" ondragover="dovOpItem(event)" ondrop="dpOpItem(event)" ondragend="deOpItem(event)" style="display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid #eee;border-radius:8px;background:#fafafa;cursor:grab;">'+
       '<span style="color:#bbb;font-size:0.9rem;flex-shrink:0;" title="Arraste pra reordenar">⠿</span>'+
       foto+
-      '<span style="flex:1;font-size:0.82rem;">'+it.nome+'</span>'+
+      '<span style="flex:1;"><span style="font-size:0.82rem;display:block;">'+it.nome+'</span>'+desc+'</span>'+
       '<span style="font-size:0.8rem;font-weight:600;color:#666;">+R$ '+parseFloat(it.preco||0).toFixed(2).replace('.',',')+'</span>'+
       '<button type="button" class="be" onclick="editItemOpcional('+i+')">✏️</button>'+
       '<button type="button" class="bd" onclick="delItemOpcional('+i+')">✕</button>'+
@@ -1756,6 +1827,7 @@ function editItemOpcional(i){
   editOpItemIdx = i;
   document.getElementById('opItemNome').value = it.nome;
   document.getElementById('opItemPreco').value = it.preco;
+  document.getElementById('opItemDescricao').value = it.descricao||'';
   document.getElementById('opItemFotoData').value = it.foto||'';
   document.getElementById('opItemFotoPrev').innerHTML = it.foto ? '<img src="'+it.foto+'" style="width:100%;height:100%;object-fit:cover;">' : '<span>📷</span>';
   var btn = document.getElementById('opItemAddBtn'); if(btn) btn.textContent='💾 Salvar edição';
@@ -1778,15 +1850,17 @@ function addItemOpcional(){
   var nome = document.getElementById('opItemNome').value.trim();
   var preco = parseFloat(document.getElementById('opItemPreco').value)||0;
   var foto = document.getElementById('opItemFotoData').value||'';
+  var descricao = document.getElementById('opItemDescricao').value.trim();
   if(!nome){ alert('Informe o nome da opção.'); return; }
   if(editOpItemIdx!=null && opItensAtual[editOpItemIdx]){
-    opItensAtual[editOpItemIdx] = {nome:nome, preco:preco, foto:foto};
+    opItensAtual[editOpItemIdx] = {nome:nome, preco:preco, foto:foto, descricao:descricao};
     editOpItemIdx = null;
   } else {
-    opItensAtual.push({nome:nome, preco:preco, foto:foto});
+    opItensAtual.push({nome:nome, preco:preco, foto:foto, descricao:descricao});
   }
   document.getElementById('opItemNome').value='';
   document.getElementById('opItemPreco').value='';
+  document.getElementById('opItemDescricao').value='';
   document.getElementById('opItemFotoData').value='';
   document.getElementById('opItemFotoFile').value='';
   document.getElementById('opItemFotoPrev').innerHTML='<span>📷</span>';
@@ -1872,20 +1946,64 @@ function clearGrupoOpcional(){
   var fotoEl=document.getElementById('opItemFotoData'); if(fotoEl) fotoEl.value='';
   var fotoFileEl=document.getElementById('opItemFotoFile'); if(fotoFileEl) fotoFileEl.value='';
   var fotoPrevEl=document.getElementById('opItemFotoPrev'); if(fotoPrevEl) fotoPrevEl.innerHTML='<span>📷</span>';
+  var descEl=document.getElementById('opItemDescricao'); if(descEl) descEl.value='';
 }
 
 // Checkboxes no formulário do produto pra marcar quais grupos ele aceita
+var pGruposOrdemAtual = null; // ordem escolhida dos adicionais NESTE produto (null = ainda não inicializado nessa sessão de edição)
 function renderPOpcionaisSelect(){
   var el = document.getElementById('pOpcionaisSelect');
   if(!el) return;
   if(!gruposOpcionais.length){ el.innerHTML='<p class="ih">Nenhum grupo cadastrado ainda. Crie em "🎁 Adicionais".</p>'; return; }
-  var atuais = (prods.find(function(x){return x.id===editPId;})||{}).gruposOpcionais || [];
-  el.innerHTML = gruposOpcionais.map(function(g){
-    var marcado = atuais.indexOf(g.id)>-1;
-    return '<label style="display:flex;align-items:center;gap:8px;padding:6px 2px;font-size:0.82rem;cursor:pointer;border-bottom:1px solid #f5f5f5;">'+
-      '<input type="checkbox" class="pOpcCheck" value="'+g.id+'" '+(marcado?'checked':'')+' style="width:16px;height:16px;flex-shrink:0;">'+
-      '<span>'+g.nome+'</span></label>';
-  }).join('');
+  if(pGruposOrdemAtual===null){
+    var atuais = (prods.find(function(x){return x.id===editPId;})||{}).gruposOpcionais || [];
+    pGruposOrdemAtual = atuais.slice();
+  }
+  var selecionados = pGruposOrdemAtual.map(function(gid){ return gruposOpcionais.find(function(g){return g.id===gid;}); }).filter(Boolean);
+  var disponiveis = gruposOpcionais.filter(function(g){ return pGruposOrdemAtual.indexOf(g.id)===-1; });
+  var htmlSel = selecionados.length
+    ? '<p class="ih" style="margin:0 0 5px;">⠿ Arraste pra escolher a ordem que aparecem no produto</p>' + selecionados.map(function(g,i){
+        return '<div draggable="true" data-idx="'+i+'" ondragstart="dsPog(event)" ondragover="dovPog(event)" ondrop="dpPog(event)" ondragend="dePog(event)" style="display:flex;align-items:center;gap:8px;padding:7px 9px;border:1px solid #eee;border-radius:8px;background:#fafafa;margin-bottom:5px;cursor:grab;">'+
+          '<span style="color:#bbb;font-size:0.9rem;">⠿</span>'+
+          '<span style="flex:1;font-size:0.82rem;">'+g.nome+'</span>'+
+          '<button type="button" class="bd" onclick="removerGrupoDoProduto(\''+g.id+'\')">✕</button>'+
+          '</div>';
+      }).join('')
+    : '<p class="ih">Nenhum adicional selecionado ainda.</p>';
+  var htmlDisp = disponiveis.length
+    ? '<p class="ih" style="margin:10px 0 4px;">Toque pra adicionar</p><div style="display:flex;flex-wrap:wrap;gap:6px;">' + disponiveis.map(function(g){
+        return '<div onclick="adicionarGrupoAoProduto(\''+g.id+'\')" style="padding:6px 12px;border:1px solid #ddd;border-radius:20px;font-size:0.78rem;cursor:pointer;background:#fff;">+ '+g.nome+'</div>';
+      }).join('') + '</div>'
+    : '';
+  el.innerHTML = htmlSel + htmlDisp;
+}
+function adicionarGrupoAoProduto(gid){
+  if(!pGruposOrdemAtual) pGruposOrdemAtual=[];
+  if(pGruposOrdemAtual.indexOf(gid)===-1) pGruposOrdemAtual.push(gid);
+  renderPOpcionaisSelect();
+  salvarRascunhoProduto();
+}
+function removerGrupoDoProduto(gid){
+  if(!pGruposOrdemAtual) return;
+  var i = pGruposOrdemAtual.indexOf(gid);
+  if(i>-1) pGruposOrdemAtual.splice(i,1);
+  renderPOpcionaisSelect();
+  salvarRascunhoProduto();
+}
+var dragSrcPog=null;
+function dsPog(e){dragSrcPog=e.currentTarget;e.currentTarget.classList.add('drag');}
+function dovPog(e){e.preventDefault();}
+function dePog(e){e.currentTarget.classList.remove('drag');}
+function dpPog(e){
+  e.preventDefault();
+  var t=e.currentTarget;
+  if(!dragSrcPog||dragSrcPog===t) return;
+  var iSrc=parseInt(dragSrcPog.dataset.idx,10), iAlvo=parseInt(t.dataset.idx,10);
+  if(isNaN(iSrc)||isNaN(iAlvo)) return;
+  var item = pGruposOrdemAtual.splice(iSrc,1)[0];
+  pGruposOrdemAtual.splice(iAlvo,0,item);
+  renderPOpcionaisSelect();
+  salvarRascunhoProduto();
 }
 
 // ===== ADICIONAIS NA TELA DO PRODUTO =====
@@ -1904,10 +2022,26 @@ function renderOpcionaisProduto(p){
     var tagCls = g.tipo==='obrigatorio'?'obg':(g.tipo==='multipla'?'mult':'opc');
     var tagTxt = g.tipo==='obrigatorio'?'Obrigatório · escolha 1':(g.tipo==='multipla'?('Escolha até '+(g.maxEscolhas||10)):'Opcional');
     var itens = (g.itens||[]).map(function(it,idx){
-      var foto = it.foto ? '<img class="op-item-foto" src="'+it.foto+'">' : '';
+      var fotoSeg = it.foto ? it.foto.replace(/'/g,"\\'") : '';
+      var nomeSeg = (it.nome||'').replace(/'/g,"\\'");
+      var foto = it.foto ? '<img class="op-item-foto" src="'+it.foto+'" onclick="event.stopPropagation();abrirFotoOpcional(\''+fotoSeg+'\',\''+nomeSeg+'\')">' : '';
+      var desc = it.descricao ? '<span class="op-item-desc">'+it.descricao+'</span>' : '';
+      if(g.tipo==='multipla'){
+        var selAtual = curOpcionaisSelecionados[g.id] || [];
+        var qtyAtual = (selAtual.find(function(x){return x.idx===idx;})||{}).qty || 0;
+        return '<div class="op-item op-item-mult'+(qtyAtual>0?' on':'')+'" id="opit-'+g.id+'-'+idx+'">'+
+          foto+
+          '<div class="op-item-info"><span class="op-item-nome">'+it.nome+'</span>'+desc+'</div>'+
+          '<span class="op-item-preco">+R$ '+parseFloat(it.preco||0).toFixed(2).replace('.',',')+'</span>'+
+          '<div class="op-item-qty" onclick="event.stopPropagation()">'+
+          '<button type="button" onclick="ajustarQtyOpcional(\''+g.id+'\','+idx+',-1)">−</button>'+
+          '<span id="opqty-'+g.id+'-'+idx+'">'+qtyAtual+'</span>'+
+          '<button type="button" onclick="ajustarQtyOpcional(\''+g.id+'\','+idx+',1)">+</button>'+
+          '</div></div>';
+      }
       return '<div class="op-item" id="opit-'+g.id+'-'+idx+'" onclick="selecionarOpcao(\''+g.id+'\','+idx+',\''+g.tipo+'\')">'+
         foto+
-        '<span class="op-item-nome">'+it.nome+'</span>'+
+        '<div class="op-item-info"><span class="op-item-nome">'+it.nome+'</span>'+desc+'</div>'+
         '<span class="op-item-preco">+R$ '+parseFloat(it.preco||0).toFixed(2).replace('.',',')+'</span>'+
         '</div>';
     }).join('');
@@ -1954,6 +2088,45 @@ function selecionarOpcao(grupoId, idx, tipo){
       elIt.classList.toggle('on', !!ativo);
     });
   }
+  atualizarPrecoVariante();
+}
+
+// Abre a foto de um adicional ampliada, igual "olhar de perto" antes de escolher
+function abrirFotoOpcional(src, nome){
+  if(!src) return;
+  document.getElementById('opFotoGrande').src = src;
+  document.getElementById('opFotoNome').textContent = nome||'';
+  document.getElementById('modalOpFoto').classList.add('open');
+}
+function fecharFotoOpcional(){
+  document.getElementById('modalOpFoto').classList.remove('open');
+}
+// Ajusta a quantidade de um adicional de múltipla escolha (ex: 2 caixas de Raffaello) — igual concorrentes que usam +/- em vez de só marcar/desmarcar
+function ajustarQtyOpcional(grupoId, idx, delta){
+  var g = gruposOpcionais.find(function(x){return x.id===grupoId;});
+  if(!g) return;
+  var item = (g.itens||[])[idx];
+  if(!item) return;
+  var atual = curOpcionaisSelecionados[grupoId] || [];
+  var pos = atual.findIndex(function(x){return x.idx===idx;});
+  var novaQty;
+  if(pos>-1){
+    novaQty = atual[pos].qty + delta;
+    if(novaQty<=0){ atual.splice(pos,1); novaQty=0; }
+    else { atual[pos].qty = novaQty; }
+  } else if(delta>0){
+    var max = g.maxEscolhas||10;
+    if(atual.length>=max){ toast('Máximo de '+max+' opções nesse grupo'); return; }
+    atual.push({nome:item.nome, preco:item.preco, idx:idx, qty:1});
+    novaQty = 1;
+  } else {
+    return; // já tá em 0, o botão de menos não faz nada
+  }
+  curOpcionaisSelecionados[grupoId] = atual;
+  var qtyEl = document.getElementById('opqty-'+grupoId+'-'+idx);
+  if(qtyEl) qtyEl.textContent = novaQty;
+  var itemEl = document.getElementById('opit-'+grupoId+'-'+idx);
+  if(itemEl) itemEl.classList.toggle('on', novaQty>0);
   atualizarPrecoVariante();
 }
 
@@ -2789,16 +2962,22 @@ function calcularExtraOpcionais(){
   Object.keys(curOpcionaisSelecionados).forEach(function(gid){
     var sel = curOpcionaisSelecionados[gid];
     if(!sel) return;
-    if(Array.isArray(sel)){ sel.forEach(function(it){ extra += parseFloat(it.preco)||0; }); }
+    if(Array.isArray(sel)){ sel.forEach(function(it){ extra += (parseFloat(it.preco)||0) * (it.qty||1); }); }
     else { extra += parseFloat(sel.preco)||0; }
   });
   return extra;
+}
+// Preço unitário (base + adicionais) vezes a quantidade escolhida — é o total que vai pro botão fixo de baixo
+function calcularTotalAtual(){
+  var precoBase = curVariant ? curVariant.preco : (curProd?curProd.preco:0);
+  return (precoBase + calcularExtraOpcionais()) * curProdQty;
 }
 function atualizarPrecoVariante(){
   var preco = curVariant ? curVariant.preco : (curProd?curProd.preco:0);
   preco += calcularExtraOpcionais();
   var el = document.getElementById('mpPreco');
   if(el) el.textContent = 'R$ '+preco.toFixed(2).replace('.',',');
+  atualizarBotaoAdd(); // o total (já com quantidade) mora no botão fixo de baixo, acompanhando a tela
 }
 
 function initSwipe(){
@@ -3022,20 +3201,21 @@ function atualizarBotaoAdd(){
   var codAtual = curVariant ? curVariant.cod : curProd.cod;
   var jaTem = qtyInCart(curProd.id, codAtual) > 0;
   if(curProd.status==='esgotado' || (curVariant && curVariant.esgotado)){
-    btn.textContent='Esgotado';btn.disabled=true;btn.className='mprod-badd';btn.onclick=null;
+    btn.innerHTML='Esgotado';btn.disabled=true;btn.className='mprod-badd';btn.onclick=null;
     return;
   }
+  var precoTxt = 'R$ '+calcularTotalAtual().toFixed(2).replace('.',',');
   var keyAtual = cartKey(curProd.id, codAtual) + (chaveOpcionaisAtual() ? ('::'+chaveOpcionaisAtual()) : '');
   if(jaTem && ultimoAddInfo && ultimoAddInfo.key===keyAtual && ultimoAddInfo.qty===curProdQty){
     // Acabou de adicionar essa mesma combinação de variação/opcionais/quantidade — leva direto pro pedido
     // em vez de continuar somando sem querer a cada toque
-    btn.textContent='🛒 Ver pedido';btn.disabled=false;btn.className='mprod-badd ok';
+    btn.innerHTML='<span>🛒 Ver pedido</span>';btn.disabled=false;btn.className='mprod-badd ok';
     btn.onclick=function(){ toggleCart(); };
   } else if(jaTem){
-    btn.textContent='+ Adicionar mais '+curProdQty+' ao pedido';btn.disabled=false;btn.className='mprod-badd';
+    btn.innerHTML='<span>+ Adicionar mais '+curProdQty+'</span><span class="mprod-badd-preco">'+precoTxt+'</span>';btn.disabled=false;btn.className='mprod-badd';
     btn.onclick=function(){ mpAdd(); };
   } else {
-    btn.textContent='Adicionar ao pedido';btn.disabled=false;btn.className='mprod-badd';
+    btn.innerHTML='<span>Adicionar ao pedido</span><span class="mprod-badd-preco">'+precoTxt+'</span>';btn.disabled=false;btn.className='mprod-badd';
     btn.onclick=function(){ mpAdd(); };
   }
 }
@@ -3060,7 +3240,7 @@ saveProd = async function(){
     toast('⏳ Preparando foto...');
     imgFinal = await assarFotoCortada(imgOriginalAtual, posYAtual, zoomAtual, 1080, 1350);
   }
-  var gruposMarcados = Array.from(document.querySelectorAll('.pOpcCheck:checked')).map(function(c){return c.value;});
+  var gruposMarcados = (pGruposOrdemAtual||[]).slice();
 
   var p={
     id:editPId||Date.now(),
@@ -3086,6 +3266,16 @@ saveProd = async function(){
   var codesConflito = codigosDuplicados(p);
   if(codesConflito.length){
     alert('Esse(s) código(s) já estão em uso em outro produto/variação: '+codesConflito.join(', ')+'. Troque antes de salvar.');
+    return;
+  }
+  // Checagem "ao vivo" direto no Supabase (não só na lista local, que pode estar desatualizada se você
+  // tiver outra aba/dispositivo aberto) — evita que dois produtos diferentes acabem salvando por cima
+  // um do outro quando calculam o mesmo código sem saber um do outro
+  var sbIdAtual = editPId ? (prods.find(function(x){return x.id===editPId;})||{})._sbId : null;
+  toast('⏳ Conferindo código...');
+  var codOk = await verificarCodDisponivel(cod, sbIdAtual);
+  if(!codOk){
+    alert('⚠️ O código #'+cod+' já foi usado por outro produto — provavelmente salvo em outra aba ou dispositivo enquanto você editava esse aqui. Pra não sobrescrever o produto existente, escolha outro código antes de salvar.');
     return;
   }
   if(editPId){var i=prods.findIndex(function(x){return x.id===editPId;});if(i>=0)prods[i]=p;}
@@ -3137,6 +3327,7 @@ editProd = function(id){
   var p=prods.find(function(x){return x.id===id;});
   if(!p)return;
   editPId=id;
+  pGruposOrdemAtual=null; // reinicializa a partir da ordem salva DESTE produto
   document.getElementById('editId').value=id;
   document.getElementById('pNome').value=p.nome;
   document.getElementById('pDesc').value=p.desc||'';
@@ -3166,6 +3357,7 @@ editProd = function(id){
   extraMedias = (p.medias||[]).slice();
   renderExtraMediaGrid();
   var chkInsp = document.getElementById('pMostrarInsp'); if(chkInsp) chkInsp.checked = !!p.mostrarInsp;
+  verificarRascunhoAoEditar(p); // se você tinha alterações não salvas nesse produto, oferece recuperar
   showAT('novo');
 };
 
@@ -3173,6 +3365,7 @@ editProd = function(id){
 var _origClearProd = clearProd;
 clearProd = function(){
   editPId=null;
+  pGruposOrdemAtual=null;
   ['editId','pNome','pDesc','pPreco','pCat','pTam','pCod','imgData','pTags'].forEach(function(id){document.getElementById(id).value='';});
   document.getElementById('imgPrev').innerHTML='<span>📷</span>';
   setStatus('ativo');
