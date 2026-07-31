@@ -119,6 +119,7 @@ module.exports = async (req, res) => {
       var rowInsp = {
         id_local: insp.id,
         cod: insp.cod || '',
+        cod_produto: insp.codProduto || '',
         img: insp.img || '',
         imgoriginal: insp.imgOriginal || '',
         descricao: insp.desc || '',
