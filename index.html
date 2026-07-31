@@ -126,7 +126,7 @@ body{font-family:'Inter',sans-serif;background:#fafafa;color:#111;max-width:480p
 .mprod-price{font-weight:700;font-size:1.1rem;color:#111;}
 .mprod-cat{font-size:0.75rem;color:#888;margin-bottom:4px;}
 .mprod-tam{display:inline-block;background:#f0f0f0;border-radius:20px;padding:3px 10px;font-size:0.72rem;font-weight:600;margin-bottom:10px;}
-.mprod-desc{font-size:0.85rem;color:#444;line-height:1.5;margin-bottom:16px;}
+.mprod-desc{font-size:0.85rem;color:#444;line-height:1.5;margin-bottom:16px;white-space:pre-line;}
 .op-grupo{margin-bottom:14px;}
 .op-grupo-head{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
 .op-grupo-nome{font-weight:700;font-size:0.86rem;}
@@ -315,6 +315,7 @@ body{font-family:'Inter',sans-serif;background:#fafafa;color:#111;max-width:480p
 </style>
 <script>
 /* ======= SUPABASE ======= */
+if('scrollRestoration' in history){ history.scrollRestoration = 'manual'; } // evita o navegador "ajudar" com scroll durante o history.back() e brigar com o nosso controle manual
 var SB_URL='https://jhjchfesrxnpbabhylxs.supabase.co';
 var SB_KEY='sb_publishable_cz83j5R_8j0yUaWFhFVMuw_m_QqfCoi';
 
@@ -2381,7 +2382,7 @@ function abrirFotoFeedOculta(prodId, img){
   if(!p) return;
   document.getElementById('ffoImg').src = img;
   document.getElementById('ffoNome').textContent = p.nome;
-  document.getElementById('ffoCod').textContent = (p.cod?'#'+p.cod+' · ':'')+'R$ '+p.preco.toFixed(2).replace('.',',');
+  document.getElementById('ffoCod').textContent = p.cod?('#'+p.cod):'';
   document.getElementById('ffoVerBtn').onclick = function(){ fecharFotoFeedOculta(); openProd(prodId); };
   document.getElementById('modalFotoFeedOculta').classList.add('open');
 }
@@ -3227,11 +3228,12 @@ function destravarScrollFundo(){
   window.scrollTo(0, scrollYAntesDoModal);
 }
 closeProd = function(){
-  document.getElementById('modalProd').classList.remove('open');
-  destravarScrollFundo();
   if(modalProdHistPushed){
-    modalProdHistPushed = false;
+    // deixa o popstate cuidar de fechar e destravar o scroll — assim não compete com a navegação do histórico
     history.back();
+  } else {
+    document.getElementById('modalProd').classList.remove('open');
+    destravarScrollFundo();
   }
 };
 window.addEventListener('popstate', function(){
