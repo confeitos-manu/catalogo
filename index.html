@@ -684,7 +684,7 @@ Faça sua encomenda abaixo 👇</div>
             <div class="form-section-title">🖼️ Foto principal (capa do feed)</div>
             <div class="fl">
               <div class="ip" id="imgPrev" onclick="document.getElementById('imgFile').click()" style="width:100%;height:auto;aspect-ratio:4/5;border-radius:12px;"><span>📷</span></div>
-              <p class="ih">Clique para escolher</p>
+              <p class="ih">Some sozinha aqui — suba as fotos ali embaixo em "📸 Fotos do produto" que a primeira já vira capa. Clique aqui só se quiser trocar a capa por uma foto específica.</p>
               <input type="file" id="imgFile" accept="image/*" style="display:none" onchange="handleImg(this)">
               <input type="hidden" id="imgData">
               <div class="encaixe-opts">
@@ -705,8 +705,9 @@ Faça sua encomenda abaixo 👇</div>
           </div>
 
           <div class="form-section" id="extraMediaSection">
-            <div class="form-section-title">📸 Fotos extras e vinculados (carrossel)</div>
+            <div class="form-section-title">📸 Fotos do produto</div>
             <div class="fl">
+              <p class="ih" style="margin-bottom:6px;">Pode escolher várias de uma vez — se ainda não tiver capa, a primeira já vira capa automaticamente. Pra trocar a capa depois, use o ⭐ de qualquer foto abaixo.</p>
               <div class="extra-media-grid" id="extraMediaGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px;margin-bottom:6px;"></div>
               <div style="display:flex;gap:6px;">
                 <label style="flex:1;display:flex;align-items:center;justify-content:center;aspect-ratio:3/1;border:2px dashed #ddd;border-radius:8px;cursor:pointer;font-size:1.3rem;color:#bbb;background:#fafafa;" onclick="guardarScrollExtraMedia()">
@@ -1687,6 +1688,7 @@ function handleImg(inp){
   var r=new FileReader();
   r.onload=function(e){
     comprimirImagem(e.target.result, 1600, 0.82).then(function(dataComprimido){
+      if(!dataComprimido){ alert('⚠️ Essa foto não pôde ser aberta pelo navegador (formato incompatível ou arquivo corrompido — comum em fotos baixadas do Instagram). Tenta tirar um print da tela dela em vez de baixar, ou escolher outra foto.'); return; }
       document.getElementById('imgData').value=dataComprimido;
       document.getElementById('imgPrev').innerHTML='<img src="'+dataComprimido+'">';
       carregarDimensoesReais(dataComprimido, function(w,h){
@@ -1829,6 +1831,7 @@ function handleOpItemFoto(inp){
   var r = new FileReader();
   r.onload = function(e){
     comprimirImagem(e.target.result, 400, 0.8).then(function(dataComprimido){
+      if(!dataComprimido){ alert('⚠️ Essa foto não pôde ser aberta pelo navegador (formato incompatível ou arquivo corrompido — comum em fotos baixadas do Instagram). Tenta tirar um print da tela dela em vez de baixar, ou escolher outra foto.'); return; }
       document.getElementById('opItemFotoData').value = dataComprimido;
       document.getElementById('opItemFotoPrev').innerHTML = '<img src="'+dataComprimido+'" style="width:100%;height:100%;object-fit:cover;">';
     });
@@ -2200,6 +2203,7 @@ function handleInspImg(inp){
   var r=new FileReader();
   r.onload=function(e){
     comprimirImagem(e.target.result, 1600, 0.82).then(function(dataComprimido){
+      if(!dataComprimido){ alert('⚠️ Essa foto não pôde ser aberta pelo navegador (formato incompatível ou arquivo corrompido — comum em fotos baixadas do Instagram). Tenta tirar um print da tela dela em vez de baixar, ou escolher outra foto.'); return; }
       document.getElementById('inspImgData').value=dataComprimido;
       document.getElementById('inspImgPrev').innerHTML='<img src="'+dataComprimido+'">';
       setEncaixeInsp(encaixeAtualInsp);
@@ -2677,7 +2681,7 @@ function comprimirImagem(dataUrl, maxDim, quality){
       ctx.drawImage(img, 0, 0, w, h);
       resolve(canvas.toDataURL('image/jpeg', quality || 0.82));
     };
-    img.onerror = function(){ resolve(dataUrl); }; // se falhar, usa a original
+    img.onerror = function(){ resolve(null); }; // o navegador não conseguiu nem abrir essa foto — formato corrompido/incompatível, não adianta insistir com o mesmo arquivo
     img.src = dataUrl;
   });
 }
@@ -2689,26 +2693,67 @@ var carouselMedia = [];
 
 function handleExtraMedia(inp){
   var files = Array.from(inp.files);
-  var pending = files.length;
-  files.forEach(function(f){
+  var falhas = [];
+  function processarProximo(i){
+    if(i>=files.length){
+      renderExtraMediaGrid(); restaurarScrollExtraMedia(); salvarRascunhoProduto();
+      if(falhas.length) alert('⚠️ '+falhas.length+' foto(s) não puderam ser abertas pelo navegador e não foram adicionadas: '+falhas.join(', ')+'.\n\nIsso é comum com fotos baixadas do Instagram (formato incompatível ou arquivo corrompido). Tenta tirar um print da tela da foto em vez de baixar ela — prints sempre funcionam.');
+      return;
+    }
+    var f = files[i];
     var r = new FileReader();
     r.onload = function(e){
       var type = f.type.startsWith('video') ? 'video' : 'image';
-      if(type === 'image'){
-        comprimirImagem(e.target.result, 1600, 0.82).then(function(dataComprimido){
-          extraMedias.push({type:type, data:dataComprimido});
-          pending--;
-          if(pending===0){ renderExtraMediaGrid(); restaurarScrollExtraMedia(); }
-        });
-      } else {
+      if(type!=='image'){
         extraMedias.push({type:type, data:e.target.result});
-        pending--;
-        if(pending===0){ renderExtraMediaGrid(); restaurarScrollExtraMedia(); }
+        processarProximo(i+1);
+        return;
       }
+      comprimirImagem(e.target.result, 1600, 0.82).then(function(dataComprimido){
+        if(!dataComprimido){ falhas.push(f.name||'foto'); processarProximo(i+1); return; }
+        var temCapa = !!document.getElementById('imgData').value;
+        if(!temCapa){
+          // ainda não tem capa nesse produto — a primeira foto que sobe já vira a capa automaticamente
+          document.getElementById('imgData').value = dataComprimido;
+          document.getElementById('imgPrev').innerHTML = '<img src="'+dataComprimido+'">';
+          carregarDimensoesReais(dataComprimido, function(w,h){
+            imgNaturalW = w; imgNaturalH = h;
+            setEncaixe(encaixeAtual||'cover');
+            processarProximo(i+1);
+          });
+        } else {
+          extraMedias.push({type:'image', data:dataComprimido});
+          processarProximo(i+1);
+        }
+      });
     };
     r.readAsDataURL(f);
-  });
+  }
+  processarProximo(0);
   inp.value='';
+}
+// Promove uma foto extra pra virar a capa do produto — a capa antiga (se tinha) desce e vira uma foto extra
+function promoverParaCapa(i){
+  var novo = extraMedias[i];
+  if(!novo || novo.type==='video' || novo.tipo==='ref') return; // só fotos comuns podem virar capa
+  var capaAtualImg = document.getElementById('imgData').value;
+  var capaAtualPosy = posYAtual, capaAtualZoom = zoomAtual;
+  extraMedias.splice(i,1);
+  if(capaAtualImg){
+    extraMedias.unshift({type:'image', data:capaAtualImg, posy:capaAtualPosy, zoom:capaAtualZoom});
+  }
+  document.getElementById('imgData').value = novo.data;
+  document.getElementById('imgPrev').innerHTML = '<img src="'+novo.data+'">';
+  carregarDimensoesReais(novo.data, function(w,h){
+    imgNaturalW = w; imgNaturalH = h;
+    posYAtual = novo.posy!=null?novo.posy:50;
+    zoomAtual = novo.zoom!=null?novo.zoom:100;
+    var sliderP=document.getElementById('posYSlider'); if(sliderP) sliderP.value=posYAtual;
+    var sliderZ=document.getElementById('zoomSlider'); if(sliderZ) sliderZ.value=zoomAtual;
+    setEncaixe('cover');
+    renderExtraMediaGrid();
+    salvarRascunhoProduto();
+  });
 }
 
 // Calcula a prévia do corte da foto extra PIXEL A PIXEL (mesmo princípio da foto principal) —
@@ -2737,7 +2782,7 @@ function renderExtraMediaGrid(){
   var el = document.getElementById('extraMediaGrid');
   if(!el) return;
   el.innerHTML = extraMedias.map(function(m,i){
-    var ordBtns = '<div class="aiord" style="flex-direction:row;justify-content:center;margin-bottom:3px;"><button type="button" onclick="moverExtraMedia('+i+',-1)" '+(i===0?'disabled':'')+'>◀</button><button type="button" onclick="moverExtraMedia('+i+',1)" '+(i===extraMedias.length-1?'disabled':'')+'>▶</button></div>';
+    var ordBtns = '<div class="aiord" style="flex-direction:row;justify-content:center;align-items:center;gap:6px;margin-bottom:3px;"><button type="button" onclick="moverExtraMedia('+i+',-1)" '+(i===0?'disabled':'')+'>◀</button><button type="button" onclick="moverExtraMedia('+i+',1)" '+(i===extraMedias.length-1?'disabled':'')+'>▶</button>'+((m.type!=='video' && m.tipo!=='ref') ? '<button type="button" title="Definir como capa" onclick="promoverParaCapa('+i+')" style="background:none;border:none;font-size:0.9rem;cursor:pointer;">⭐</button>' : '')+'</div>';
     if(m.tipo==='ref'){
       var codRefAdm = (m.cod||'').trim().toLowerCase();
       var pRef = prods.find(function(x){return (x.cod||'').trim().toLowerCase()===codRefAdm;});
