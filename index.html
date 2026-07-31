@@ -554,7 +554,7 @@ Faça sua encomenda abaixo 👇</div>
 <!-- FOTO AMPLIADA DE UM ADICIONAL -->
 <div class="modal-bg" id="modalOpFoto" onclick="if(event.target===this)fecharFotoOpcional()">
   <div class="modal-prod" style="max-width:420px;background:#fff;border-radius:16px;">
-    <button onclick="fecharFotoOpcional()" style="position:absolute;top:10px;right:10px;z-index:10;background:rgba(255,255,255,0.95);border:1px solid #eee;border-radius:50%;width:32px;height:32px;font-size:1.1rem;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.2);">✕</button>
+    <button onclick="fecharFotoOpcional()" style="position:fixed;top:10px;right:10px;z-index:600;background:rgba(255,255,255,0.95);border:1px solid #eee;border-radius:50%;width:32px;height:32px;font-size:1.1rem;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.2);">✕</button>
     <div style="width:100%;background:#fafafa;display:flex;align-items:center;justify-content:center;min-height:220px;">
       <img id="opFotoGrande" src="" style="max-width:100%;max-height:60vh;width:auto;height:auto;display:block;margin:auto;">
     </div>
@@ -565,7 +565,7 @@ Faça sua encomenda abaixo 👇</div>
 <!-- FOTO DE PRODUTO QUE SÓ APARECE NO FEED (oculta do carrossel do produto) -->
 <div class="modal-bg" id="modalFotoFeedOculta" onclick="if(event.target===this)fecharFotoFeedOculta()">
   <div class="modal-prod" style="max-width:420px;background:#fff;border-radius:16px;">
-    <button onclick="fecharFotoFeedOculta()" style="position:absolute;top:10px;right:10px;z-index:10;background:rgba(255,255,255,0.95);border:1px solid #eee;border-radius:50%;width:32px;height:32px;font-size:1.1rem;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.2);">✕</button>
+    <button onclick="fecharFotoFeedOculta()" style="position:fixed;top:10px;right:10px;z-index:600;background:rgba(255,255,255,0.95);border:1px solid #eee;border-radius:50%;width:32px;height:32px;font-size:1.1rem;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.2);">✕</button>
     <div style="width:100%;background:#fafafa;display:flex;align-items:center;justify-content:center;min-height:280px;">
       <img id="ffoImg" src="" style="max-width:100%;max-height:65vh;width:auto;height:auto;display:block;margin:auto;">
     </div>
@@ -2113,14 +2113,23 @@ function selecionarOpcao(grupoId, idx, tipo){
 }
 
 // Abre a foto de um adicional ampliada, igual "olhar de perto" antes de escolher
+var modalOpFotoHistPushed = false;
 function abrirFotoOpcional(src, nome){
   if(!src) return;
   document.getElementById('opFotoGrande').src = src;
   document.getElementById('opFotoNome').textContent = nome||'';
   document.getElementById('modalOpFoto').classList.add('open');
+  if(!modalOpFotoHistPushed){
+    history.pushState({catalogoModal:'opFoto'}, '', location.href);
+    modalOpFotoHistPushed = true;
+  }
 }
 function fecharFotoOpcional(){
-  document.getElementById('modalOpFoto').classList.remove('open');
+  if(modalOpFotoHistPushed){
+    history.back();
+  } else {
+    document.getElementById('modalOpFoto').classList.remove('open');
+  }
 }
 // Ajusta a quantidade de um adicional de múltipla escolha (ex: 2 caixas de Raffaello) — igual concorrentes que usam +/- em vez de só marcar/desmarcar
 function ajustarQtyOpcional(grupoId, idx, delta){
@@ -2386,6 +2395,7 @@ function renderInspClient(){
 }
 // Foto de produto marcada "só no Feed" (oculta do carrossel do produto) — mostra ela grande aqui mesmo,
 // já que não existe uma foto correspondente pra pular dentro da página do produto
+var modalFotoFeedHistPushed = false;
 function abrirFotoFeedOculta(prodId, img, legenda, cod){
   var p = prods.find(function(x){return x.id===prodId;});
   if(!p) return;
@@ -2396,9 +2406,17 @@ function abrirFotoFeedOculta(prodId, img, legenda, cod){
   var descEl = document.getElementById('ffoDesc'); if(descEl) descEl.textContent = legenda || p.desc || '';
   document.getElementById('ffoVerBtn').onclick = function(){ fecharFotoFeedOculta(); openProd(prodId); };
   document.getElementById('modalFotoFeedOculta').classList.add('open');
+  if(!modalFotoFeedHistPushed){
+    history.pushState({catalogoModal:'fotoFeedOculta'}, '', location.href);
+    modalFotoFeedHistPushed = true;
+  }
 }
 function fecharFotoFeedOculta(){
-  document.getElementById('modalFotoFeedOculta').classList.remove('open');
+  if(modalFotoFeedHistPushed){
+    history.back(); // o popstate abaixo cuida de fechar de verdade, assim o botão voltar do celular não sai do site
+  } else {
+    document.getElementById('modalFotoFeedOculta').classList.remove('open');
+  }
 }
 
 // ===== ORDEM DO FEED (tela única pra arrastar manuais + fotos de produtos juntos) =====
@@ -3286,10 +3304,7 @@ openProd = function(id, startIdx){
   buildCarousel(p, startIdx); // já define curVariant (padrão = variação principal do produto, ou a foto específica clicada na Inspiração)
   var codAtual = curVariant ? curVariant.cod : p.cod;
   curProdQty=qtyInCart(p.id,codAtual)||1;
-  document.getElementById('mpCat').textContent=(p.cat||'')+(p.cod?' · #'+p.cod:'');
-  document.getElementById('mpNome').textContent=p.nome;
   document.getElementById('mpTam').innerHTML=p.tam?'<div class="mprod-tam">'+p.tam+'</div>':'';
-  document.getElementById('mpDesc').textContent=p.desc||'';
   document.getElementById('mpQty').textContent=curProdQty;
   renderOpcionaisProduto(p);
   atualizarPrecoVariante();
@@ -3335,6 +3350,14 @@ window.addEventListener('popstate', function(){
     modalProdHistPushed = false;
     document.getElementById('modalProd').classList.remove('open');
     destravarScrollFundo();
+  }
+  if(document.getElementById('modalFotoFeedOculta').classList.contains('open')){
+    modalFotoFeedHistPushed = false;
+    document.getElementById('modalFotoFeedOculta').classList.remove('open');
+  }
+  if(document.getElementById('modalOpFoto').classList.contains('open')){
+    modalOpFotoHistPushed = false;
+    document.getElementById('modalOpFoto').classList.remove('open');
   }
 });
 
