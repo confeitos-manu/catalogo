@@ -668,7 +668,7 @@ Faça sua encomenda abaixo 👇</div>
             </div>
             <div class="fr">
               <div class="fl"><label>Tamanho</label><input type="text" id="pTam" placeholder="Ex: Médio" oninput="salvarRascunhoProduto()"></div>
-              <div class="fl"><label>Código (#)</label><input type="text" id="pCod" maxlength="5" style="text-align:center;font-weight:700;letter-spacing:.1em" oninput="salvarRascunhoProduto()"></div>
+              <div class="fl"><label>Código (#)</label><input type="text" id="pCod" maxlength="5" style="text-align:center;font-weight:700;letter-spacing:.1em" oninput="salvarRascunhoProduto();checarCodigoLivre(this.value,'pCodStatus')"><div id="pCodStatus" style="font-size:0.7rem;margin-top:3px;"></div></div>
             </div>
             <div class="fl">
               <label>Status</label>
@@ -696,7 +696,7 @@ Faça sua encomenda abaixo 👇</div>
                 <input type="range" id="posYSlider" min="0" max="100" value="50" oninput="ajustarPosY(this.value);sincronizarCardCapa();" style="width:100%;">
                 <div>
                 <label style="font-size:12px;color:#888;display:block;margin:6px 0 2px;">🔍 Zoom (ampliar / diminuir)</label>
-                <input type="range" id="zoomSlider" min="50" max="220" value="100" oninput="ajustarZoom(this.value);sincronizarCardCapa();" style="width:100%;">
+                <input type="range" id="zoomSlider" min="50" max="400" value="100" oninput="ajustarZoom(this.value);sincronizarCardCapa();" style="width:100%;">
                 </div>
               </div>
               <label style="display:flex;align-items:center;gap:5px;font-size:0.75rem;margin-top:6px;color:#8a5cf6;"><input type="checkbox" id="pMostrarInsp" style="width:14px;height:14px;">✨ Mostrar no Feed</label>
@@ -776,7 +776,7 @@ Faça sua encomenda abaixo 👇</div>
               <label style="font-size:12px;color:#888;display:block;margin-bottom:2px;">↕️ Posição da foto</label>
               <input type="range" id="inspPosYSlider" min="0" max="100" value="50" oninput="ajustarPosYInsp(this.value)" style="width:100%;">
               <label style="font-size:12px;color:#888;display:block;margin:6px 0 2px;">🔍 Zoom</label>
-              <input type="range" id="inspZoomSlider" min="50" max="220" value="100" oninput="ajustarZoomInsp(this.value)" style="width:100%;">
+              <input type="range" id="inspZoomSlider" min="50" max="400" value="100" oninput="ajustarZoomInsp(this.value)" style="width:100%;">
             </div>
           </div>
           <div class="fl"><label>Legenda (opcional)</label><input type="text" id="inspDescInput" placeholder="Ex: Buquê personalizado com ursinho"></div>
@@ -1419,7 +1419,22 @@ function enviarSelecionados(){
 
 // Monta o link individual do produto (gera preview com foto no WhatsApp)
 function produtoLink(cod){
-  return location.origin+'/produto/'+encodeURIComponent(cod);
+  var base = location.origin+'/produto/'+encodeURIComponent(cod);
+  // Acha a foto correspondente a esse código (pode ser a capa do produto ou uma foto extra com código próprio)
+  // e usa um pedaço da própria URL dela como "versão" do link — ela muda sozinha toda vez que a foto é trocada,
+  // fazendo o WhatsApp enxergar como link novo e buscar uma prévia atualizada, em vez de reaproveitar a antiga
+  var imgRef = '';
+  for(var i=0;i<prods.length;i++){
+    var p = prods[i];
+    if((p.cod||'')===cod){ imgRef = p.img||''; break; }
+    var m = (p.medias||[]).find(function(x){return (x.cod||'')===cod;});
+    if(m){ imgRef = m.data||''; break; }
+  }
+  if(imgRef){
+    var v = imgRef.replace(/[^0-9]/g,'').slice(-8);
+    if(v) base += '?v='+v;
+  }
+  return base;
 }
 
 // Compartilha um único produto (preview rico) direto do modal
@@ -1466,9 +1481,18 @@ async function uploadMedias(prodId, mediasBase64){
       continue;
     }
     if(!m.data) continue;
-    // Se já é URL (não base64), manter como está
+    // Se já é URL (não base64): só passa direto se a posição/zoom não mudaram desde o último recorte.
+    // Antes, ajustar posição/zoom numa foto extra JÁ publicada não tinha efeito nenhum na imagem de
+    // verdade — só atualizava os números guardados, e a foto exibida continuava sendo a antiga.
     if(m.data.startsWith('http')){
-      urls.push(m);
+      var posyAtualM = m.posy!=null?m.posy:50, zoomAtualM = m.zoom!=null?m.zoom:100;
+      var mudou = m.type!=='video' && m.dataOriginal && (m._bakedPosy!==posyAtualM || m._bakedZoom!==zoomAtualM);
+      if(mudou){
+        var recortada = await assarFotoCortada(m.dataOriginal, posyAtualM, zoomAtualM, 1080, 1350);
+        var urlRecortada = await uploadParaStorage(recortada, 'prod_' + prodId + '_' + i + '_ajuste');
+        if(urlRecortada){ urls.push(Object.assign({}, m, {data:urlRecortada, _bakedPosy:posyAtualM, _bakedZoom:zoomAtualM})); continue; }
+      }
+      urls.push(Object.assign({}, m, {_bakedPosy:(m._bakedPosy!=null?m._bakedPosy:posyAtualM), _bakedZoom:(m._bakedZoom!=null?m._bakedZoom:zoomAtualM)}));
       continue;
     }
     // Fotos (não vídeo): corta de verdade no padrão 4:5, preservando o original escondido
@@ -1480,7 +1504,7 @@ async function uploadMedias(prodId, mediasBase64){
     // Upload base64 para Storage (foto final)
     var url = await uploadParaStorage(dataParaEnviar, 'prod_' + prodId + '_' + i);
     var urlOriginal = (m.type!=='video') ? await uploadParaStorage(dataOriginalParaEnviar, 'prod_' + prodId + '_' + i + '_original') : '';
-    if(url) urls.push({type: m.type||'image', data: url, dataOriginal: urlOriginal||'', cod: m.cod||'', preco: m.preco||'', esgotado: !!m.esgotado, nome: m.nome||'', diferenca: m.diferenca||''});
+    if(url) urls.push(Object.assign({}, m, {type: m.type||'image', data: url, dataOriginal: urlOriginal||'', cod: m.cod||'', preco: m.preco||'', esgotado: !!m.esgotado, nome: m.nome||'', diferenca: m.diferenca||'', _bakedPosy:(m.posy!=null?m.posy:50), _bakedZoom:(m.zoom!=null?m.zoom:100)}));
   }
   return urls;
 }
@@ -1725,6 +1749,28 @@ var rascunhoProdutoVerificado = false;
 function salvarRascunhoManual(){
   var salvou = salvarRascunhoProduto();
   toast(salvou ? '📝 Rascunho salvo! Pode sair tranquila, ele estará aqui quando voltar.' : 'Preencha algo antes de salvar o rascunho.');
+}
+// Avisa na hora, enquanto digita, se aquele número já está em uso em outro produto/variação —
+// evita ter que salvar pra descobrir que o código escolhido já existe
+function checarCodigoLivre(codDigitado, statusElId){
+  var statusEl = document.getElementById(statusElId);
+  if(!statusEl) return;
+  var raw = (codDigitado||'').trim();
+  if(!raw){ statusEl.textContent=''; return; }
+  var cod = /^\d+$/.test(raw) ? ('00000'+parseInt(raw,10)).slice(-5) : raw;
+  var usados = {};
+  prods.forEach(function(p){
+    if(editPId && p.id===editPId) return; // não compara com o produto que você já está editando
+    if(p.cod) usados[p.cod]=true;
+    (p.medias||[]).forEach(function(m){ if(m && m.cod && m.tipo!=='ref') usados[m.cod]=true; });
+  });
+  if(usados[cod]){
+    statusEl.textContent = '⚠️ #'+cod+' já em uso';
+    statusEl.style.color = '#c0392b';
+  } else {
+    statusEl.textContent = '✅ #'+cod+' livre';
+    statusEl.style.color = '#2e8b57';
+  }
 }
 function salvarRascunhoProduto(){
   try{
@@ -2139,14 +2185,18 @@ function ajustarQtyOpcional(grupoId, idx, delta){
   if(!item) return;
   var atual = curOpcionaisSelecionados[grupoId] || [];
   var pos = atual.findIndex(function(x){return x.idx===idx;});
+  var max = g.maxEscolhas||10;
+  var totalAtual = atual.reduce(function(s,x){return s+(x.qty||1);},0);
+  // O teto vale pro total de itens escolhidos nesse grupo (somando as quantidades), não só a quantidade
+  // de tipos diferentes — antes só travava ao escolher um item novo, então dava pra passar do limite só
+  // clicando + várias vezes no mesmo item já escolhido
+  if(delta>0 && totalAtual>=max){ toast('Máximo de '+max+' itens nesse grupo'); return; }
   var novaQty;
   if(pos>-1){
     novaQty = atual[pos].qty + delta;
     if(novaQty<=0){ atual.splice(pos,1); novaQty=0; }
     else { atual[pos].qty = novaQty; }
   } else if(delta>0){
-    var max = g.maxEscolhas||10;
-    if(atual.length>=max){ toast('Máximo de '+max+' opções nesse grupo'); return; }
     atual.push({nome:item.nome, preco:item.preco, idx:idx, qty:1});
     novaQty = 1;
   } else {
@@ -2824,7 +2874,7 @@ function renderExtraMediaGrid(){
         '<label style="font-size:0.6rem;color:#888;display:block;">↕️ Posição</label>'+
         '<input type="range" min="0" max="100" value="'+posYAtual+'" oninput="ajustarPosY(this.value);sincronizarCardCapa();" style="width:100%;height:14px;">'+
         '<label style="font-size:0.6rem;color:#888;display:block;">🔍 Zoom</label>'+
-        '<input type="range" min="50" max="220" value="'+zoomAtual+'" oninput="ajustarZoom(this.value);sincronizarCardCapa();" style="width:100%;height:14px;">'+
+        '<input type="range" min="50" max="400" value="'+zoomAtual+'" oninput="ajustarZoom(this.value);sincronizarCardCapa();" style="width:100%;height:14px;">'+
         '</div>')+
       '<label style="display:flex;align-items:center;gap:3px;font-size:0.65rem;margin-top:3px;color:#8a5cf6;"><input type="checkbox" '+(chkCapa&&chkCapa.checked?'checked':'')+' onchange="document.getElementById(\'pMostrarInsp\').checked=this.checked" style="width:12px;height:12px;">✨ Mostrar no Feed</label>'+
       '</div>';
@@ -2845,18 +2895,18 @@ function renderExtraMediaGrid(){
         '</div>';
     }
     var tag = m.type==='video'
-      ? '<video src="'+m.data+'" style="width:100%;height:100%;object-fit:cover" muted></video>'
+      ? '<video src="'+m.data+'" controls muted playsinline style="width:100%;height:100%;object-fit:cover"></video>'
       : '<img src="'+m.data+'" onload="posicionarFotoExtra(this,'+(m.posy!=null?m.posy:50)+','+(m.zoom!=null?m.zoom:100)+')">';
     var ajusteFoto = m.type==='video' ? '' :
       '<div style="margin-top:4px;">'+
       '<label style="font-size:0.6rem;color:#888;display:block;">↕️ Posição</label>'+
       '<input type="range" min="0" max="100" value="'+(m.posy!=null?m.posy:50)+'" oninput="ajustarExtraPosY('+i+',this.value)" style="width:100%;height:14px;">'+
       '<label style="font-size:0.6rem;color:#888;display:block;">🔍 Zoom</label>'+
-      '<input type="range" min="50" max="220" value="'+(m.zoom!=null?m.zoom:100)+'" oninput="ajustarExtraZoom('+i+',this.value)" style="width:100%;height:14px;">'+
+      '<input type="range" min="50" max="400" value="'+(m.zoom!=null?m.zoom:100)+'" oninput="ajustarExtraZoom('+i+',this.value)" style="width:100%;height:14px;">'+
       '</div>';
     var variante = m.type==='video' ? '' :
-      '<div style="display:flex;gap:4px;margin-top:4px;align-items:center;">'+
-      '<input placeholder="Cód." value="'+(m.cod||'')+'" oninput="setMediaVar('+i+',\'cod\',this.value)" onblur="formatarCodVariante('+i+',this)" maxlength="5" style="width:54px;font-size:0.68rem;padding:3px 4px;border:1px solid #ddd;border-radius:6px;">'+
+      '<div style="display:flex;gap:4px;margin-top:4px;align-items:flex-start;">'+
+      '<div><input placeholder="Cód." value="'+(m.cod||'')+'" oninput="setMediaVar('+i+',\'cod\',this.value);checarCodigoLivre(this.value,\'mCodStatus'+i+'\')" onblur="formatarCodVariante('+i+',this)" maxlength="5" style="width:54px;font-size:0.68rem;padding:3px 4px;border:1px solid #ddd;border-radius:6px;"><div id="mCodStatus'+i+'" style="font-size:0.6rem;"></div></div>'+
       '<input placeholder="Preço" type="number" step="0.01" value="'+(m.preco||'')+'" oninput="setMediaVar('+i+',\'preco\',this.value)" style="width:50px;font-size:0.68rem;padding:3px 4px;border:1px solid #ddd;border-radius:6px;">'+
       '</div>'+
       '<input placeholder="Nome (ex: Buquê rosa)" value="'+(m.nome||'')+'" oninput="setMediaVar('+i+',\'nome\',this.value)" style="width:100%;font-size:0.68rem;padding:3px 4px;margin-top:3px;border:1px solid #ddd;border-radius:6px;">'+
