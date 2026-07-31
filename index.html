@@ -681,11 +681,10 @@ Faça sua encomenda abaixo 👇</div>
             </div>
           </div>
 
-          <div class="form-section">
+          <div class="form-section" style="display:none;">
             <div class="form-section-title">🖼️ Foto principal (capa do feed)</div>
             <div class="fl">
               <div class="ip" id="imgPrev" onclick="document.getElementById('imgFile').click()" style="width:100%;height:auto;aspect-ratio:4/5;border-radius:12px;"><span>📷</span></div>
-              <p class="ih">Some sozinha aqui — suba as fotos ali embaixo em "📸 Fotos do produto" que a primeira já vira capa. Clique aqui só se quiser trocar a capa por uma foto específica.</p>
               <input type="file" id="imgFile" accept="image/*" style="display:none" onchange="handleImg(this)">
               <input type="hidden" id="imgData">
               <div class="encaixe-opts">
@@ -694,13 +693,12 @@ Faça sua encomenda abaixo 👇</div>
               </div>
               <div id="posYWrap" style="margin-top:8px;">
                 <label style="font-size:12px;color:#888;display:block;margin-bottom:2px;">↕️ Posição da foto (mais pra cima / mais pra baixo)</label>
-                <input type="range" id="posYSlider" min="0" max="100" value="50" oninput="ajustarPosY(this.value)" style="width:100%;">
+                <input type="range" id="posYSlider" min="0" max="100" value="50" oninput="ajustarPosY(this.value);sincronizarCardCapa();" style="width:100%;">
                 <div>
                 <label style="font-size:12px;color:#888;display:block;margin:6px 0 2px;">🔍 Zoom (ampliar / diminuir)</label>
-                <input type="range" id="zoomSlider" min="50" max="220" value="100" oninput="ajustarZoom(this.value)" style="width:100%;">
+                <input type="range" id="zoomSlider" min="50" max="220" value="100" oninput="ajustarZoom(this.value);sincronizarCardCapa();" style="width:100%;">
                 </div>
               </div>
-              <p class="ih">A prévia acima já mostra exatamente como vai ficar no catálogo</p>
               <label style="display:flex;align-items:center;gap:5px;font-size:0.75rem;margin-top:6px;color:#8a5cf6;"><input type="checkbox" id="pMostrarInsp" style="width:14px;height:14px;">✨ Mostrar no Feed</label>
             </div>
           </div>
@@ -708,7 +706,7 @@ Faça sua encomenda abaixo 👇</div>
           <div class="form-section" id="extraMediaSection">
             <div class="form-section-title">📸 Fotos do produto</div>
             <div class="fl">
-              <p class="ih" style="margin-bottom:6px;">Pode escolher várias de uma vez — se ainda não tiver capa, a primeira já vira capa automaticamente. Pra trocar a capa depois, use o ⭐ de qualquer foto abaixo.</p>
+              <p class="ih" style="margin-bottom:6px;">Escolha várias de uma vez — a primeira (ou a que tiver ⭐) é a capa, todas aparecem juntas aqui do mesmo jeito.</p>
               <div class="extra-media-grid" id="extraMediaGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px;margin-bottom:6px;"></div>
               <div style="display:flex;gap:6px;">
                 <label style="flex:1;display:flex;align-items:center;justify-content:center;aspect-ratio:3/1;border:2px dashed #ddd;border-radius:8px;cursor:pointer;font-size:1.3rem;color:#bbb;background:#fafafa;" onclick="guardarScrollExtraMedia()">
@@ -2790,7 +2788,29 @@ function posicionarFotoExtra(imgEl, posy, zoom){
 function renderExtraMediaGrid(){
   var el = document.getElementById('extraMediaGrid');
   if(!el) return;
-  el.innerHTML = extraMedias.map(function(m,i){
+  var capaImg = document.getElementById('imgData').value;
+  var htmlCapa = '';
+  if(capaImg){
+    var chkCapa = document.getElementById('pMostrarInsp');
+    var ehContain = encaixeAtual !== 'cover';
+    htmlCapa = '<div class="extra-media-item" style="display:flex;flex-direction:column;border-color:#f5c518;">'+
+      '<div class="aiord" style="flex-direction:row;justify-content:center;align-items:center;gap:6px;margin-bottom:3px;"><span style="font-size:0.68rem;font-weight:700;color:#c9970a;">⭐ Capa</span></div>'+
+      '<div class="extra-media-thumb">'+(ehContain ? '<img src="'+capaImg+'" style="width:100%;height:100%;object-fit:contain;background:#f0f0f0;">' : '<img id="capaThumbImg" src="'+capaImg+'" onload="posicionarFotoExtra(this,'+posYAtual+','+zoomAtual+')">')+'</div>'+
+      '<div style="display:flex;gap:4px;margin-top:4px;">'+
+      '<button type="button" onclick="setEncaixeCapaCard(\'cover\')" style="flex:1;font-size:0.6rem;padding:4px;border-radius:6px;border:1px solid '+(!ehContain?'#111':'#ddd')+';background:'+(!ehContain?'#111':'#fff')+';color:'+(!ehContain?'#fff':'#666')+';">🔲 Cortar</button>'+
+      '<button type="button" onclick="setEncaixeCapaCard(\'contain\')" style="flex:1;font-size:0.6rem;padding:4px;border-radius:6px;border:1px solid '+(ehContain?'#111':'#ddd')+';background:'+(ehContain?'#111':'#fff')+';color:'+(ehContain?'#fff':'#666')+';">🖼️ Ajustar</button>'+
+      '</div>'+
+      (ehContain ? '' :
+        '<div style="margin-top:4px;">'+
+        '<label style="font-size:0.6rem;color:#888;display:block;">↕️ Posição</label>'+
+        '<input type="range" min="0" max="100" value="'+posYAtual+'" oninput="ajustarPosY(this.value);sincronizarCardCapa();" style="width:100%;height:14px;">'+
+        '<label style="font-size:0.6rem;color:#888;display:block;">🔍 Zoom</label>'+
+        '<input type="range" min="50" max="220" value="'+zoomAtual+'" oninput="ajustarZoom(this.value);sincronizarCardCapa();" style="width:100%;height:14px;">'+
+        '</div>')+
+      '<label style="display:flex;align-items:center;gap:3px;font-size:0.65rem;margin-top:3px;color:#8a5cf6;"><input type="checkbox" '+(chkCapa&&chkCapa.checked?'checked':'')+' onchange="document.getElementById(\'pMostrarInsp\').checked=this.checked" style="width:12px;height:12px;">✨ Mostrar no Feed</label>'+
+      '</div>';
+  }
+  el.innerHTML = htmlCapa + extraMedias.map(function(m,i){
     var ordBtns = '<div class="aiord" style="flex-direction:row;justify-content:center;align-items:center;gap:6px;margin-bottom:3px;"><button type="button" onclick="moverExtraMedia('+i+',-1)" '+(i===0?'disabled':'')+'>◀</button><button type="button" onclick="moverExtraMedia('+i+',1)" '+(i===extraMedias.length-1?'disabled':'')+'>▶</button>'+((m.type!=='video' && m.tipo!=='ref') ? '<button type="button" title="Definir como capa" onclick="promoverParaCapa('+i+')" style="background:none;border:none;font-size:0.9rem;cursor:pointer;">⭐</button>' : '')+'</div>';
     if(m.tipo==='ref'){
       var codRefAdm = (m.cod||'').trim().toLowerCase();
@@ -2833,6 +2853,16 @@ function renderExtraMediaGrid(){
       variante+
       '</div>';
   }).join('');
+}
+// Reaplica a posição/zoom no cartão da capa dentro da grade única (o card é um elemento separado da prévia escondida)
+function sincronizarCardCapa(){
+  var img = document.getElementById('capaThumbImg');
+  if(img) posicionarFotoExtra(img, posYAtual, zoomAtual);
+}
+// Troca Cortar/Ajustar direto pelo cartão da capa na grade única
+function setEncaixeCapaCard(tipo){
+  setEncaixe(tipo);
+  renderExtraMediaGrid();
 }
 // Sobe/desce a posição de uma foto extra no carrossel do produto — o que estiver primeiro aqui é o que aparece primeiro depois da capa
 function moverExtraMedia(i, dir){
@@ -3454,14 +3484,15 @@ editProd = function(id){
     carregarDimensoesReais(fotoParaAjustar, function(w,h){
       imgNaturalW = w; imgNaturalH = h;
       setEncaixe(p.encaixe||'cover');
+      renderExtraMediaGrid(); // o card da capa na grade única precisa refletir o modo certo (Cortar/Ajustar), que só é confirmado aqui
     });
   } else {
     setEncaixe(p.encaixe||'cover');
   }
   // Carregar mídias extras
   extraMedias = (p.medias||[]).slice();
-  renderExtraMediaGrid();
   var chkInsp = document.getElementById('pMostrarInsp'); if(chkInsp) chkInsp.checked = !!p.mostrarInsp;
+  renderExtraMediaGrid();
   verificarRascunhoAoEditar(p); // se você tinha alterações não salvas nesse produto, oferece recuperar
   showAT('novo');
 };
