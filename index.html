@@ -561,6 +561,21 @@ Faça sua encomenda abaixo 👇</div>
   </div>
 </div>
 
+<!-- FOTO DE PRODUTO QUE SÓ APARECE NO FEED (oculta do carrossel do produto) -->
+<div class="modal-bg" id="modalFotoFeedOculta" onclick="if(event.target===this)fecharFotoFeedOculta()">
+  <div class="modal-prod" style="max-width:420px;background:#fff;border-radius:16px;">
+    <button onclick="fecharFotoFeedOculta()" style="position:absolute;top:10px;right:10px;z-index:10;background:rgba(255,255,255,0.95);border:1px solid #eee;border-radius:50%;width:32px;height:32px;font-size:1.1rem;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.2);">✕</button>
+    <div style="width:100%;background:#fafafa;display:flex;align-items:center;justify-content:center;min-height:280px;">
+      <img id="ffoImg" src="" style="max-width:100%;max-height:65vh;width:auto;height:auto;display:block;margin:auto;">
+    </div>
+    <div style="padding:14px 16px;">
+      <div style="font-weight:700;font-size:1rem;margin-bottom:2px;" id="ffoNome"></div>
+      <div style="font-size:0.85rem;color:#666;margin-bottom:12px;" id="ffoCod"></div>
+      <button id="ffoVerBtn" class="mprod-badd" style="width:100%;">Ver produto completo</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL VINCULAR PRODUTO ADICIONAL -->
 <div class="modal-bg" id="modalVincular">
   <div class="modal-prod">
@@ -2311,7 +2326,7 @@ function coletarInspiracoesDeProdutos(){
   prods.forEach(function(p){
     // Foto principal (capa), se marcada pra aparecer no Feed
     if(p.mostrarInsp && p.img){
-      lista.push({origem:'produto', prodId:p.id, img:p.img, cod:p.cod||'', posy:(p.posy!=null?p.posy:50), carouselIdx:0, ordem:(p.ordemFeed||0)});
+      lista.push({origem:'produto', prodId:p.id, img:p.img, cod:p.cod||'', posy:(p.posy!=null?p.posy:50), carouselIdx:0, ordem:(p.ordemFeed||0), oculta:false});
     }
     // carouselPos acompanha a posição real no carrossel do produto (posição 0 é sempre a capa);
     // fotos ocultadas do produto (ocultarNoProduto) não existem lá, então não contam posição
@@ -2323,7 +2338,8 @@ function coletarInspiracoesDeProdutos(){
         lista.push({
           origem:'produto', prodId:p.id, img:m.data, cod:p.cod||'', posy:(m.posy!=null?m.posy:50),
           carouselIdx: apareceNoCarrossel ? carouselPos : 0, // se não existe no carrossel, abre na capa
-          ordem:(m.ordemFeed||0)
+          ordem:(m.ordemFeed||0),
+          oculta: !apareceNoCarrossel // marcada "só no Feed" — não dá pra pular pra ela dentro do produto, precisa de um jeito próprio de ver grande
         });
       }
       if(apareceNoCarrossel) carouselPos++;
@@ -2343,13 +2359,34 @@ function renderInspClient(){
   var lista = manual.concat(deProdutos).sort(function(a,b){return (a.ordem||0)-(b.ordem||0);});
   if(!lista.length){ el.innerHTML='<div style="text-align:center;padding:40px;color:#888;grid-column:1/-1;">Nenhuma inspiração por aqui ainda</div>'; return; }
   el.innerHTML = lista.map(function(it){
-    var clique = it.origem==='produto' ? 'openProd('+it.prodId+','+it.carouselIdx+')' : 'openInsp('+it.id+')';
+    var clique;
+    if(it.origem==='produto' && it.oculta){
+      clique = 'abrirFotoFeedOculta('+it.prodId+',\''+it.img.replace(/'/g,"\\'")+'\')';
+    } else if(it.origem==='produto'){
+      clique = 'openProd('+it.prodId+','+it.carouselIdx+')';
+    } else {
+      clique = 'openInsp('+it.id+')';
+    }
     return '<div class="feed-cell" onclick="'+clique+'">'+
       (it.img?'<img src="'+it.img+'" alt="" loading="lazy" style="object-fit:cover;object-position:center '+posySafe(it.posy)+'%;">':'<div class="cell-fallback"><span style="font-size:2.5rem">🌸</span></div>')+
       '<div class="cell-overlay"></div>'+
       '<div class="cell-cod">#'+it.cod+'</div>'+
       '</div>';
   }).join('');
+}
+// Foto de produto marcada "só no Feed" (oculta do carrossel do produto) — mostra ela grande aqui mesmo,
+// já que não existe uma foto correspondente pra pular dentro da página do produto
+function abrirFotoFeedOculta(prodId, img){
+  var p = prods.find(function(x){return x.id===prodId;});
+  if(!p) return;
+  document.getElementById('ffoImg').src = img;
+  document.getElementById('ffoNome').textContent = p.nome;
+  document.getElementById('ffoCod').textContent = (p.cod?'#'+p.cod+' · ':'')+'R$ '+p.preco.toFixed(2).replace('.',',');
+  document.getElementById('ffoVerBtn').onclick = function(){ fecharFotoFeedOculta(); openProd(prodId); };
+  document.getElementById('modalFotoFeedOculta').classList.add('open');
+}
+function fecharFotoFeedOculta(){
+  document.getElementById('modalFotoFeedOculta').classList.remove('open');
 }
 
 // ===== ORDEM DO FEED (tela única pra arrastar manuais + fotos de produtos juntos) =====
