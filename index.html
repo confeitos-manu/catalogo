@@ -571,7 +571,8 @@ Faça sua encomenda abaixo 👇</div>
     </div>
     <div style="padding:14px 16px;">
       <div style="font-weight:700;font-size:1rem;margin-bottom:2px;" id="ffoNome"></div>
-      <div style="font-size:0.85rem;color:#666;margin-bottom:12px;" id="ffoCod"></div>
+      <div style="font-size:0.85rem;color:#666;margin-bottom:8px;" id="ffoCod"></div>
+      <div class="mprod-desc" id="ffoDesc" style="margin-bottom:12px;"></div>
       <button id="ffoVerBtn" class="mprod-badd" style="width:100%;">Ver produto completo</button>
     </div>
   </div>
@@ -781,6 +782,7 @@ Faça sua encomenda abaixo 👇</div>
             </div>
           </div>
           <div class="fl"><label>Legenda (opcional)</label><input type="text" id="inspDescInput" placeholder="Ex: Buquê personalizado com ursinho"></div>
+          <div class="fl"><label>Código do produto (opcional)</label><input type="text" id="inspCodProdutoInput" placeholder="Ex: 00090 — se essa foto for parecida com um produto que você vende" maxlength="5"></div>
           <div class="fa">
             <button class="bp" onclick="saveInsp()">💾 Salvar</button>
             <button class="bs" onclick="clearInsp()">Cancelar</button>
@@ -1492,6 +1494,7 @@ async function sbCarregarInspiracoes(){
     return {
       id: r.id_local || Date.now()+i,
       cod: r.cod||'',
+      codProduto: r.cod_produto||'',
       img: r.img||'',
       imgOriginal: r.imgoriginal||'',
       desc: r.descricao||'',
@@ -2253,6 +2256,7 @@ async function saveInsp(){
   var maxO = inspiracoes.length ? Math.max.apply(null, inspiracoes.map(function(x){return x.order||0;})) : 0;
   var item = {
     id:id, cod:cod, desc:document.getElementById('inspDescInput').value.trim(),
+    codProduto: document.getElementById('inspCodProdutoInput').value.trim(),
     img:imgFinal, imgOriginal:imgOriginalAtual,
     encaixe:encaixeAtualInsp, posy:posYAtualInsp, zoom:zoomAtualInsp,
     order: editInspId ? (inspiracoes.find(function(x){return x.id===id;})||{}).order||maxO : maxO+1
@@ -2281,6 +2285,7 @@ function editInsp(id){
   document.getElementById('inspImgData').value = fotoParaAjustar;
   document.getElementById('inspImgPrev').innerHTML = fotoParaAjustar ? '<img src="'+fotoParaAjustar+'">' : '<span>📷</span>';
   document.getElementById('inspDescInput').value = it.desc||'';
+  document.getElementById('inspCodProdutoInput').value = it.codProduto||'';
   posYAtualInsp = it.posy!=null?parseInt(it.posy,10):50;
   zoomAtualInsp = it.zoom!=null?parseInt(it.zoom,10):100;
   document.getElementById('inspPosYSlider').value = posYAtualInsp;
@@ -2294,6 +2299,7 @@ function clearInsp(){
   document.getElementById('inspImgData').value='';
   document.getElementById('inspImgPrev').innerHTML='<span>📷</span>';
   document.getElementById('inspDescInput').value='';
+  document.getElementById('inspCodProdutoInput').value='';
   posYAtualInsp=50; zoomAtualInsp=100;
   document.getElementById('inspPosYSlider').value=50;
   document.getElementById('inspZoomSlider').value=100;
@@ -2317,7 +2323,7 @@ function renderInspAdmList(){
   el.innerHTML = lista.map(function(it){
     return '<div style="position:relative;border-radius:8px;overflow:hidden;background:#f5f5f5;aspect-ratio:4/5;">'+
       (it.img?'<img src="'+it.img+'" style="width:100%;height:100%;object-fit:cover;">':'')+
-      '<div style="position:absolute;top:3px;left:3px;background:rgba(0,0,0,0.6);color:#fff;font-size:0.6rem;padding:2px 6px;border-radius:8px;">#'+it.cod+'</div>'+
+      '<div style="position:absolute;top:3px;left:3px;background:rgba(0,0,0,0.6);color:#fff;font-size:0.6rem;padding:2px 6px;border-radius:8px;">#'+(it.codProduto||it.cod)+'</div>'+
       '<div style="position:absolute;bottom:3px;right:3px;display:flex;gap:3px;">'+
       '<button onclick="editInsp('+it.id+')" style="background:rgba(255,255,255,0.9);border:none;border-radius:6px;width:24px;height:24px;font-size:0.7rem;cursor:pointer;">✏️</button>'+
       '<button onclick="delInsp('+it.id+')" style="background:rgba(255,255,255,0.9);border:none;border-radius:6px;width:24px;height:24px;font-size:0.7rem;cursor:pointer;color:#c0392b;">🗑️</button>'+
@@ -2331,7 +2337,7 @@ function coletarInspiracoesDeProdutos(){
   prods.forEach(function(p){
     // Foto principal (capa), se marcada pra aparecer no Feed
     if(p.mostrarInsp && p.img){
-      lista.push({origem:'produto', prodId:p.id, img:p.img, cod:p.cod||'', posy:(p.posy!=null?p.posy:50), carouselIdx:0, ordem:(p.ordemFeed||0), oculta:false});
+      lista.push({origem:'produto', prodId:p.id, img:p.img, cod:p.cod||'', posy:(p.posy!=null?p.posy:50), carouselIdx:0, ordem:(p.ordemFeed||0), oculta:false, legenda:''});
     }
     // carouselPos acompanha a posição real no carrossel do produto (posição 0 é sempre a capa);
     // fotos ocultadas do produto (ocultarNoProduto) não existem lá, então não contam posição
@@ -2344,7 +2350,8 @@ function coletarInspiracoesDeProdutos(){
           origem:'produto', prodId:p.id, img:m.data, cod:p.cod||'', posy:(m.posy!=null?m.posy:50),
           carouselIdx: apareceNoCarrossel ? carouselPos : 0, // se não existe no carrossel, abre na capa
           ordem:(m.ordemFeed||0),
-          oculta: !apareceNoCarrossel // marcada "só no Feed" — não dá pra pular pra ela dentro do produto, precisa de um jeito próprio de ver grande
+          oculta: !apareceNoCarrossel, // marcada "só no Feed" — não dá pra pular pra ela dentro do produto, precisa de um jeito próprio de ver grande
+          legenda: m.legenda||''
         });
       }
       if(apareceNoCarrossel) carouselPos++;
@@ -2357,7 +2364,7 @@ function renderInspClient(){
   var el = document.getElementById('inspGrid');
   if(!el) return;
   var manual = inspiracoes.slice().map(function(it){
-    return {origem:'manual', id:it.id, img:it.img, cod:it.cod, posy:it.posy, ordem:(it.order||0)};
+    return {origem:'manual', id:it.id, img:it.img, cod:(it.codProduto||it.cod), posy:it.posy, ordem:(it.order||0)};
   });
   var deProdutos = coletarInspiracoesDeProdutos();
   // Ordem única: manuais e fotos de produtos ficam misturados, na posição que a Manu escolheu em "Ordem do Feed"
@@ -2366,7 +2373,7 @@ function renderInspClient(){
   el.innerHTML = lista.map(function(it){
     var clique;
     if(it.origem==='produto' && it.oculta){
-      clique = 'abrirFotoFeedOculta('+it.prodId+',\''+it.img.replace(/'/g,"\\'")+'\')';
+      clique = 'abrirFotoFeedOculta('+it.prodId+',\''+it.img.replace(/'/g,"\\'")+'\',\''+(it.legenda||'').replace(/'/g,"\\'")+'\')';
     } else if(it.origem==='produto'){
       clique = 'openProd('+it.prodId+','+it.carouselIdx+')';
     } else {
@@ -2381,12 +2388,13 @@ function renderInspClient(){
 }
 // Foto de produto marcada "só no Feed" (oculta do carrossel do produto) — mostra ela grande aqui mesmo,
 // já que não existe uma foto correspondente pra pular dentro da página do produto
-function abrirFotoFeedOculta(prodId, img){
+function abrirFotoFeedOculta(prodId, img, legenda){
   var p = prods.find(function(x){return x.id===prodId;});
   if(!p) return;
   document.getElementById('ffoImg').src = img;
   document.getElementById('ffoNome').textContent = p.nome;
   document.getElementById('ffoCod').textContent = p.cod?('#'+p.cod):'';
+  var descEl = document.getElementById('ffoDesc'); if(descEl) descEl.textContent = legenda || p.desc || '';
   document.getElementById('ffoVerBtn').onclick = function(){ fecharFotoFeedOculta(); openProd(prodId); };
   document.getElementById('modalFotoFeedOculta').classList.add('open');
 }
@@ -2400,7 +2408,7 @@ var dragSrcOrdemFeed = null;
 function coletarItensOrdemFeed(){
   var lista = [];
   inspiracoes.forEach(function(it){
-    lista.push({origem:'manual', ordem:(it.order||0), img:it.img, cod:it.cod||'', inspId:it.id});
+    lista.push({origem:'manual', ordem:(it.order||0), img:it.img, cod:(it.codProduto||it.cod||''), inspId:it.id});
   });
   prods.forEach(function(p){
     if(p.mostrarInsp && p.img){
@@ -2469,10 +2477,11 @@ function salvarNovaOrdemFeed(){
 function openInsp(id){
   var it = inspiracoes.find(function(x){return x.id===id;});
   if(!it) return;
+  var codExibido = it.codProduto || it.cod;
   document.getElementById('inspFotoGrande').src = it.img||'';
-  document.getElementById('inspCod').textContent = '#'+it.cod;
+  document.getElementById('inspCod').textContent = '#'+codExibido;
   document.getElementById('inspDesc').textContent = it.desc||'';
-  var msg = 'Oi! Vi a inspiração #'+it.cod+' e gostaria de saber valores';
+  var msg = 'Oi! Vi a inspiração #'+codExibido+' e gostaria de saber valores';
   document.getElementById('inspWaBtn').href = 'https://wa.me/'+WA+'?text='+encodeURIComponent(msg);
   document.getElementById('modalInsp').classList.add('open');
 }
@@ -2813,6 +2822,7 @@ function renderExtraMediaGrid(){
       '</div>'+
       '<input placeholder="Nome (ex: Buquê rosa)" value="'+(m.nome||'')+'" oninput="setMediaVar('+i+',\'nome\',this.value)" style="width:100%;font-size:0.68rem;padding:3px 4px;margin-top:3px;border:1px solid #ddd;border-radius:6px;">'+
       '<input placeholder="Diferença (ex: flor de cetim)" value="'+(m.diferenca||'')+'" oninput="setMediaVar('+i+',\'diferenca\',this.value)" style="width:100%;font-size:0.68rem;padding:3px 4px;margin-top:3px;border:1px solid #ddd;border-radius:6px;">'+
+      '<input placeholder="Legenda dessa foto (opcional — se vazio, usa a descrição principal)" value="'+(m.legenda||'')+'" oninput="setMediaVar('+i+',\'legenda\',this.value)" style="width:100%;font-size:0.68rem;padding:3px 4px;margin-top:3px;border:1px solid #ddd;border-radius:6px;">'+
       '<label style="display:flex;align-items:center;gap:3px;font-size:0.65rem;margin-top:3px;color:#c0392b;"><input type="checkbox" '+(m.esgotado?'checked':'')+' onchange="setMediaVar('+i+',\'esgotado\',this.checked)" style="width:12px;height:12px;">Esgotado</label>'+
       '<label style="display:flex;align-items:center;gap:3px;font-size:0.65rem;margin-top:3px;color:#8a5cf6;"><input type="checkbox" '+(m.mostrarInsp?'checked':'')+' onchange="setMediaVar('+i+',\'mostrarInsp\',this.checked)" style="width:12px;height:12px;">✨ Mostrar no Feed</label>'+
       '<label style="display:flex;align-items:center;gap:3px;font-size:0.65rem;margin-top:3px;color:#888;"><input type="checkbox" '+(m.ocultarNoProduto?'checked':'')+' onchange="setMediaVar('+i+',\'ocultarNoProduto\',this.checked)" style="width:12px;height:12px;">🙈 Ocultar essa foto no produto (aparece só no Feed)</label>';
@@ -2949,7 +2959,7 @@ function buildCarousel(prod, startIdx){
     if(typeof m === 'string'){ src=m; }
     else if(m.data){ src=m.data; tipo=m.type||'image'; }
     else if(m.url){ src=m.url; tipo=m.type||'image'; }
-    if(src) carouselMedia.push({type:tipo, data:src, cod:(m.cod||''), preco:(m.preco?parseFloat(m.preco):null), esgotado:!!m.esgotado, nome:(m.nome||''), diferenca:(m.diferenca||'')});
+    if(src) carouselMedia.push({type:tipo, data:src, cod:(m.cod||''), preco:(m.preco?parseFloat(m.preco):null), esgotado:!!m.esgotado, nome:(m.nome||''), diferenca:(m.diferenca||''), legenda:(m.legenda||'')});
   });
 
   console.log('[Carrossel] Total slides:', carouselMedia.length);
@@ -2999,11 +3009,11 @@ function syncVariantePeloSlide(){
   if(!curProd) return;
   var m = carouselMedia[carouselIdx];
   if(m && m.cod){
-    curVariant = {idx:carouselIdx, cod:m.cod, preco:(m.preco!=null?m.preco:curProd.preco), esgotado:!!m.esgotado, nome:m.nome||'', diferenca:m.diferenca||'', ehRef:!!m.ehRef, descRef:m.descRef||''};
+    curVariant = {idx:carouselIdx, cod:m.cod, preco:(m.preco!=null?m.preco:curProd.preco), esgotado:!!m.esgotado, nome:m.nome||'', diferenca:m.diferenca||'', ehRef:!!m.ehRef, descRef:m.descRef||'', legenda:m.legenda||''};
   } else {
     // Foto extra sem código próprio (não é variação nem produto vinculado) — volta pro produto original,
     // em vez de deixar o texto travado no que estava antes (essa era a causa raiz do bug)
-    curVariant = {idx:carouselIdx, cod:curProd.cod, preco:curProd.preco, esgotado:false, nome:'', diferenca:'', ehRef:false, descRef:''};
+    curVariant = {idx:carouselIdx, cod:curProd.cod, preco:curProd.preco, esgotado:false, nome:'', diferenca:'', ehRef:false, descRef:'', legenda:(m&&m.legenda)||''};
   }
   destacarVariante();
   atualizarPrecoVariante();
@@ -3033,7 +3043,7 @@ function atualizarInfoVariante(){
   // dele — nunca junto com a do produto original, pra não virar bagunça de duas legendas
   var descEl = document.getElementById('mpDesc');
   if(descEl && curProd){
-    descEl.textContent = (curVariant && curVariant.ehRef) ? (curVariant.descRef||'') : (curProd.desc||'');
+    descEl.textContent = (curVariant && curVariant.ehRef) ? (curVariant.descRef||'') : ((curVariant && curVariant.legenda) ? curVariant.legenda : (curProd.desc||''));
   }
 }
 
