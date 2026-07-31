@@ -2345,7 +2345,7 @@ function coletarInspiracoesDeProdutos(){
       var apareceNoCarrossel = !m.ocultarNoProduto;
       if(m.mostrarInsp && m.type!=='video' && m.tipo!=='ref' && m.data){
         lista.push({
-          origem:'produto', prodId:p.id, img:m.data, cod:p.cod||'', posy:(m.posy!=null?m.posy:50),
+          origem:'produto', prodId:p.id, img:m.data, cod:(m.cod||p.cod||''), posy:(m.posy!=null?m.posy:50),
           carouselIdx: apareceNoCarrossel ? carouselPos : 0, // se não existe no carrossel, abre na capa
           ordem:(m.ordemFeed||0),
           oculta: !apareceNoCarrossel, // marcada "só no Feed" — não dá pra pular pra ela dentro do produto, precisa de um jeito próprio de ver grande
@@ -2371,7 +2371,7 @@ function renderInspClient(){
   el.innerHTML = lista.map(function(it){
     var clique;
     if(it.origem==='produto' && it.oculta){
-      clique = 'abrirFotoFeedOculta('+it.prodId+',\''+it.img.replace(/'/g,"\\'")+'\',\''+(it.legenda||'').replace(/'/g,"\\'")+'\')';
+      clique = 'abrirFotoFeedOculta('+it.prodId+',\''+it.img.replace(/'/g,"\\'")+'\',\''+(it.legenda||'').replace(/'/g,"\\'")+'\',\''+(it.cod||'').replace(/'/g,"\\'")+'\')';
     } else if(it.origem==='produto'){
       clique = 'openProd('+it.prodId+','+it.carouselIdx+')';
     } else {
@@ -2386,12 +2386,13 @@ function renderInspClient(){
 }
 // Foto de produto marcada "só no Feed" (oculta do carrossel do produto) — mostra ela grande aqui mesmo,
 // já que não existe uma foto correspondente pra pular dentro da página do produto
-function abrirFotoFeedOculta(prodId, img, legenda){
+function abrirFotoFeedOculta(prodId, img, legenda, cod){
   var p = prods.find(function(x){return x.id===prodId;});
   if(!p) return;
   document.getElementById('ffoImg').src = img;
   document.getElementById('ffoNome').textContent = p.nome;
-  document.getElementById('ffoCod').textContent = p.cod?('#'+p.cod):'';
+  var codExibido = cod || p.cod;
+  document.getElementById('ffoCod').textContent = codExibido?('#'+codExibido):'';
   var descEl = document.getElementById('ffoDesc'); if(descEl) descEl.textContent = legenda || p.desc || '';
   document.getElementById('ffoVerBtn').onclick = function(){ fecharFotoFeedOculta(); openProd(prodId); };
   document.getElementById('modalFotoFeedOculta').classList.add('open');
@@ -2414,7 +2415,7 @@ function coletarItensOrdemFeed(){
     }
     (p.medias||[]).forEach(function(m, mi){
       if(m && m.mostrarInsp && m.type!=='video' && m.tipo!=='ref' && m.data){
-        lista.push({origem:'media', ordem:(m.ordemFeed||0), img:m.data, cod:p.cod||'', prodId:p.id, mediaIdx:mi});
+        lista.push({origem:'media', ordem:(m.ordemFeed||0), img:m.data, cod:(m.cod||p.cod||''), prodId:p.id, mediaIdx:mi});
       }
     });
   });
@@ -2874,18 +2875,26 @@ function moverExtraMedia(i, dir){
 }
 
 // Ajusta posição/zoom de uma foto extra específica, atualizando a prévia sem re-renderizar a grade inteira (evita perder o foco do slider)
+// A grade tem o cartão da capa ocupando a primeira posição quando existe capa — então o índice real
+// no DOM é sempre 1 a mais do que o índice dentro de extraMedias, senão os controles mexem na foto errada
+function indiceGridExtra(i){
+  var capaImg = document.getElementById('imgData').value;
+  return capaImg ? i+1 : i;
+}
 function ajustarExtraPosY(i, valor){
   if(!extraMedias[i]) return;
   extraMedias[i].posy = parseInt(valor,10);
   var grid = document.getElementById('extraMediaGrid');
-  var img = grid && grid.children[i] && grid.children[i].querySelector('img');
+  var idx = indiceGridExtra(i);
+  var img = grid && grid.children[idx] && grid.children[idx].querySelector('img');
   posicionarFotoExtra(img, extraMedias[i].posy, extraMedias[i].zoom!=null?extraMedias[i].zoom:100);
 }
 function ajustarExtraZoom(i, valor){
   if(!extraMedias[i]) return;
   extraMedias[i].zoom = parseInt(valor,10);
   var grid = document.getElementById('extraMediaGrid');
-  var img = grid && grid.children[i] && grid.children[i].querySelector('img');
+  var idx = indiceGridExtra(i);
+  var img = grid && grid.children[idx] && grid.children[idx].querySelector('img');
   posicionarFotoExtra(img, extraMedias[i].posy!=null?extraMedias[i].posy:50, extraMedias[i].zoom);
 }
 
