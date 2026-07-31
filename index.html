@@ -566,7 +566,7 @@ Faça sua encomenda abaixo 👇</div>
 <div class="modal-bg" id="modalFotoFeedOculta" onclick="if(event.target===this)fecharFotoFeedOculta()">
   <div class="modal-prod" style="max-width:420px;background:#fff;border-radius:16px;">
     <button onclick="fecharFotoFeedOculta()" style="position:fixed;top:10px;right:10px;z-index:600;background:rgba(255,255,255,0.95);border:1px solid #eee;border-radius:50%;width:32px;height:32px;font-size:1.1rem;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.2);">✕</button>
-    <div style="width:100%;background:#fafafa;display:flex;align-items:center;justify-content:center;min-height:280px;">
+    <div id="ffoMediaWrap" style="width:100%;background:#fafafa;display:flex;align-items:center;justify-content:center;min-height:280px;">
       <img id="ffoImg" src="" style="max-width:100%;max-height:65vh;width:auto;height:auto;display:block;margin:auto;">
     </div>
     <div style="padding:14px 16px;">
@@ -966,6 +966,13 @@ function renderCatChips(){
     return '<div onclick="setCat(\''+c.replace(/'/g,"\\'")+'\')" style="flex-shrink:0;padding:6px 14px;border-radius:20px;font-size:0.78rem;font-weight:600;cursor:pointer;white-space:nowrap;border:1.5px solid '+(ativo?'#111':'#ddd')+';background:'+(ativo?'#111':'#fff')+';color:'+(ativo?'#fff':'#555')+';">'+label+'</div>';
   }).join('');
 }
+// Mostra o código sem os zeros à esquerda (ex: #00090 vira #90) — só pra exibição, o valor guardado
+// e usado pra comparar/achar produto continua exatamente como sempre foi, então nada mais quebra
+function codDisplay(cod){
+  if(!cod) return '';
+  var semZeros = String(cod).replace(/^0+/, '');
+  return semZeros || '0';
+}
 function cartKey(pid,cod){ return pid+'~'+(cod||''); }
 function qtyInCart(pid,cod){ return cart[cartKey(pid,cod)]||0; }
 function totalQtyProduto(pid){
@@ -1199,7 +1206,7 @@ function render(){
     var cells=list.map(function(p){
       var img=p.img?'<img src="'+p.img+'" alt="" loading="lazy" style="object-fit:cover;object-position:center '+posySafe(p.posy)+'%;">':'<div class="cell-fallback"><span style="font-size:2.5rem">🌸</span></div>';
       var esg=p.status==='esgotado'?'<div class="cell-esg-overlay"><div class="cell-esg">ESGOTADO</div></div>':'';
-      var cod=p.cod?'<div class="cell-cod">#'+p.cod+'</div>':'';
+      var cod=p.cod?'<div class="cell-cod">#'+codDisplay(p.cod)+'</div>':'';
       var sel = produtosSelecionados.indexOf(p.id)>-1;
       var check = modoSelecao ? '<div class="sel-check'+(sel?' on':'')+'">✓</div>' : '';
       var clique = modoSelecao ? 'toggleSelecionarProduto('+p.id+')' : 'openProd('+p.id+')';
@@ -1216,7 +1223,7 @@ function render(){
       var check = modoSelecao ? '<div style="width:24px;height:24px;border-radius:50%;border:2px solid '+(sel?'#111':'#ccc')+';background:'+(sel?'#111':'#fff')+';color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:900;flex-shrink:0;align-self:center;">'+(sel?'✓':'')+'</div>' : '';
       var btn=p.status==='esgotado'?'<button style="padding:6px 14px;border-radius:50px;border:1px solid #ddd;background:#f5f5f5;font-size:0.78rem;font-weight:600;color:#999;" disabled>Esgotado</button>':'<button style="padding:6px 14px;border-radius:50px;border:none;background:#111;color:#fff;font-size:0.78rem;font-weight:600;cursor:pointer;"'+(qty>0?' style="background:#25a244"':'')+' onclick="openProd('+p.id+')">'+( qty>0?'✓ OK':'Adicionar')+'</button>';
       var clique = modoSelecao ? 'toggleSelecionarProduto('+p.id+')' : 'openProd('+p.id+')';
-      return '<div style="display:flex;gap:12px;padding:12px 14px;border-bottom:1px solid #f0f0f0;background:#fff;cursor:pointer;" onclick="'+clique+'">'+check+img+'<div style="flex:1;padding-top:2px;"><div style="font-size:0.7rem;color:#888;margin-bottom:2px;">'+(p.cat||'')+(p.cod?' · #'+p.cod:'')+'</div><div style="font-weight:600;font-size:0.9rem;margin-bottom:3px;">'+p.nome+esg+'</div>'+(p.tam?'<div style="font-size:0.72rem;color:#666;margin-bottom:4px;">'+p.tam+'</div>':'')+'<div style="font-weight:700;font-size:0.95rem;margin-bottom:8px;">R$ '+p.preco.toFixed(2).replace('.',',')+'</div>'+(modoSelecao?'':btn)+'</div></div>';
+      return '<div style="display:flex;gap:12px;padding:12px 14px;border-bottom:1px solid #f0f0f0;background:#fff;cursor:pointer;" onclick="'+clique+'">'+check+img+'<div style="flex:1;padding-top:2px;"><div style="font-size:0.7rem;color:#888;margin-bottom:2px;">'+(p.cat||'')+(p.cod?' · #'+codDisplay(p.cod):'')+'</div><div style="font-weight:600;font-size:0.9rem;margin-bottom:3px;">'+p.nome+esg+'</div>'+(p.tam?'<div style="font-size:0.72rem;color:#666;margin-bottom:4px;">'+p.tam+'</div>':'')+'<div style="font-weight:700;font-size:0.95rem;margin-bottom:8px;">R$ '+p.preco.toFixed(2).replace('.',',')+'</div>'+(modoSelecao?'':btn)+'</div></div>';
     }).join('');
     el.innerHTML='<div>'+cards+'</div>';
   }
@@ -1235,7 +1242,7 @@ function openProd(id){
   }catch(e){}
   // Usar carrossel
   buildCarousel(p);
-  document.getElementById('mpCat').textContent=(p.cat||'')+(p.cod?' · #'+p.cod:'');
+  document.getElementById('mpCat').textContent=(p.cat||'')+(p.cod?' · #'+codDisplay(p.cod):'');
   document.getElementById('mpNome').textContent=p.nome;
   document.getElementById('mpPreco').textContent='R$ '+p.preco.toFixed(2).replace('.',',');
   document.getElementById('mpTam').innerHTML=p.tam?'<div class="mprod-tam">'+p.tam+'</div>':'';
@@ -1337,7 +1344,7 @@ function renderCart(){
     var qty=e[1];
     var opcTxt = (meta.opcionais&&meta.opcionais.length) ? '<div class="cisz">🎁 '+meta.opcionais.map(function(o){return (o.qty&&o.qty>1?o.qty+'x ':'')+(o.grupo?o.grupo+': ':'')+o.nome;}).join(', ')+'</div>' : '';
     var obsTxt = meta.obs ? '<div class="cisz">📝 '+meta.obs+'</div>' : '';
-    return '<div class="ci"><div class="cith">'+(meta.img?'<img src="'+meta.img+'" alt="">':'🌸')+'</div><div class="ciin"><div class="cinm">'+(meta.cod?'#'+meta.cod+' · ':'')+meta.nome+'</div>'+(meta.diferenca?'<div class="cisz">✨ '+meta.diferenca+'</div>':'')+(meta.tam?'<div class="cisz">'+meta.tam+'</div>':'')+opcTxt+obsTxt+'<div class="cipr">R$ '+meta.preco.toFixed(2).replace('.',',')+'</div><div class="cict"><button class="ciqb" onclick="chQty(\''+key+'\',-1)">-</button><span class="ciq">'+qty+'</span><button class="ciqb" onclick="chQty(\''+key+'\',1)">+</button></div></div><button class="cirm" onclick="rmItem(\''+key+'\')">✕</button></div>';
+    return '<div class="ci"><div class="cith">'+(meta.img?'<img src="'+meta.img+'" alt="">':'🌸')+'</div><div class="ciin"><div class="cinm">'+(meta.cod?'#'+codDisplay(meta.cod)+' · ':'')+meta.nome+'</div>'+(meta.diferenca?'<div class="cisz">✨ '+meta.diferenca+'</div>':'')+(meta.tam?'<div class="cisz">'+meta.tam+'</div>':'')+opcTxt+obsTxt+'<div class="cipr">R$ '+meta.preco.toFixed(2).replace('.',',')+'</div><div class="cict"><button class="ciqb" onclick="chQty(\''+key+'\',-1)">-</button><span class="ciq">'+qty+'</span><button class="ciqb" onclick="chQty(\''+key+'\',1)">+</button></div></div><button class="cirm" onclick="rmItem(\''+key+'\')">✕</button></div>';
   }).join('');
 }
 function chQty(key,d){var n=Math.max(0,(cart[key]||0)+d);if(n===0)delete cart[key];else cart[key]=n;updateCart();}
@@ -1358,7 +1365,7 @@ function sendWA(){
     var qty=e[1];
     var tam=meta.tam?' ('+meta.tam+')':'';
     var dif=meta.diferenca?' ['+meta.diferenca+']':'';
-    var cod=meta.cod?'[#'+meta.cod+'] ':'';
+    var cod=meta.cod?'[#'+codDisplay(meta.cod)+'] ':'';
     var pr='R$ '+meta.preco.toFixed(2).replace('.',',');
     totalGeral += meta.preco*qty;
     msg+='- '+cod+meta.nome+dif+tam+(qty>1?' x'+qty:'')+' - '+pr+(qty>1?' cada':'')+n;
@@ -1481,6 +1488,11 @@ async function uploadMedias(prodId, mediasBase64){
       continue;
     }
     if(!m.data) continue;
+    // Vídeo com poster ainda não publicado (base64) — sobe ele separado, pra virar a "capa" desse vídeo no Feed
+    var posterFinal = m.poster;
+    if(m.type==='video' && m.poster && m.poster.indexOf('data:')===0){
+      posterFinal = await uploadParaStorage(m.poster, 'prod_' + prodId + '_' + i + '_poster');
+    }
     // Se já é URL (não base64): só passa direto se a posição/zoom não mudaram desde o último recorte.
     // Antes, ajustar posição/zoom numa foto extra JÁ publicada não tinha efeito nenhum na imagem de
     // verdade — só atualizava os números guardados, e a foto exibida continuava sendo a antiga.
@@ -1490,9 +1502,9 @@ async function uploadMedias(prodId, mediasBase64){
       if(mudou){
         var recortada = await assarFotoCortada(m.dataOriginal, posyAtualM, zoomAtualM, 1080, 1350);
         var urlRecortada = await uploadParaStorage(recortada, 'prod_' + prodId + '_' + i + '_ajuste');
-        if(urlRecortada){ urls.push(Object.assign({}, m, {data:urlRecortada, _bakedPosy:posyAtualM, _bakedZoom:zoomAtualM})); continue; }
+        if(urlRecortada){ urls.push(Object.assign({}, m, {data:urlRecortada, poster:posterFinal||m.poster, _bakedPosy:posyAtualM, _bakedZoom:zoomAtualM})); continue; }
       }
-      urls.push(Object.assign({}, m, {_bakedPosy:(m._bakedPosy!=null?m._bakedPosy:posyAtualM), _bakedZoom:(m._bakedZoom!=null?m._bakedZoom:zoomAtualM)}));
+      urls.push(Object.assign({}, m, {poster:posterFinal||m.poster, _bakedPosy:(m._bakedPosy!=null?m._bakedPosy:posyAtualM), _bakedZoom:(m._bakedZoom!=null?m._bakedZoom:zoomAtualM)}));
       continue;
     }
     // Fotos (não vídeo): corta de verdade no padrão 4:5, preservando o original escondido
@@ -1504,7 +1516,7 @@ async function uploadMedias(prodId, mediasBase64){
     // Upload base64 para Storage (foto final)
     var url = await uploadParaStorage(dataParaEnviar, 'prod_' + prodId + '_' + i);
     var urlOriginal = (m.type!=='video') ? await uploadParaStorage(dataOriginalParaEnviar, 'prod_' + prodId + '_' + i + '_original') : '';
-    if(url) urls.push(Object.assign({}, m, {type: m.type||'image', data: url, dataOriginal: urlOriginal||'', cod: m.cod||'', preco: m.preco||'', esgotado: !!m.esgotado, nome: m.nome||'', diferenca: m.diferenca||'', _bakedPosy:(m.posy!=null?m.posy:50), _bakedZoom:(m.zoom!=null?m.zoom:100)}));
+    if(url) urls.push(Object.assign({}, m, {type: m.type||'image', data: url, dataOriginal: urlOriginal||'', poster: posterFinal||'', cod: m.cod||'', preco: m.preco||'', esgotado: !!m.esgotado, nome: m.nome||'', diferenca: m.diferenca||'', _bakedPosy:(m.posy!=null?m.posy:50), _bakedZoom:(m.zoom!=null?m.zoom:100)}));
   }
   return urls;
 }
@@ -1681,7 +1693,7 @@ function renderAdmList(){
   if(!list.length){el.innerHTML='<p style="font-size:.79rem;color:#888">Nenhum produto.</p>';return;}
   el.innerHTML=list.map(function(p,i){
     var st=p.status==='esgotado'?' 🔴':p.status==='escondido'?' 👁️':'';
-    return '<div class="ait"><div class="aiord"><button type="button" onclick="moverProdutoOrdem('+p.id+',-1)" '+(i===0?'disabled':'')+'>▲</button><button type="button" onclick="moverProdutoOrdem('+p.id+',1)" '+(i===list.length-1?'disabled':'')+'>▼</button></div><div class="aith">'+(p.img?'<img src="'+p.img+'" alt="">':'🌸')+'</div><div class="aiin"><div class="ainm">'+st+(p.cod?'#'+p.cod+' ':'')+''+p.nome+'</div><div class="aisb">R$ '+p.preco.toFixed(2).replace('.',',')+' · '+(p.cat||'—')+'</div></div><div class="aiact"><button class="be" onclick="editProd('+p.id+')">Editar</button><button class="bd" onclick="delProd('+p.id+')">Apagar</button></div></div>';
+    return '<div class="ait"><div class="aiord"><button type="button" onclick="moverProdutoOrdem('+p.id+',-1)" '+(i===0?'disabled':'')+'>▲</button><button type="button" onclick="moverProdutoOrdem('+p.id+',1)" '+(i===list.length-1?'disabled':'')+'>▼</button></div><div class="aith">'+(p.img?'<img src="'+p.img+'" alt="">':'🌸')+'</div><div class="aiin"><div class="ainm">'+st+(p.cod?'#'+codDisplay(p.cod)+' ':'')+''+p.nome+'</div><div class="aisb">R$ '+p.preco.toFixed(2).replace('.',',')+' · '+(p.cat||'—')+'</div></div><div class="aiact"><button class="be" onclick="editProd('+p.id+')">Editar</button><button class="bd" onclick="delProd('+p.id+')">Apagar</button></div></div>';
   }).join('');
 }
 // Sobe/desce um produto na lista trocando a posição com o vizinho — funciona em qualquer aparelho,
@@ -1712,10 +1724,7 @@ function handleImg(inp){
   var f=inp.files[0];if(!f)return;
   var r=new FileReader();
   r.onload=function(e){
-    comprimirImagem(e.target.result, 1600, 0.82).then(function(dataComprimido){
-      if(!dataComprimido){ alert('⚠️ Essa foto não pôde ser aberta pelo navegador (formato incompatível ou arquivo corrompido — comum em fotos baixadas do Instagram). Tenta tirar um print da tela dela em vez de baixar, ou escolher outra foto.'); return; }
-      document.getElementById('imgData').value=dataComprimido;
-      document.getElementById('imgPrev').innerHTML='<img src="'+dataComprimido+'">';
+    comprimirImagemComFallback(f, e.target.result, 1600, 0.82).then(function(dataComprimido){
       carregarDimensoesReais(dataComprimido, function(w,h){
         imgNaturalW = w; imgNaturalH = h;
         setEncaixe(encaixeAtual); // reaplica o enquadramento escolhido na prévia nova
@@ -1765,10 +1774,10 @@ function checarCodigoLivre(codDigitado, statusElId){
     (p.medias||[]).forEach(function(m){ if(m && m.cod && m.tipo!=='ref') usados[m.cod]=true; });
   });
   if(usados[cod]){
-    statusEl.textContent = '⚠️ #'+cod+' já em uso';
+    statusEl.textContent = '⚠️ #'+codDisplay(cod)+' já em uso';
     statusEl.style.color = '#c0392b';
   } else {
-    statusEl.textContent = '✅ #'+cod+' livre';
+    statusEl.textContent = '✅ #'+codDisplay(cod)+' livre';
     statusEl.style.color = '#2e8b57';
   }
 }
@@ -1877,7 +1886,7 @@ function handleOpItemFoto(inp){
   var f=inp.files[0]; if(!f) return;
   var r = new FileReader();
   r.onload = function(e){
-    comprimirImagem(e.target.result, 400, 0.8).then(function(dataComprimido){
+    comprimirImagemComFallback(f, e.target.result, 400, 0.8).then(function(dataComprimido){
       if(!dataComprimido){ alert('⚠️ Essa foto não pôde ser aberta pelo navegador (formato incompatível ou arquivo corrompido — comum em fotos baixadas do Instagram). Tenta tirar um print da tela dela em vez de baixar, ou escolher outra foto.'); return; }
       document.getElementById('opItemFotoData').value = dataComprimido;
       document.getElementById('opItemFotoPrev').innerHTML = '<img src="'+dataComprimido+'" style="width:100%;height:100%;object-fit:cover;">';
@@ -2242,7 +2251,7 @@ function renderHlProdSelect(selecionados){
     return '<label style="display:flex;align-items:center;gap:8px;padding:5px 2px;font-size:0.8rem;cursor:pointer;">'+
       '<input type="checkbox" value="'+p.cod+'" '+(marcado?'checked':'')+' style="width:16px;height:16px;">'+
       (p.img?'<img src="'+p.img+'" style="width:28px;height:28px;border-radius:5px;object-fit:cover;">':'🌸')+
-      '<span>#'+p.cod+' · '+p.nome+'</span></label>';
+      '<span>#'+codDisplay(p.cod)+' · '+p.nome+'</span></label>';
   }).join('');
 }
 function clearHl(){editHlId=null;document.getElementById('hlEmoji').value='';document.getElementById('hlNome').value='';document.getElementById('hlTexto').value='';renderHlProdSelect([]);}
@@ -2262,11 +2271,7 @@ function handleInspImg(inp){
   var f=inp.files[0];if(!f)return;
   var r=new FileReader();
   r.onload=function(e){
-    comprimirImagem(e.target.result, 1600, 0.82).then(function(dataComprimido){
-      if(!dataComprimido){ alert('⚠️ Essa foto não pôde ser aberta pelo navegador (formato incompatível ou arquivo corrompido — comum em fotos baixadas do Instagram). Tenta tirar um print da tela dela em vez de baixar, ou escolher outra foto.'); return; }
-      document.getElementById('inspImgData').value=dataComprimido;
-      document.getElementById('inspImgPrev').innerHTML='<img src="'+dataComprimido+'">';
-      setEncaixeInsp(encaixeAtualInsp);
+    comprimirImagemComFallback(f, e.target.result, 1600, 0.82).then(function(dataComprimido){
     });
   };
   r.readAsDataURL(f);
@@ -2380,7 +2385,7 @@ function renderInspAdmList(){
   el.innerHTML = lista.map(function(it){
     return '<div style="position:relative;border-radius:8px;overflow:hidden;background:#f5f5f5;aspect-ratio:4/5;">'+
       (it.img?'<img src="'+it.img+'" style="width:100%;height:100%;object-fit:cover;">':'')+
-      '<div style="position:absolute;top:3px;left:3px;background:rgba(0,0,0,0.6);color:#fff;font-size:0.6rem;padding:2px 6px;border-radius:8px;">#'+(it.codProduto||it.cod)+'</div>'+
+      '<div style="position:absolute;top:3px;left:3px;background:rgba(0,0,0,0.6);color:#fff;font-size:0.6rem;padding:2px 6px;border-radius:8px;">#'+codDisplay(it.codProduto||it.cod)+'</div>'+
       '<div style="position:absolute;bottom:3px;right:3px;display:flex;gap:3px;">'+
       '<button onclick="editInsp('+it.id+')" style="background:rgba(255,255,255,0.9);border:none;border-radius:6px;width:24px;height:24px;font-size:0.7rem;cursor:pointer;">✏️</button>'+
       '<button onclick="delInsp('+it.id+')" style="background:rgba(255,255,255,0.9);border:none;border-radius:6px;width:24px;height:24px;font-size:0.7rem;cursor:pointer;color:#c0392b;">🗑️</button>'+
@@ -2402,13 +2407,15 @@ function coletarInspiracoesDeProdutos(){
     (p.medias||[]).forEach(function(m){
       if(!m) return;
       var apareceNoCarrossel = !m.ocultarNoProduto;
-      if(m.mostrarInsp && m.type!=='video' && m.tipo!=='ref' && m.data){
+      var elegivel = m.mostrarInsp && m.tipo!=='ref' && ((m.type!=='video' && m.data) || (m.type==='video' && m.poster));
+      if(elegivel){
         lista.push({
-          origem:'produto', prodId:p.id, img:m.data, cod:(m.cod||p.cod||''), posy:(m.posy!=null?m.posy:50),
+          origem:'produto', prodId:p.id, img:(m.type==='video'?m.poster:m.data), ehVideo:(m.type==='video'), cod:(m.cod||p.cod||''), posy:(m.posy!=null?m.posy:50),
           carouselIdx: apareceNoCarrossel ? carouselPos : 0, // se não existe no carrossel, abre na capa
           ordem:(m.ordemFeed||0),
           oculta: !apareceNoCarrossel, // marcada "só no Feed" — não dá pra pular pra ela dentro do produto, precisa de um jeito próprio de ver grande
-          legenda: m.legenda||''
+          legenda: m.legenda||'',
+          videoSrc: (m.type==='video'?m.data:'')
         });
       }
       if(apareceNoCarrossel) carouselPos++;
@@ -2430,31 +2437,49 @@ function renderInspClient(){
   el.innerHTML = lista.map(function(it){
     var clique;
     if(it.origem==='produto' && it.oculta){
-      clique = 'abrirFotoFeedOculta('+it.prodId+',\''+it.img.replace(/'/g,"\\'")+'\',\''+(it.legenda||'').replace(/'/g,"\\'")+'\',\''+(it.cod||'').replace(/'/g,"\\'")+'\')';
+      clique = 'abrirFotoFeedOculta('+it.prodId+',\''+it.img.replace(/'/g,"\\'")+'\',\''+(it.legenda||'').replace(/'/g,"\\'")+'\',\''+(it.cod||'').replace(/'/g,"\\'")+'\',\''+(it.ehVideo?(it.videoSrc||'').replace(/'/g,"\\'"):'')+'\')';
     } else if(it.origem==='produto'){
       clique = 'openProd('+it.prodId+','+it.carouselIdx+')';
     } else {
       clique = 'openInsp('+it.id+')';
     }
+    var playIcon = it.ehVideo ? '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;"><div style="width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.9rem;">▶</div></div>' : '';
     return '<div class="feed-cell" onclick="'+clique+'">'+
       (it.img?'<img src="'+it.img+'" alt="" loading="lazy" style="object-fit:cover;object-position:center '+posySafe(it.posy)+'%;">':'<div class="cell-fallback"><span style="font-size:2.5rem">🌸</span></div>')+
+      playIcon+
       '<div class="cell-overlay"></div>'+
-      '<div class="cell-cod">#'+it.cod+'</div>'+
+      '<div class="cell-cod">#'+codDisplay(it.cod)+'</div>'+
       '</div>';
   }).join('');
 }
 // Foto de produto marcada "só no Feed" (oculta do carrossel do produto) — mostra ela grande aqui mesmo,
 // já que não existe uma foto correspondente pra pular dentro da página do produto
 var modalFotoFeedHistPushed = false;
-function abrirFotoFeedOculta(prodId, img, legenda, cod){
+function abrirFotoFeedOculta(prodId, img, legenda, cod, videoSrc){
   var p = prods.find(function(x){return x.id===prodId;});
   if(!p) return;
-  document.getElementById('ffoImg').src = img;
+  var wrap = document.getElementById('ffoMediaWrap');
+  if(videoSrc){
+    wrap.innerHTML = '<video src="'+videoSrc+'" controls playsinline autoplay style="max-width:100%;max-height:65vh;width:auto;height:auto;display:block;margin:auto;"></video>';
+  } else {
+    wrap.innerHTML = '<img id="ffoImg" src="'+img+'" style="max-width:100%;max-height:65vh;width:auto;height:auto;display:block;margin:auto;">';
+  }
   document.getElementById('ffoNome').textContent = p.nome;
   var codExibido = cod || p.cod;
-  document.getElementById('ffoCod').textContent = codExibido?('#'+codExibido):'';
+  document.getElementById('ffoCod').textContent = codExibido?('#'+codDisplay(codExibido)):'';
   var descEl = document.getElementById('ffoDesc'); if(descEl) descEl.textContent = legenda || p.desc || '';
-  document.getElementById('ffoVerBtn').onclick = function(){ fecharFotoFeedOculta(); openProd(prodId); };
+  document.getElementById('ffoVerBtn').onclick = function(){
+    // Fecha essa telinha e já abre o produto por cima, sem depender do "voltar" assíncrono do histórico
+    // (chamar history.back() e abrir outro modal ao mesmo tempo criava uma corrida que travava a transição)
+    var vAtivo = document.querySelector('#ffoMediaWrap video'); if(vAtivo) vAtivo.pause();
+    document.getElementById('modalFotoFeedOculta').classList.remove('open');
+    if(modalFotoFeedHistPushed){
+      history.replaceState({catalogoModal:'produto'}, '', location.href);
+      modalProdHistPushed = true; // essa troca já cobre a entrada de histórico do produto, não precisa empurrar de novo
+    }
+    modalFotoFeedHistPushed = false;
+    openProd(prodId);
+  };
   document.getElementById('modalFotoFeedOculta').classList.add('open');
   if(!modalFotoFeedHistPushed){
     history.pushState({catalogoModal:'fotoFeedOculta'}, '', location.href);
@@ -2462,6 +2487,7 @@ function abrirFotoFeedOculta(prodId, img, legenda, cod){
   }
 }
 function fecharFotoFeedOculta(){
+  var v = document.querySelector('#ffoMediaWrap video'); if(v) v.pause();
   if(modalFotoFeedHistPushed){
     history.back(); // o popstate abaixo cuida de fechar de verdade, assim o botão voltar do celular não sai do site
   } else {
@@ -2482,8 +2508,9 @@ function coletarItensOrdemFeed(){
       lista.push({origem:'capa', ordem:(p.ordemFeed||0), img:p.img, cod:p.cod||'', prodId:p.id});
     }
     (p.medias||[]).forEach(function(m, mi){
-      if(m && m.mostrarInsp && m.type!=='video' && m.tipo!=='ref' && m.data){
-        lista.push({origem:'media', ordem:(m.ordemFeed||0), img:m.data, cod:(m.cod||p.cod||''), prodId:p.id, mediaIdx:mi});
+      var elegivel = m && m.mostrarInsp && m.tipo!=='ref' && ((m.type!=='video' && m.data) || (m.type==='video' && m.poster));
+      if(elegivel){
+        lista.push({origem:'media', ordem:(m.ordemFeed||0), img:(m.type==='video'?m.poster:m.data), cod:(m.cod||p.cod||''), prodId:p.id, mediaIdx:mi});
       }
     });
   });
@@ -2498,7 +2525,7 @@ function renderOrdemFeedAdmin(){
   el.innerHTML = ordemFeedListaAtual.map(function(it,i){
     return '<div style="display:block;position:relative;padding:0;border-radius:8px;overflow:hidden;background:#f5f5f5;aspect-ratio:4/5;">'+
       '<img src="'+it.img+'" style="width:100%;height:100%;object-fit:cover;display:block;">'+
-      '<div style="position:absolute;top:3px;left:3px;background:rgba(0,0,0,0.6);color:#fff;font-size:0.6rem;padding:2px 6px;border-radius:8px;">'+(it.cod?'#'+it.cod:'—')+'</div>'+
+      '<div style="position:absolute;top:3px;left:3px;background:rgba(0,0,0,0.6);color:#fff;font-size:0.6rem;padding:2px 6px;border-radius:8px;">'+(it.cod?'#'+codDisplay(it.cod):'—')+'</div>'+
       '<div style="position:absolute;bottom:3px;right:3px;background:rgba(255,255,255,0.92);font-size:0.62rem;font-weight:700;padding:2px 6px;border-radius:8px;">'+(i+1)+'</div>'+
       '<div style="position:absolute;bottom:3px;left:3px;display:flex;gap:3px;">'+
       '<button type="button" onclick="moverOrdemFeed('+i+',-1)" '+(i===0?'disabled':'')+' style="width:22px;height:22px;border-radius:6px;border:none;background:rgba(255,255,255,0.92);font-size:0.65rem;cursor:pointer;">▲</button>'+
@@ -2546,9 +2573,9 @@ function openInsp(id){
   if(!it) return;
   var codExibido = it.codProduto || it.cod;
   document.getElementById('inspFotoGrande').src = it.img||'';
-  document.getElementById('inspCod').textContent = '#'+codExibido;
+  document.getElementById('inspCod').textContent = '#'+codDisplay(codExibido);
   document.getElementById('inspDesc').textContent = it.desc||'';
-  var msg = 'Oi! Vi a inspiração #'+codExibido+' e gostaria de saber valores';
+  var msg = 'Oi! Vi a inspiração #'+codDisplay(codExibido)+' e gostaria de saber valores';
   document.getElementById('inspWaBtn').href = 'https://wa.me/'+WA+'?text='+encodeURIComponent(msg);
   document.getElementById('modalInsp').classList.add('open');
 }
@@ -2761,31 +2788,95 @@ function comprimirImagem(dataUrl, maxDim, quality){
     img.src = dataUrl;
   });
 }
+// Se o jeito normal falhar (comum em fotos baixadas do Instagram, que às vezes usam um formato mais
+// exigente), tenta um segundo método de decodificação antes de desistir de vez — o navegador às vezes
+// consegue abrir pelo createImageBitmap mesmo quando a tag <img> comum não consegue
+function comprimirImagemComFallback(file, dataUrlOriginal, maxDim, quality){
+  return comprimirImagem(dataUrlOriginal, maxDim, quality).then(function(resultado){
+    if(resultado) return resultado;
+    if(!window.createImageBitmap || !file) return null;
+    return createImageBitmap(file).then(function(bitmap){
+      var w = bitmap.width, h = bitmap.height;
+      if(w > maxDim || h > maxDim){
+        if(w > h){ h = Math.round(h * (maxDim / w)); w = maxDim; }
+        else { w = Math.round(w * (maxDim / h)); h = maxDim; }
+      }
+      var canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      var ctx = canvas.getContext('2d');
+      ctx.drawImage(bitmap, 0, 0, w, h);
+      if(bitmap.close) bitmap.close();
+      return canvas.toDataURL('image/jpeg', quality || 0.82);
+    }).catch(function(){ return null; });
+  });
+}
 
 // ===== MÍDIAS EXTRAS =====
 var extraMedias = []; // array de {type:'image'|'video', data: base64}
 var carouselIdx = 0;
 var carouselMedia = [];
 
+// Tira uma fotinho de um instante do vídeo (pra usar como thumbnail no Feed, já que não dá pra
+// colocar o vídeo em si numa grade de imagens)
+function extrairPosterVideo(videoDataUrl){
+  return new Promise(function(resolve){
+    try{
+      var video = document.createElement('video');
+      video.preload = 'metadata';
+      video.muted = true;
+      video.playsInline = true;
+      video.src = videoDataUrl;
+      video.onloadeddata = function(){
+        try{ video.currentTime = Math.min(0.3, (video.duration||1)/4); }
+        catch(e){ resolve(''); }
+      };
+      video.onseeked = function(){
+        try{
+          var canvas = document.createElement('canvas');
+          canvas.width = video.videoWidth||400; canvas.height = video.videoHeight||500;
+          var ctx = canvas.getContext('2d');
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL('image/jpeg', 0.8));
+        }catch(e){ resolve(''); }
+      };
+      video.onerror = function(){ resolve(''); };
+    }catch(e){ resolve(''); }
+  });
+}
 function handleExtraMedia(inp){
   var files = Array.from(inp.files);
   var falhas = [];
+  var videosGrandes = [];
+  var LIMITE_VIDEO = 3*1024*1024; // ~3MB — acima disso o envio costuma falhar sem avisar (limite do servidor)
   function processarProximo(i){
     if(i>=files.length){
       renderExtraMediaGrid(); restaurarScrollExtraMedia(); salvarRascunhoProduto();
       if(falhas.length) alert('⚠️ '+falhas.length+' foto(s) não puderam ser abertas pelo navegador e não foram adicionadas: '+falhas.join(', ')+'.\n\nIsso é comum com fotos baixadas do Instagram (formato incompatível ou arquivo corrompido). Tenta tirar um print da tela da foto em vez de baixar ela — prints sempre funcionam.');
+      if(videosGrandes.length) alert('⚠️ '+videosGrandes.length+' vídeo(s) não foram adicionados por serem grandes demais: '+videosGrandes.join(', ')+'.\n\nVídeo pesado falha ao enviar sem avisar (é um limite do servidor, não do app). Tenta cortar o vídeo mais curto ou baixar a qualidade antes de subir — a maioria dos celulares já tem essa opção na hora de compartilhar/exportar o vídeo.');
       return;
     }
     var f = files[i];
+    if(f.type.startsWith('video') && f.size>LIMITE_VIDEO){
+      videosGrandes.push(f.name||'vídeo');
+      processarProximo(i+1);
+      return;
+    }
     var r = new FileReader();
     r.onload = function(e){
       var type = f.type.startsWith('video') ? 'video' : 'image';
       if(type!=='image'){
-        extraMedias.push({type:type, data:e.target.result});
+        var itemVideo = {type:type, data:e.target.result};
+        extraMedias.push(itemVideo);
+        renderExtraMediaGrid();
+        // Tira uma fotinho de um instante do vídeo, pra poder usar como capa dele no Feed (o Feed é uma
+        // grade de imagens, não dá pra jogar o vídeo direto lá)
+        extrairPosterVideo(e.target.result).then(function(poster){
+          if(poster){ itemVideo.poster = poster; renderExtraMediaGrid(); salvarRascunhoProduto(); }
+        });
         processarProximo(i+1);
         return;
       }
-      comprimirImagem(e.target.result, 1600, 0.82).then(function(dataComprimido){
+      comprimirImagemComFallback(f, e.target.result, 1600, 0.82).then(function(dataComprimido){
         if(!dataComprimido){ falhas.push(f.name||'foto'); processarProximo(i+1); return; }
         var temCapa = !!document.getElementById('imgData').value;
         if(!temCapa){
@@ -2885,7 +2976,7 @@ function renderExtraMediaGrid(){
       var codRefAdm = (m.cod||'').trim().toLowerCase();
       var pRef = prods.find(function(x){return (x.cod||'').trim().toLowerCase()===codRefAdm;});
       var thumb = pRef && pRef.img ? '<img src="'+pRef.img+'">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:1.8rem;">🌸</div>';
-      var legenda = pRef ? ('#'+pRef.cod+' · '+pRef.nome) : ('#'+m.cod+' (produto não encontrado)');
+      var legenda = pRef ? ('#'+codDisplay(pRef.cod)+' · '+pRef.nome) : ('#'+codDisplay(m.cod)+' (produto não encontrado)');
       return '<div class="extra-media-item" style="display:flex;flex-direction:column;">'+
         ordBtns+
         '<div class="extra-media-thumb" style="position:relative;">'+thumb+
@@ -2894,8 +2985,9 @@ function renderExtraMediaGrid(){
         '<p style="font-size:0.62rem;color:#888;margin-top:3px;line-height:1.2;">'+legenda+'</p>'+
         '</div>';
     }
+    var trimIni = m.trimStart||0, trimFim = (m.trimEnd!=null?m.trimEnd:999999);
     var tag = m.type==='video'
-      ? '<video src="'+m.data+'" controls muted playsinline style="width:100%;height:100%;object-fit:cover"></video>'
+      ? '<video src="'+m.data+'" controls playsinline '+(m.mudo?'muted':'')+' onloadedmetadata="this.currentTime='+trimIni+'" ontimeupdate="if(this.currentTime>='+trimFim+'){this.currentTime='+trimIni+';this.pause();}" style="width:100%;height:100%;object-fit:cover"></video>'
       : '<img src="'+m.data+'" onload="posicionarFotoExtra(this,'+(m.posy!=null?m.posy:50)+','+(m.zoom!=null?m.zoom:100)+')">';
     var ajusteFoto = m.type==='video' ? '' :
       '<div style="margin-top:4px;">'+
@@ -2903,6 +2995,17 @@ function renderExtraMediaGrid(){
       '<input type="range" min="0" max="100" value="'+(m.posy!=null?m.posy:50)+'" oninput="ajustarExtraPosY('+i+',this.value)" style="width:100%;height:14px;">'+
       '<label style="font-size:0.6rem;color:#888;display:block;">🔍 Zoom</label>'+
       '<input type="range" min="50" max="400" value="'+(m.zoom!=null?m.zoom:100)+'" oninput="ajustarExtraZoom('+i+',this.value)" style="width:100%;height:14px;">'+
+      '</div>';
+    var ajusteVideo = m.type!=='video' ? '' :
+      '<div style="margin-top:4px;">'+
+      '<label style="display:flex;align-items:center;gap:4px;font-size:0.65rem;color:#666;"><input type="checkbox" '+(m.mudo?'checked':'')+' onchange="setMediaVar('+i+',\'mudo\',this.checked);renderExtraMediaGrid();" style="width:12px;height:12px;">🔇 Sem áudio</label>'+
+      '<label style="font-size:0.6rem;color:#888;display:block;margin-top:3px;">✂️ Cortar (segundos)</label>'+
+      '<div style="display:flex;gap:4px;">'+
+      '<input type="number" step="0.1" min="0" placeholder="Início" value="'+(m.trimStart||'')+'" oninput="setMediaVar('+i+',\'trimStart\',parseFloat(this.value)||0)" onblur="renderExtraMediaGrid()" style="width:50%;font-size:0.65rem;padding:3px 4px;border:1px solid #ddd;border-radius:6px;">'+
+      '<input type="number" step="0.1" min="0" placeholder="Fim" value="'+(m.trimEnd!=null?m.trimEnd:'')+'" oninput="setMediaVar('+i+',\'trimEnd\',this.value?parseFloat(this.value):null)" onblur="renderExtraMediaGrid()" style="width:50%;font-size:0.65rem;padding:3px 4px;border:1px solid #ddd;border-radius:6px;">'+
+      '</div>'+
+      '<p style="font-size:0.58rem;color:#aaa;margin-top:2px;">Deixe "Fim" vazio pra ir até o final. O vídeo original continua inteiro por trás — isso só controla o que toca no site.</p>'+
+      '<label style="display:flex;align-items:center;gap:3px;font-size:0.65rem;margin-top:5px;color:#8a5cf6;"><input type="checkbox" '+(m.mostrarInsp?'checked':'')+' onchange="setMediaVar('+i+',\'mostrarInsp\',this.checked)" style="width:12px;height:12px;">✨ Mostrar no Feed'+(m.poster?'':' (tirando a fotinho do vídeo...)')+'</label>'+
       '</div>';
     var variante = m.type==='video' ? '' :
       '<div style="display:flex;gap:4px;margin-top:4px;align-items:flex-start;">'+
@@ -2918,7 +3021,7 @@ function renderExtraMediaGrid(){
     return '<div class="extra-media-item" style="display:flex;flex-direction:column;">'+
       ordBtns+
       '<div class="extra-media-thumb">'+tag+'<button class="extra-media-del" onclick="delExtraMedia('+i+')">×</button></div>'+
-      ajusteFoto+
+      ajusteFoto+ajusteVideo+
       variante+
       '</div>';
   }).join('');
@@ -3002,7 +3105,7 @@ function abrirVincularProduto(){
       return '<label style="display:flex;align-items:center;gap:8px;padding:6px 2px;font-size:0.8rem;cursor:pointer;border-bottom:1px solid #f5f5f5;">'+
         '<input type="checkbox" value="'+p.cod+'" '+(marcado?'checked':'')+' style="width:16px;height:16px;flex-shrink:0;">'+
         (p.img?'<img src="'+p.img+'" style="width:32px;height:32px;border-radius:6px;object-fit:cover;flex-shrink:0;">':'🌸')+
-        '<span>#'+p.cod+' · '+p.nome+' · R$ '+p.preco.toFixed(2).replace('.',',')+'</span></label>';
+        '<span>#'+codDisplay(p.cod)+' · '+p.nome+' · R$ '+p.preco.toFixed(2).replace('.',',')+'</span></label>';
     }).join('');
   }
   document.getElementById('modalVincular').classList.add('open');
@@ -3066,7 +3169,7 @@ function buildCarousel(prod, startIdx){
     if(typeof m === 'string'){ src=m; }
     else if(m.data){ src=m.data; tipo=m.type||'image'; }
     else if(m.url){ src=m.url; tipo=m.type||'image'; }
-    if(src) carouselMedia.push({type:tipo, data:src, cod:(m.cod||''), preco:(m.preco?parseFloat(m.preco):null), esgotado:!!m.esgotado, nome:(m.nome||''), diferenca:(m.diferenca||''), legenda:(m.legenda||'')});
+    if(src) carouselMedia.push({type:tipo, data:src, cod:(m.cod||''), preco:(m.preco?parseFloat(m.preco):null), esgotado:!!m.esgotado, nome:(m.nome||''), diferenca:(m.diferenca||''), legenda:(m.legenda||''), mudo:!!m.mudo, trimStart:(m.trimStart||0), trimEnd:(m.trimEnd!=null?m.trimEnd:null)});
   });
 
   console.log('[Carrossel] Total slides:', carouselMedia.length);
@@ -3094,7 +3197,7 @@ function renderVariantes(prod){
     var cor = v.esgotado ? '#ccc' : (sel?'#111':'#ddd');
     var fundo = v.esgotado ? '#f5f5f5' : (sel?'#111':'#fff');
     var texto = v.esgotado ? '#aaa' : (sel?'#fff':'#333');
-    var label = v.diferenca || v.nome || ('#'+v.cod);
+    var label = v.diferenca || v.nome || ('#'+codDisplay(v.cod));
     return '<button class="mprod-qb variant-btn" data-idx="'+v.idx+'" onclick="selectVariant('+v.idx+')" style="border-radius:20px;width:auto;padding:0 12px;height:32px;font-size:0.78rem;font-weight:600;border:1px solid '+cor+';background:'+fundo+';color:'+texto+';'+(v.esgotado?'text-decoration:line-through;':'')+'">'+label+(v.esgotado?' (esgotado)':'')+'</button>';
   }).join('');
   atualizarPrecoVariante();
@@ -3143,7 +3246,7 @@ function atualizarInfoVariante(){
   }
   if(catEl && curProd){
     var codExibido = curVariant ? curVariant.cod : curProd.cod;
-    catEl.textContent = (curProd.cat||'') + (codExibido ? ' · #'+codExibido : '');
+    catEl.textContent = (curProd.cat||'') + (codExibido ? ' · #'+codDisplay(codExibido) : '');
   }
   el.textContent = (curVariant && curVariant.diferenca) ? '✨ ' + curVariant.diferenca : '';
   // Legenda (descrição) inteira: se o slide atual é de um produto VINCULADO, mostra só a descrição
@@ -3254,7 +3357,7 @@ function atualizarDotsCount(){
   var count = document.getElementById('carouselCount');
   if(count){
     var slideAtual = carouselMedia[carouselIdx];
-    count.textContent = (slideAtual && slideAtual.cod) ? '#'+slideAtual.cod : (carouselIdx+1)+'/'+carouselMedia.length;
+    count.textContent = (slideAtual && slideAtual.cod) ? '#'+codDisplay(slideAtual.cod) : (carouselIdx+1)+'/'+carouselMedia.length;
   }
 }
 // Mantido por compatibilidade (mesmo nome usado antes)
@@ -3263,7 +3366,8 @@ function renderCarouselPosicao(){ moverTrackPara(carouselIdx+1, true); atualizar
 function slideHTML(m){
   if(!m) return '';
   if(m.type==='video'){
-    return '<div class="carousel-slide"><video src="'+m.data+'" controls playsinline style="max-width:100%;max-height:100%;width:auto;height:auto;display:block;margin:auto;"></video></div>';
+    var trimIni = m.trimStart||0, trimFim = (m.trimEnd!=null?m.trimEnd:999999);
+    return '<div class="carousel-slide"><video src="'+m.data+'" controls playsinline '+(m.mudo?'muted':'')+' onloadedmetadata="this.currentTime='+trimIni+'" ontimeupdate="if(this.currentTime>='+trimFim+'){this.currentTime='+trimIni+';this.pause();}" style="max-width:100%;max-height:100%;width:auto;height:auto;display:block;margin:auto;"></video></div>';
   } else if(m.type==='placeholder'){
     return '<div class="carousel-slide"><div class="placeholder">🌸</div></div>';
   } else {
@@ -3302,7 +3406,7 @@ function renderCarousel(){
   if(count) {
     count.style.display = n > 1 ? 'block' : 'none';
     var slideAtual = carouselMedia[carouselIdx];
-    count.textContent = (slideAtual && slideAtual.cod) ? '#'+slideAtual.cod : (carouselIdx+1)+'/'+n;
+    count.textContent = (slideAtual && slideAtual.cod) ? '#'+codDisplay(slideAtual.cod) : (carouselIdx+1)+'/'+n;
   }
 }
 
@@ -3491,7 +3595,7 @@ saveProd = async function(){
   toast('⏳ Conferindo código...');
   var codOk = await verificarCodDisponivel(cod, sbIdAtual);
   if(!codOk){
-    alert('⚠️ O código #'+cod+' já foi usado por outro produto — provavelmente salvo em outra aba ou dispositivo enquanto você editava esse aqui. Pra não sobrescrever o produto existente, escolha outro código antes de salvar.');
+    alert('⚠️ O código #'+codDisplay(cod)+' já foi usado por outro produto — provavelmente salvo em outra aba ou dispositivo enquanto você editava esse aqui. Pra não sobrescrever o produto existente, escolha outro código antes de salvar.');
     return;
   }
   if(editPId){var i=prods.findIndex(function(x){return x.id===editPId;});if(i>=0)prods[i]=p;}
