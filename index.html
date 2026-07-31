@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
+img{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;} /* evita o menu nativo de "segurar a foto" (salvar/copiar/etc) atrapalhar quem tá arrastando um slider perto de uma prévia */
 body{font-family:'Inter',sans-serif;background:#fafafa;color:#111;max-width:480px;margin:0 auto;}
 
 /* STORIES */
@@ -76,7 +77,7 @@ body{font-family:'Inter',sans-serif;background:#fafafa;color:#111;max-width:480p
 .feed-cell .cell-overlay{position:absolute;inset:0;background:rgba(0,0,0,0);transition:background .15s;display:flex;align-items:center;justify-content:center;}
 .feed-cell:hover .cell-overlay{background:rgba(0,0,0,0.18);}
 .cell-esg{position:absolute;bottom:4px;left:4px;background:rgba(192,57,43,0.9);color:#fff;font-size:0.58rem;font-weight:700;padding:2px 6px;border-radius:20px;}
-.cell-cod{position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.55);color:#fff;font-size:0.58rem;font-weight:700;padding:2px 5px;border-radius:20px;}
+.cell-cod{position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.55);color:#fff;font-size:0.58rem;font-weight:700;padding:2px 5px;border-radius:20px;z-index:3;}
 
 /* STORY VIEWER */
 .sv-bg{position:fixed;inset:0;background:#000;z-index:900;display:none;flex-direction:column;}
@@ -153,7 +154,9 @@ body{font-family:'Inter',sans-serif;background:#fafafa;color:#111;max-width:480p
 .mprod-badd{flex:1;background:#111;color:#fff;border:none;border-radius:50px;padding:11px 18px;font-size:0.9rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;}
 .mprod-badd-preco{font-weight:800;white-space:nowrap;}
 .mprod-badd.ok{background:#25a244;}
-.mprod-badd:disabled{background:#ccc;cursor:default;}
+.cell-esg-overlay{position:absolute;inset:0;background:rgba(20,20,20,0.5);display:flex;align-items:center;justify-content:center;z-index:2;}
+.cell-esg{background:#c0392b;color:#fff;font-size:0.74rem;font-weight:800;letter-spacing:.03em;padding:6px 16px;border-radius:20px;box-shadow:0 2px 8px rgba(0,0,0,.3);}
+.mprod-badd:disabled{background:#c0392b;color:#fff;opacity:1;cursor:default;}
 .mbtn-close{position:absolute;top:12px;right:12px;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,0.5);border:none;color:#fff;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;}
 
 /* MODAL DESTAQUE */
@@ -245,7 +248,7 @@ body{font-family:'Inter',sans-serif;background:#fafafa;color:#111;max-width:480p
 .ip{width:65px;height:65px;border-radius:10px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:1.6rem;overflow:hidden;border:1px dashed #ccc;cursor:pointer;}
 .ip img{width:100%;height:100%;object-fit:cover;}
 .ih{font-size:0.7rem;color:#888;margin-top:2px;}
-.fa{display:flex;gap:7px;margin-top:8px;}
+.fa{display:flex;gap:7px;margin-top:8px;flex-wrap:wrap;}
 .form-section{border:1px solid #eee;border-radius:12px;padding:14px;margin-bottom:14px;background:#fbfbfb;}
 .form-section .fl:last-child{margin-bottom:0;}
 .form-section-title{font-weight:700;font-size:0.82rem;margin-bottom:12px;color:#333;}
@@ -257,6 +260,9 @@ body{font-family:'Inter',sans-serif;background:#fafafa;color:#111;max-width:480p
 .at.active{background:#111;color:#fff;border-color:#111;}
 .alist{display:flex;flex-direction:column;gap:7px;}
 .ait{display:flex;align-items:center;gap:9px;padding:9px 10px;border:1px solid #eee;border-radius:10px;background:#fafafa;cursor:grab;}
+.aiord{display:flex;flex-direction:column;gap:2px;flex-shrink:0;}
+.aiord button{width:22px;height:22px;border-radius:6px;border:1px solid #ddd;background:#fff;font-size:0.65rem;cursor:pointer;line-height:1;color:#111;padding:0;}
+.aiord button:disabled{opacity:0.3;cursor:default;}
 .aith{width:40px;height:40px;border-radius:8px;background:#f0f0f0;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
 .aith img{width:100%;height:100%;object-fit:cover;}
 .aiin{flex:1;min-width:0;}
@@ -284,7 +290,7 @@ body{font-family:'Inter',sans-serif;background:#fafafa;color:#111;max-width:480p
 .cart-float-count{background:#e91e63;color:#fff;border-radius:50%;width:20px;height:20px;font-size:0.7rem;font-weight:900;display:flex;align-items:center;justify-content:center;}
 
 .extra-media-item{position:relative;border-radius:8px;background:#f0f0f0;border:1px solid #eee;}
-.extra-media-thumb{position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;background:#f0f0f0;}
+.extra-media-thumb{position:relative;aspect-ratio:4/5;border-radius:8px;overflow:hidden;background:#f0f0f0;}
 .extra-media-item img,.extra-media-item video{width:100%;height:100%;object-fit:cover;}
 .extra-media-del{position:absolute;top:2px;right:2px;background:rgba(0,0,0,0.6);color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 .encaixe-opts{display:flex;gap:6px;margin-top:6px;}
@@ -685,7 +691,7 @@ Faça sua encomenda abaixo 👇</div>
           <div class="form-section" id="extraMediaSection">
             <div class="form-section-title">📸 Fotos extras e vinculados (carrossel)</div>
             <div class="fl">
-              <div class="extra-media-grid" id="extraMediaGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:6px;"></div>
+              <div class="extra-media-grid" id="extraMediaGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px;margin-bottom:6px;"></div>
               <div style="display:flex;gap:6px;">
                 <label style="flex:1;display:flex;align-items:center;justify-content:center;aspect-ratio:3/1;border:2px dashed #ddd;border-radius:8px;cursor:pointer;font-size:1.3rem;color:#bbb;background:#fafafa;" onclick="guardarScrollExtraMedia()">
                   ＋ Adicionar fotos/vídeos
@@ -714,6 +720,7 @@ Faça sua encomenda abaixo 👇</div>
 
           <div class="fa">
             <button class="bp" onclick="saveProd()">💾 Salvar</button>
+            <button class="bs" onclick="salvarRascunhoManual()">📝 Salvar rascunho</button>
             <button class="bs" onclick="clearProd()">Cancelar</button>
           </div>
         </div>
@@ -737,7 +744,7 @@ Faça sua encomenda abaixo 👇</div>
         <!-- INSPIRAÇÃO -->
         <div id="at-inspiracao" style="display:none">
           <p style="font-size:.73rem;color:#888;margin-bottom:8px;">Fotos de modelos já feitos (sem preço fixo) — os clientes veem, mandam o código e perguntam o valor</p>
-          <div id="inspAdmList" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;"></div>
+          <div id="inspAdmList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-bottom:14px;"></div>
           <input type="hidden" id="inspEditId">
           <div class="fl">
             <label>Foto</label>
@@ -765,7 +772,7 @@ Faça sua encomenda abaixo 👇</div>
         <!-- ORDEM DO FEED (grade única, arrastável, misturando manuais e fotos de produtos) -->
         <div id="at-ordemfeed" style="display:none">
           <p style="font-size:.73rem;color:#888;margin-bottom:8px;">Arraste pra organizar a ordem de tudo que aparece no Feed — fotos manuais e fotos de produtos marcadas "✨ Mostrar no Feed", todas juntas. Isso não mexe na ordem da lista de Produtos.</p>
-          <div id="ordemFeedGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;"></div>
+          <div id="ordemFeedGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;"></div>
         </div>
         <!-- ADICIONAIS (grupos reutilizáveis de opcionais) -->
         <div id="at-opcionais" style="display:none">
@@ -1174,7 +1181,7 @@ function render(){
     if(!list.length){el.innerHTML='<div style="text-align:center;padding:40px;color:#888">Nenhum produto</div>';return;}
     var cells=list.map(function(p){
       var img=p.img?'<img src="'+p.img+'" alt="" loading="lazy" style="object-fit:cover;object-position:center '+posySafe(p.posy)+'%;">':'<div class="cell-fallback"><span style="font-size:2.5rem">🌸</span></div>';
-      var esg=p.status==='esgotado'?'<div class="cell-esg">ESGOTADO</div>':'';
+      var esg=p.status==='esgotado'?'<div class="cell-esg-overlay"><div class="cell-esg">ESGOTADO</div></div>':'';
       var cod=p.cod?'<div class="cell-cod">#'+p.cod+'</div>':'';
       var sel = produtosSelecionados.indexOf(p.id)>-1;
       var check = modoSelecao ? '<div class="sel-check'+(sel?' on':'')+'">✓</div>' : '';
@@ -1278,8 +1285,10 @@ function updateCart(){
   var floatBtn=document.getElementById('cartFloat');
   var floatCount=document.getElementById('cartFloatCount');
   var floatLbl=document.getElementById('cartFloatLbl');
+  var adminModalEl=document.getElementById('adminModal');
+  var adminAberto = adminModalEl && adminModalEl.classList.contains('open'); // não faz sentido mostrar o carrinho de compras dentro do painel de gerenciamento
   if(floatBtn){
-    floatBtn.style.display='flex';
+    floatBtn.style.display = adminAberto ? 'none' : 'flex';
     if(floatCount){floatCount.textContent=count;floatCount.style.display=count>0?'flex':'none';}
     if(floatLbl){floatLbl.textContent=count>0?'Ver pedido ('+count+')':'Carrinho';}
   }
@@ -1557,8 +1566,8 @@ function carregarCamposMensagem(){
 
 function openAdminStories(){openAdmin();setTimeout(function(){doLogin2();showAT("stories");},100);}
 function doLogin2(){/* recurso de Stories desativado */}
-function openAdmin(){document.getElementById('adminModal').classList.add('open');document.getElementById('loginSec').style.display='block';document.getElementById('adminPanel').style.display='none';document.getElementById('modalTitle').textContent='🔐 Equipe';document.getElementById('pwInput').value='';document.getElementById('errLogin').style.display='none';}
-function closeAdmin(){document.getElementById('adminModal').classList.remove('open');}
+function openAdmin(){document.getElementById('adminModal').classList.add('open');document.getElementById('loginSec').style.display='block';document.getElementById('adminPanel').style.display='none';document.getElementById('modalTitle').textContent='🔐 Equipe';document.getElementById('pwInput').value='';document.getElementById('errLogin').style.display='none';var cf=document.getElementById('cartFloat');if(cf)cf.style.display='none';}
+function closeAdmin(){document.getElementById('adminModal').classList.remove('open');updateCart();}
 var ADMIN_SESSION_PW = null;
 var ultimoErroAdmin = '';
 async function chamarAdmin(acao, extra){
@@ -1628,21 +1637,19 @@ function renderAdmList(){
   var el=document.getElementById('adminList');
   var list=[].concat(prods).sort(function(a,b){return(a.order||0)-(b.order||0);});
   if(!list.length){el.innerHTML='<p style="font-size:.79rem;color:#888">Nenhum produto.</p>';return;}
-  el.innerHTML=list.map(function(p){
+  el.innerHTML=list.map(function(p,i){
     var st=p.status==='esgotado'?' 🔴':p.status==='escondido'?' 👁️':'';
-    return '<div class="ait" draggable="true" data-id="'+p.id+'" ondragstart="ds(event)" ondragover="dov(event)" ondrop="dp(event)" ondragend="de(event)"><div class="aith">'+(p.img?'<img src="'+p.img+'" alt="">':'🌸')+'</div><div class="aiin"><div class="ainm">'+st+(p.cod?'#'+p.cod+' ':'')+''+p.nome+'</div><div class="aisb">R$ '+p.preco.toFixed(2).replace('.',',')+' · '+(p.cat||'—')+'</div></div><div class="aiact"><button class="be" onclick="editProd('+p.id+')">Editar</button><button class="bd" onclick="delProd('+p.id+')">Apagar</button></div></div>';
+    return '<div class="ait"><div class="aiord"><button type="button" onclick="moverProdutoOrdem('+p.id+',-1)" '+(i===0?'disabled':'')+'>▲</button><button type="button" onclick="moverProdutoOrdem('+p.id+',1)" '+(i===list.length-1?'disabled':'')+'>▼</button></div><div class="aith">'+(p.img?'<img src="'+p.img+'" alt="">':'🌸')+'</div><div class="aiin"><div class="ainm">'+st+(p.cod?'#'+p.cod+' ':'')+''+p.nome+'</div><div class="aisb">R$ '+p.preco.toFixed(2).replace('.',',')+' · '+(p.cat||'—')+'</div></div><div class="aiact"><button class="be" onclick="editProd('+p.id+')">Editar</button><button class="bd" onclick="delProd('+p.id+')">Apagar</button></div></div>';
   }).join('');
 }
-function ds(e){dragSrc=e.currentTarget;e.currentTarget.classList.add('drag');}
-function dov(e){e.preventDefault();}
-function de(e){e.currentTarget.classList.remove('drag');}
-function dp(e){
-  e.preventDefault();
-  var t=e.currentTarget;
-  if(!dragSrc||dragSrc===t)return;
-  var s=prods.find(function(p){return p.id==dragSrc.dataset.id;});
-  var tg=prods.find(function(p){return p.id==t.dataset.id;});
-  if(!s||!tg)return;
+// Sobe/desce um produto na lista trocando a posição com o vizinho — funciona em qualquer aparelho,
+// diferente do arrastar (que só funciona com mouse, não em toque de celular)
+function moverProdutoOrdem(id, dir){
+  var list=[].concat(prods).sort(function(a,b){return(a.order||0)-(b.order||0);});
+  var i=list.findIndex(function(p){return p.id===id;});
+  var j=i+dir;
+  if(i<0||j<0||j>=list.length) return;
+  var s=list[i], tg=list[j];
   var tmp=s.order;s.order=tg.order;tg.order=tmp;
   try{ localStorage.setItem('manu_p', JSON.stringify(prods)); }catch(e){}
   sbUpsertProduto(s).catch(function(e){console.error('Erro Supabase:',e);});
@@ -1694,6 +1701,12 @@ function clearProd(){editPId=null;['editId','pNome','pDesc','pPreco','pCat','pTa
 // ===== RASCUNHO AUTOMÁTICO DE PRODUTO NOVO =====
 // Salva o que está sendo digitado a cada mudança, pra não perder nada se a internet falhar ou fechar sem querer
 var rascunhoProdutoVerificado = false;
+// Igual salvarRascunhoProduto(), mas chamada pelo botão visível — dá uma confirmação na tela
+// pra você ter certeza de que salvou antes de sair, em vez de confiar só no salvamento silencioso
+function salvarRascunhoManual(){
+  var salvou = salvarRascunhoProduto();
+  toast(salvou ? '📝 Rascunho salvo! Pode sair tranquila, ele estará aqui quando voltar.' : 'Preencha algo antes de salvar o rascunho.');
+}
 function salvarRascunhoProduto(){
   try{
     var r = {
@@ -1712,9 +1725,10 @@ function salvarRascunhoProduto(){
       // depois, já que o id interno do produto muda toda vez que a página recarrega
       editandoCod: editPId ? ((prods.find(function(x){return x.id===editPId;})||{}).cod||'') : ''
     };
-    if(!r.nome && !r.desc && !r.imgData && !r.preco){ localStorage.removeItem('manu_rascunho_produto'); return; }
+    if(!r.nome && !r.desc && !r.imgData && !r.preco){ localStorage.removeItem('manu_rascunho_produto'); return false; }
     localStorage.setItem('manu_rascunho_produto', JSON.stringify(r));
-  }catch(e){ console.error('Erro ao salvar rascunho (talvez a foto seja grande demais pro navegador guardar):', e); }
+    return true;
+  }catch(e){ console.error('Erro ao salvar rascunho (talvez a foto seja grande demais pro navegador guardar):', e); return false; }
 }
 // Quando abre um produto JÁ EXISTENTE pra editar, confere se tem um rascunho não salvo dele
 // (protege contra sair sem querer ou o salvamento falhar no meio, igual já acontecia com produto novo)
@@ -1811,8 +1825,8 @@ function renderOpItens(){
   el.innerHTML = opItensAtual.map(function(it,i){
     var foto = it.foto ? '<img src="'+it.foto+'" style="width:32px;height:32px;border-radius:6px;object-fit:cover;flex-shrink:0;">' : '<div style="width:32px;height:32px;border-radius:6px;background:#eee;flex-shrink:0;"></div>';
     var desc = it.descricao ? '<div style="font-size:0.68rem;color:#999;margin-top:1px;">'+it.descricao+'</div>' : '';
-    return '<div class="opit" draggable="true" data-idx="'+i+'" ondragstart="dsOpItem(event)" ondragover="dovOpItem(event)" ondrop="dpOpItem(event)" ondragend="deOpItem(event)" style="display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid #eee;border-radius:8px;background:#fafafa;cursor:grab;">'+
-      '<span style="color:#bbb;font-size:0.9rem;flex-shrink:0;" title="Arraste pra reordenar">⠿</span>'+
+    return '<div class="opit" style="display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid #eee;border-radius:8px;background:#fafafa;">'+
+      '<div class="aiord"><button type="button" onclick="moverOpItem('+i+',-1)" '+(i===0?'disabled':'')+'>▲</button><button type="button" onclick="moverOpItem('+i+',1)" '+(i===opItensAtual.length-1?'disabled':'')+'>▼</button></div>'+
       foto+
       '<span style="flex:1;"><span style="font-size:0.82rem;display:block;">'+it.nome+'</span>'+desc+'</span>'+
       '<span style="font-size:0.8rem;font-weight:600;color:#666;">+R$ '+parseFloat(it.preco||0).toFixed(2).replace('.',',')+'</span>'+
@@ -1832,18 +1846,11 @@ function editItemOpcional(i){
   document.getElementById('opItemFotoPrev').innerHTML = it.foto ? '<img src="'+it.foto+'" style="width:100%;height:100%;object-fit:cover;">' : '<span>📷</span>';
   var btn = document.getElementById('opItemAddBtn'); if(btn) btn.textContent='💾 Salvar edição';
 }
-// Reordenar as opções arrastando (mesmo princípio usado na lista de produtos)
-function dsOpItem(e){dragSrcOpItem=e.currentTarget;e.currentTarget.classList.add('drag');}
-function dovOpItem(e){e.preventDefault();}
-function deOpItem(e){e.currentTarget.classList.remove('drag');}
-function dpOpItem(e){
-  e.preventDefault();
-  var t=e.currentTarget;
-  if(!dragSrcOpItem||dragSrcOpItem===t)return;
-  var iSrc=parseInt(dragSrcOpItem.dataset.idx,10), iAlvo=parseInt(t.dataset.idx,10);
-  if(isNaN(iSrc)||isNaN(iAlvo))return;
-  var item = opItensAtual.splice(iSrc,1)[0];
-  opItensAtual.splice(iAlvo,0,item);
+// Sobe/desce uma opção na lista — funciona em qualquer aparelho, diferente do arrastar
+function moverOpItem(i, dir){
+  var j=i+dir;
+  if(j<0||j>=opItensAtual.length) return;
+  var tmp=opItensAtual[i]; opItensAtual[i]=opItensAtual[j]; opItensAtual[j]=tmp;
   renderOpItens();
 }
 function addItemOpcional(){
@@ -1962,9 +1969,9 @@ function renderPOpcionaisSelect(){
   var selecionados = pGruposOrdemAtual.map(function(gid){ return gruposOpcionais.find(function(g){return g.id===gid;}); }).filter(Boolean);
   var disponiveis = gruposOpcionais.filter(function(g){ return pGruposOrdemAtual.indexOf(g.id)===-1; });
   var htmlSel = selecionados.length
-    ? '<p class="ih" style="margin:0 0 5px;">⠿ Arraste pra escolher a ordem que aparecem no produto</p>' + selecionados.map(function(g,i){
-        return '<div draggable="true" data-idx="'+i+'" ondragstart="dsPog(event)" ondragover="dovPog(event)" ondrop="dpPog(event)" ondragend="dePog(event)" style="display:flex;align-items:center;gap:8px;padding:7px 9px;border:1px solid #eee;border-radius:8px;background:#fafafa;margin-bottom:5px;cursor:grab;">'+
-          '<span style="color:#bbb;font-size:0.9rem;">⠿</span>'+
+    ? '<p class="ih" style="margin:0 0 5px;">Use ▲▼ pra escolher a ordem que aparecem no produto</p>' + selecionados.map(function(g,i){
+        return '<div style="display:flex;align-items:center;gap:8px;padding:7px 9px;border:1px solid #eee;border-radius:8px;background:#fafafa;margin-bottom:5px;">'+
+          '<div class="aiord"><button type="button" onclick="moverGrupoDoProduto('+i+',-1)" '+(i===0?'disabled':'')+'>▲</button><button type="button" onclick="moverGrupoDoProduto('+i+',1)" '+(i===selecionados.length-1?'disabled':'')+'>▼</button></div>'+
           '<span style="flex:1;font-size:0.82rem;">'+g.nome+'</span>'+
           '<button type="button" class="bd" onclick="removerGrupoDoProduto(\''+g.id+'\')">✕</button>'+
           '</div>';
@@ -1990,18 +1997,12 @@ function removerGrupoDoProduto(gid){
   renderPOpcionaisSelect();
   salvarRascunhoProduto();
 }
-var dragSrcPog=null;
-function dsPog(e){dragSrcPog=e.currentTarget;e.currentTarget.classList.add('drag');}
-function dovPog(e){e.preventDefault();}
-function dePog(e){e.currentTarget.classList.remove('drag');}
-function dpPog(e){
-  e.preventDefault();
-  var t=e.currentTarget;
-  if(!dragSrcPog||dragSrcPog===t) return;
-  var iSrc=parseInt(dragSrcPog.dataset.idx,10), iAlvo=parseInt(t.dataset.idx,10);
-  if(isNaN(iSrc)||isNaN(iAlvo)) return;
-  var item = pGruposOrdemAtual.splice(iSrc,1)[0];
-  pGruposOrdemAtual.splice(iAlvo,0,item);
+// Sobe/desce um adicional na ordem desse produto — funciona em qualquer aparelho, diferente do arrastar
+function moverGrupoDoProduto(i, dir){
+  if(!pGruposOrdemAtual) return;
+  var j=i+dir;
+  if(j<0||j>=pGruposOrdemAtual.length) return;
+  var tmp=pGruposOrdemAtual[i]; pGruposOrdemAtual[i]=pGruposOrdemAtual[j]; pGruposOrdemAtual[j]=tmp;
   renderPOpcionaisSelect();
   salvarRascunhoProduto();
 }
@@ -2378,24 +2379,22 @@ function renderOrdemFeedAdmin(){
   ordemFeedListaAtual = coletarItensOrdemFeed();
   if(!ordemFeedListaAtual.length){ el.innerHTML='<p style="font-size:.79rem;color:#888;grid-column:1/-1;">Nenhuma foto marcada pra aparecer no Feed ainda.</p>'; return; }
   el.innerHTML = ordemFeedListaAtual.map(function(it,i){
-    return '<div draggable="true" data-idx="'+i+'" ondragstart="dsOrdemFeed(event)" ondragover="dovOrdemFeed(event)" ondrop="dpOrdemFeed(event)" ondragend="deOrdemFeed(event)" style="display:block;position:relative;padding:0;border-radius:8px;overflow:hidden;background:#f5f5f5;aspect-ratio:4/5;cursor:grab;">'+
+    return '<div style="display:block;position:relative;padding:0;border-radius:8px;overflow:hidden;background:#f5f5f5;aspect-ratio:4/5;">'+
       '<img src="'+it.img+'" style="width:100%;height:100%;object-fit:cover;display:block;">'+
       '<div style="position:absolute;top:3px;left:3px;background:rgba(0,0,0,0.6);color:#fff;font-size:0.6rem;padding:2px 6px;border-radius:8px;">'+(it.cod?'#'+it.cod:'—')+'</div>'+
-      '<div style="position:absolute;bottom:3px;right:3px;background:rgba(255,255,255,0.92);font-size:0.62rem;font-weight:700;padding:2px 7px;border-radius:8px;">⠿ '+(i+1)+'</div>'+
-      '</div>';
+      '<div style="position:absolute;bottom:3px;right:3px;background:rgba(255,255,255,0.92);font-size:0.62rem;font-weight:700;padding:2px 6px;border-radius:8px;">'+(i+1)+'</div>'+
+      '<div style="position:absolute;bottom:3px;left:3px;display:flex;gap:3px;">'+
+      '<button type="button" onclick="moverOrdemFeed('+i+',-1)" '+(i===0?'disabled':'')+' style="width:22px;height:22px;border-radius:6px;border:none;background:rgba(255,255,255,0.92);font-size:0.65rem;cursor:pointer;">▲</button>'+
+      '<button type="button" onclick="moverOrdemFeed('+i+',1)" '+(i===ordemFeedListaAtual.length-1?'disabled':'')+' style="width:22px;height:22px;border-radius:6px;border:none;background:rgba(255,255,255,0.92);font-size:0.65rem;cursor:pointer;">▼</button>'+
+      '</div></div>';
   }).join('');
 }
-function dsOrdemFeed(e){dragSrcOrdemFeed=e.currentTarget;e.currentTarget.classList.add('drag');}
-function dovOrdemFeed(e){e.preventDefault();}
-function deOrdemFeed(e){e.currentTarget.classList.remove('drag');}
-function dpOrdemFeed(e){
-  e.preventDefault();
-  var t=e.currentTarget;
-  if(!dragSrcOrdemFeed||dragSrcOrdemFeed===t)return;
-  var iSrc=parseInt(dragSrcOrdemFeed.dataset.idx,10), iAlvo=parseInt(t.dataset.idx,10);
-  if(isNaN(iSrc)||isNaN(iAlvo))return;
-  var item = ordemFeedListaAtual.splice(iSrc,1)[0];
-  ordemFeedListaAtual.splice(iAlvo,0,item);
+// Sobe/desce uma foto na ordem do Feed — funciona em qualquer aparelho, diferente do arrastar
+function moverOrdemFeed(i, dir){
+  var j=i+dir;
+  if(j<0||j>=ordemFeedListaAtual.length) return;
+  var item = ordemFeedListaAtual.splice(i,1)[0];
+  ordemFeedListaAtual.splice(j,0,item);
   salvarNovaOrdemFeed();
 }
 // Renumera tudo em sequência conforme a ordem visual atual, e salva só quem realmente mudou
@@ -2700,12 +2699,14 @@ function renderExtraMediaGrid(){
   var el = document.getElementById('extraMediaGrid');
   if(!el) return;
   el.innerHTML = extraMedias.map(function(m,i){
+    var ordBtns = '<div class="aiord" style="flex-direction:row;justify-content:center;margin-bottom:3px;"><button type="button" onclick="moverExtraMedia('+i+',-1)" '+(i===0?'disabled':'')+'>◀</button><button type="button" onclick="moverExtraMedia('+i+',1)" '+(i===extraMedias.length-1?'disabled':'')+'>▶</button></div>';
     if(m.tipo==='ref'){
       var codRefAdm = (m.cod||'').trim().toLowerCase();
       var pRef = prods.find(function(x){return (x.cod||'').trim().toLowerCase()===codRefAdm;});
       var thumb = pRef && pRef.img ? '<img src="'+pRef.img+'">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:1.8rem;">🌸</div>';
       var legenda = pRef ? ('#'+pRef.cod+' · '+pRef.nome) : ('#'+m.cod+' (produto não encontrado)');
       return '<div class="extra-media-item" style="display:flex;flex-direction:column;">'+
+        ordBtns+
         '<div class="extra-media-thumb" style="position:relative;">'+thumb+
         '<span style="position:absolute;bottom:2px;left:2px;background:rgba(0,0,0,0.6);color:#fff;font-size:0.55rem;padding:1px 5px;border-radius:8px;">🔗 vinculado</span>'+
         '<button class="extra-media-del" onclick="delExtraMedia('+i+')">×</button></div>'+
@@ -2733,11 +2734,20 @@ function renderExtraMediaGrid(){
       '<label style="display:flex;align-items:center;gap:3px;font-size:0.65rem;margin-top:3px;color:#8a5cf6;"><input type="checkbox" '+(m.mostrarInsp?'checked':'')+' onchange="setMediaVar('+i+',\'mostrarInsp\',this.checked)" style="width:12px;height:12px;">✨ Mostrar no Feed</label>'+
       '<label style="display:flex;align-items:center;gap:3px;font-size:0.65rem;margin-top:3px;color:#888;"><input type="checkbox" '+(m.ocultarNoProduto?'checked':'')+' onchange="setMediaVar('+i+',\'ocultarNoProduto\',this.checked)" style="width:12px;height:12px;">🙈 Ocultar essa foto no produto (aparece só no Feed)</label>';
     return '<div class="extra-media-item" style="display:flex;flex-direction:column;">'+
+      ordBtns+
       '<div class="extra-media-thumb">'+tag+'<button class="extra-media-del" onclick="delExtraMedia('+i+')">×</button></div>'+
       ajusteFoto+
       variante+
       '</div>';
   }).join('');
+}
+// Sobe/desce a posição de uma foto extra no carrossel do produto — o que estiver primeiro aqui é o que aparece primeiro depois da capa
+function moverExtraMedia(i, dir){
+  var j=i+dir;
+  if(j<0||j>=extraMedias.length) return;
+  var tmp=extraMedias[i]; extraMedias[i]=extraMedias[j]; extraMedias[j]=tmp;
+  renderExtraMediaGrid();
+  salvarRascunhoProduto();
 }
 
 // Ajusta posição/zoom de uma foto extra específica, atualizando a prévia sem re-renderizar a grade inteira (evita perder o foco do slider)
@@ -3304,6 +3314,7 @@ saveProd = async function(){
     render();renderAdmList();
     sbUpsertProduto(p).then(function(ok){
       if(ok){
+        if(Array.isArray(ok) && ok[0] && ok[0].id){ p._sbId = ok[0].id; } // pra próxima edição já reconhecer esse produto como "meu" na checagem de código
         limparRascunhoProduto(); // só apaga o rascunho quando realmente confirmou salvo no servidor
         clearProd();showAT('prods');restaurarScrollAdminList();
         toast(editPId?'✅ Produto atualizado!':'✅ Produto adicionado!');
