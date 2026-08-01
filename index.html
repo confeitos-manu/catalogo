@@ -857,6 +857,10 @@ Faça sua encomenda abaixo 👇</div>
             <input id="msgPref" type="text" style="width:100%;font-size:13px;padding:8px;border:1px solid #eee;border-radius:8px;">
           </div>
           <div style="margin-bottom:10px">
+            <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">Título da listinha "o que tem a mais" (aparece na página do produto, acima dos itens que você escreve em cada foto)</label>
+            <input id="msgTituloInclusos" type="text" style="width:100%;font-size:13px;padding:8px;border:1px solid #eee;border-radius:8px;">
+          </div>
+          <div style="margin-bottom:10px">
             <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">Fechamento</label>
             <textarea id="msgFec" rows="2" style="width:100%;font-size:13px;padding:8px;border:1px solid #eee;border-radius:8px;resize:vertical"></textarea>
           </div>
@@ -1000,6 +1004,7 @@ var msgAbertura1 = ldTxt('msg_ab1', 'Oii! Gostei desse modelo e quero fazer o pe
 var msgAbertura2 = ldTxt('msg_ab2', 'Ola! Gostei desses modelos e quero seguir com o pedido:');
 var msgFechamento = ldTxt('msg_fec', 'Aguardo retorno para combinarmos os detalhes!');
 var msgPreferencia = ldTxt('msg_pref', 'Preferencia');
+var tituloInclusos = ldTxt('titulo_inclusos', '✨ O que está incluso:');
 
 function newCod(){var u=new Set(prods.map(function(p){return p.cod;}).filter(Boolean));for(var i=1;i<=99999;i++){var c=('00000'+i).slice(-5);if(!u.has(c))return c;}return'00001';}
 
@@ -1586,10 +1591,12 @@ function salvarMensagem(){
   msgAbertura2 = document.getElementById('msgAb2').value || msgAbertura2;
   msgFechamento = document.getElementById('msgFec').value || msgFechamento;
   msgPreferencia = document.getElementById('msgPref').value || msgPreferencia;
+  tituloInclusos = document.getElementById('msgTituloInclusos').value || tituloInclusos;
   sv('msg_ab1', msgAbertura1);
   sv('msg_ab2', msgAbertura2);
   sv('msg_fec', msgFechamento);
   sv('msg_pref', msgPreferencia);
+  sv('titulo_inclusos', tituloInclusos);
   toast('✅ Mensagem salva!');
   atualizarPrevia();
 }
@@ -1611,10 +1618,12 @@ function carregarCamposMensagem(){
   var ab2 = document.getElementById('msgAb2');
   var fec = document.getElementById('msgFec');
   var pref = document.getElementById('msgPref');
+  var tituloInc = document.getElementById('msgTituloInclusos');
   if(ab1) { ab1.value = msgAbertura1; ab1.oninput = atualizarPrevia; }
   if(ab2) { ab2.value = msgAbertura2; ab2.oninput = atualizarPrevia; }
   if(fec) { fec.value = msgFechamento; fec.oninput = atualizarPrevia; }
   if(pref) { pref.value = msgPreferencia; pref.oninput = atualizarPrevia; }
+  if(tituloInc) { tituloInc.value = tituloInclusos; }
   atualizarPrevia();
 }
 
@@ -2168,20 +2177,35 @@ function selecionarOpcao(grupoId, idx, tipo){
 }
 
 // Abre a foto de um adicional ampliada, igual "olhar de perto" antes de escolher
-var modalOpFotoHistPushed = false;
+// Pilha de telas com estado de histórico empurrado, na ordem que foram abertas — o botão voltar
+// (ou o X) sempre fecha só a última que abriu, nunca todas de uma vez (esse era o bug: abrir uma foto
+// de adicional por cima do produto e apertar voltar fechava as duas juntas, em vez de só a foto)
+var modalHistStack = [];
+function pushModalHist(nome){
+  history.pushState({catalogoModal:nome}, '', location.href);
+  modalHistStack.push(nome);
+}
+window.addEventListener('popstate', function(){
+  var nome = modalHistStack.pop();
+  if(nome==='produto'){
+    document.getElementById('modalProd').classList.remove('open');
+    destravarScrollFundo();
+  } else if(nome==='fotoFeedOculta'){
+    document.getElementById('modalFotoFeedOculta').classList.remove('open');
+  } else if(nome==='opFoto'){
+    document.getElementById('modalOpFoto').classList.remove('open');
+  }
+});
 function abrirFotoOpcional(src, nome){
   if(!src) return;
   document.getElementById('opFotoGrande').src = src;
   document.getElementById('opFotoNome').textContent = nome||'';
   document.getElementById('modalOpFoto').classList.add('open');
-  if(!modalOpFotoHistPushed){
-    history.pushState({catalogoModal:'opFoto'}, '', location.href);
-    modalOpFotoHistPushed = true;
-  }
+  pushModalHist('opFoto');
 }
 function fecharFotoOpcional(){
-  if(modalOpFotoHistPushed){
-    history.back();
+  if(modalHistStack.length && modalHistStack[modalHistStack.length-1]==='opFoto'){
+    history.back(); // o popstate acima cuida de fechar de verdade
   } else {
     document.getElementById('modalOpFoto').classList.remove('open');
   }
@@ -2454,7 +2478,6 @@ function renderInspClient(){
 }
 // Foto de produto marcada "só no Feed" (oculta do carrossel do produto) — mostra ela grande aqui mesmo,
 // já que não existe uma foto correspondente pra pular dentro da página do produto
-var modalFotoFeedHistPushed = false;
 function abrirFotoFeedOculta(prodId, img, legenda, cod, videoSrc){
   var p = prods.find(function(x){return x.id===prodId;});
   if(!p) return;
@@ -2473,22 +2496,19 @@ function abrirFotoFeedOculta(prodId, img, legenda, cod, videoSrc){
     // (chamar history.back() e abrir outro modal ao mesmo tempo criava uma corrida que travava a transição)
     var vAtivo = document.querySelector('#ffoMediaWrap video'); if(vAtivo) vAtivo.pause();
     document.getElementById('modalFotoFeedOculta').classList.remove('open');
-    if(modalFotoFeedHistPushed){
+    if(modalHistStack.length && modalHistStack[modalHistStack.length-1]==='fotoFeedOculta'){
+      modalHistStack.pop();
       history.replaceState({catalogoModal:'produto'}, '', location.href);
-      modalProdHistPushed = true; // essa troca já cobre a entrada de histórico do produto, não precisa empurrar de novo
+      modalHistStack.push('produto'); // essa troca já cobre a entrada de histórico do produto, não precisa empurrar de novo
     }
-    modalFotoFeedHistPushed = false;
     openProd(prodId);
   };
   document.getElementById('modalFotoFeedOculta').classList.add('open');
-  if(!modalFotoFeedHistPushed){
-    history.pushState({catalogoModal:'fotoFeedOculta'}, '', location.href);
-    modalFotoFeedHistPushed = true;
-  }
+  pushModalHist('fotoFeedOculta');
 }
 function fecharFotoFeedOculta(){
   var v = document.querySelector('#ffoMediaWrap video'); if(v) v.pause();
-  if(modalFotoFeedHistPushed){
+  if(modalHistStack.length && modalHistStack[modalHistStack.length-1]==='fotoFeedOculta'){
     history.back(); // o popstate abaixo cuida de fechar de verdade, assim o botão voltar do celular não sai do site
   } else {
     document.getElementById('modalFotoFeedOculta').classList.remove('open');
@@ -2903,15 +2923,17 @@ function handleExtraMedia(inp){
 function promoverParaCapa(i){
   var novo = extraMedias[i];
   if(!novo || novo.type==='video' || novo.tipo==='ref') return; // só fotos comuns podem virar capa
-  var capaAtualImg = document.getElementById('imgData').value;
+  var capaAtualImg = document.getElementById('imgData').value; // imgData sempre guarda o original, nunca o já recortado
   var capaAtualPosy = posYAtual, capaAtualZoom = zoomAtual;
   extraMedias.splice(i,1);
   if(capaAtualImg){
-    extraMedias.unshift({type:'image', data:capaAtualImg, posy:capaAtualPosy, zoom:capaAtualZoom});
+    // guarda como original também — senão essa foto nunca mais consegue recortar direito depois de virar extra
+    extraMedias.unshift({type:'image', data:capaAtualImg, dataOriginal:capaAtualImg, posy:capaAtualPosy, zoom:capaAtualZoom});
   }
-  document.getElementById('imgData').value = novo.data;
-  document.getElementById('imgPrev').innerHTML = '<img src="'+novo.data+'">';
-  carregarDimensoesReais(novo.data, function(w,h){
+  var novaFotoOriginal = novo.dataOriginal || novo.data; // usa o original de verdade — usar o já recortado faria "recorte em cima de recorte"
+  document.getElementById('imgData').value = novaFotoOriginal;
+  document.getElementById('imgPrev').innerHTML = '<img src="'+novaFotoOriginal+'">';
+  carregarDimensoesReais(novaFotoOriginal, function(w,h){
     imgNaturalW = w; imgNaturalH = h;
     posYAtual = novo.posy!=null?novo.posy:50;
     zoomAtual = novo.zoom!=null?novo.zoom:100;
@@ -2986,9 +3008,10 @@ function renderExtraMediaGrid(){
         '</div>';
     }
     var trimIni = m.trimStart||0, trimFim = (m.trimEnd!=null?m.trimEnd:999999);
+    var fotoParaPreview = m.dataOriginal || m.data; // usa a foto original pra prévia, senão o posy/zoom fica "recorte em cima de recorte" numa foto já publicada antes
     var tag = m.type==='video'
       ? '<video src="'+m.data+'" controls playsinline '+(m.mudo?'muted':'')+' onloadedmetadata="this.currentTime='+trimIni+'" ontimeupdate="if(this.currentTime>='+trimFim+'){this.currentTime='+trimIni+';this.pause();}" style="width:100%;height:100%;object-fit:cover"></video>'
-      : '<img src="'+m.data+'" onload="posicionarFotoExtra(this,'+(m.posy!=null?m.posy:50)+','+(m.zoom!=null?m.zoom:100)+')">';
+      : '<img src="'+fotoParaPreview+'" onload="posicionarFotoExtra(this,'+(m.posy!=null?m.posy:50)+','+(m.zoom!=null?m.zoom:100)+')">';
     var ajusteFoto = m.type==='video' ? '' :
       '<div style="margin-top:4px;">'+
       '<label style="font-size:0.6rem;color:#888;display:block;">↕️ Posição</label>'+
@@ -3013,7 +3036,7 @@ function renderExtraMediaGrid(){
       '<input placeholder="Preço" type="number" step="0.01" value="'+(m.preco||'')+'" oninput="setMediaVar('+i+',\'preco\',this.value)" style="width:50px;font-size:0.68rem;padding:3px 4px;border:1px solid #ddd;border-radius:6px;">'+
       '</div>'+
       '<input placeholder="Nome (ex: Buquê rosa)" value="'+(m.nome||'')+'" oninput="setMediaVar('+i+',\'nome\',this.value)" style="width:100%;font-size:0.68rem;padding:3px 4px;margin-top:3px;border:1px solid #ddd;border-radius:6px;">'+
-      '<input placeholder="Diferença (ex: flor de cetim)" value="'+(m.diferenca||'')+'" oninput="setMediaVar('+i+',\'diferenca\',this.value)" style="width:100%;font-size:0.68rem;padding:3px 4px;margin-top:3px;border:1px solid #ddd;border-radius:6px;">'+
+      '<input placeholder="O que tem a mais nessa foto (separe por vírgula: Coroa, Borboleta)" value="'+(m.diferenca||'')+'" oninput="setMediaVar('+i+',\'diferenca\',this.value)" style="width:100%;font-size:0.68rem;padding:3px 4px;margin-top:3px;border:1px solid #ddd;border-radius:6px;">'+
       '<input placeholder="Legenda dessa foto (opcional — se vazio, usa a descrição principal)" value="'+(m.legenda||'')+'" oninput="setMediaVar('+i+',\'legenda\',this.value)" style="width:100%;font-size:0.68rem;padding:3px 4px;margin-top:3px;border:1px solid #ddd;border-radius:6px;">'+
       '<label style="display:flex;align-items:center;gap:3px;font-size:0.65rem;margin-top:3px;color:#c0392b;"><input type="checkbox" '+(m.esgotado?'checked':'')+' onchange="setMediaVar('+i+',\'esgotado\',this.checked)" style="width:12px;height:12px;">Esgotado</label>'+
       '<label style="display:flex;align-items:center;gap:3px;font-size:0.65rem;margin-top:3px;color:#8a5cf6;"><input type="checkbox" '+(m.mostrarInsp?'checked':'')+' onchange="setMediaVar('+i+',\'mostrarInsp\',this.checked)" style="width:12px;height:12px;">✨ Mostrar no Feed</label>'+
@@ -3157,7 +3180,7 @@ function buildCarousel(prod, startIdx){
       if(pRef){
         carouselMedia.push({
           type: pRef.img ? 'image' : 'placeholder', data:pRef.img||'', cod:pRef.cod, preco:pRef.preco,
-          esgotado: pRef.status==='esgotado', nome:pRef.nome, ehRef:true, descRef:pRef.desc||''
+          esgotado: pRef.status==='esgotado', nome:pRef.nome, ehRef:true, descRef:pRef.desc||'', gruposOpcionaisRef:(pRef.gruposOpcionais||[])
         });
       } else {
         console.warn('[Vinculação] Produto #'+m.cod+' vinculado não foi encontrado na lista de produtos.');
@@ -3219,12 +3242,15 @@ function syncVariantePeloSlide(){
   if(!curProd) return;
   var m = carouselMedia[carouselIdx];
   if(m && m.cod){
-    curVariant = {idx:carouselIdx, cod:m.cod, preco:(m.preco!=null?m.preco:curProd.preco), esgotado:!!m.esgotado, nome:m.nome||'', diferenca:m.diferenca||'', ehRef:!!m.ehRef, descRef:m.descRef||'', legenda:m.legenda||''};
+    curVariant = {idx:carouselIdx, cod:m.cod, preco:(m.preco!=null?m.preco:curProd.preco), esgotado:!!m.esgotado, nome:m.nome||'', diferenca:m.diferenca||'', ehRef:!!m.ehRef, descRef:m.descRef||'', legenda:m.legenda||'', gruposOpcionaisRef:m.gruposOpcionaisRef||null};
   } else {
     // Foto extra sem código próprio (não é variação nem produto vinculado) — volta pro produto original,
     // em vez de deixar o texto travado no que estava antes (essa era a causa raiz do bug)
-    curVariant = {idx:carouselIdx, cod:curProd.cod, preco:curProd.preco, esgotado:false, nome:'', diferenca:'', ehRef:false, descRef:'', legenda:(m&&m.legenda)||''};
+    curVariant = {idx:carouselIdx, cod:curProd.cod, preco:curProd.preco, esgotado:false, nome:'', diferenca:'', ehRef:false, descRef:'', legenda:(m&&m.legenda)||'', gruposOpcionaisRef:null};
   }
+  // Se a foto atual é de um produto vinculado, os adicionais também trocam pros daquele produto —
+  // se ele não tiver nenhum, fica sem, não herda os do produto base
+  renderOpcionaisProduto(curVariant.ehRef ? {gruposOpcionais:curVariant.gruposOpcionaisRef||[]} : curProd);
   destacarVariante();
   atualizarPrecoVariante();
   atualizarInfoVariante();
@@ -3248,7 +3274,13 @@ function atualizarInfoVariante(){
     var codExibido = curVariant ? curVariant.cod : curProd.cod;
     catEl.textContent = (curProd.cat||'') + (codExibido ? ' · #'+codDisplay(codExibido) : '');
   }
-  el.textContent = (curVariant && curVariant.diferenca) ? '✨ ' + curVariant.diferenca : '';
+  if(curVariant && curVariant.diferenca){
+    var itensInclusos = curVariant.diferenca.split(',').map(function(x){return x.trim();}).filter(Boolean);
+    el.innerHTML = '<div style="font-weight:600;color:#555;margin-bottom:3px;">'+tituloInclusos+'</div>'+
+      itensInclusos.map(function(it){return '<div>✓ '+it+'</div>';}).join('');
+  } else {
+    el.innerHTML = '';
+  }
   // Legenda (descrição) inteira: se o slide atual é de um produto VINCULADO, mostra só a descrição
   // dele — nunca junto com a do produto original, pra não virar bagunça de duas legendas
   var descEl = document.getElementById('mpDesc');
@@ -3467,15 +3499,15 @@ openProd = function(id, startIdx){
   travarScrollFundo();
   var painelScroll = document.getElementById('modalProdInner');
   if(painelScroll) painelScroll.scrollTop = 0;
-  if(!modalProdHistPushed){
-    history.pushState({catalogoModal:'produto'}, '', location.href);
-    modalProdHistPushed = true;
+  if(!modalHistStack.length || modalHistStack[modalHistStack.length-1]!=='produto'){
+    pushModalHist('produto');
   }
 };
-var modalProdHistPushed = false;
 var scrollYAntesDoModal = 0;
 function travarScrollFundo(){
   scrollYAntesDoModal = window.scrollY || document.documentElement.scrollTop || 0;
+  document.documentElement.style.overflow = 'hidden'; // reforço — o truque de position:fixed sozinho às vezes não segura o scroll no celular
+  document.body.style.overflow = 'hidden';
   document.body.style.position = 'fixed';
   document.body.style.top = (-scrollYAntesDoModal) + 'px';
   document.body.style.left = '0';
@@ -3483,6 +3515,8 @@ function travarScrollFundo(){
   document.body.style.width = '100%';
 }
 function destravarScrollFundo(){
+  document.documentElement.style.overflow = '';
+  document.body.style.overflow = '';
   document.body.style.position = '';
   document.body.style.top = '';
   document.body.style.left = '';
@@ -3491,7 +3525,7 @@ function destravarScrollFundo(){
   window.scrollTo(0, scrollYAntesDoModal);
 }
 closeProd = function(){
-  if(modalProdHistPushed){
+  if(modalHistStack.length && modalHistStack[modalHistStack.length-1]==='produto'){
     // deixa o popstate cuidar de fechar e destravar o scroll — assim não compete com a navegação do histórico
     history.back();
   } else {
@@ -3499,21 +3533,6 @@ closeProd = function(){
     destravarScrollFundo();
   }
 };
-window.addEventListener('popstate', function(){
-  if(document.getElementById('modalProd').classList.contains('open')){
-    modalProdHistPushed = false;
-    document.getElementById('modalProd').classList.remove('open');
-    destravarScrollFundo();
-  }
-  if(document.getElementById('modalFotoFeedOculta').classList.contains('open')){
-    modalFotoFeedHistPushed = false;
-    document.getElementById('modalFotoFeedOculta').classList.remove('open');
-  }
-  if(document.getElementById('modalOpFoto').classList.contains('open')){
-    modalOpFotoHistPushed = false;
-    document.getElementById('modalOpFoto').classList.remove('open');
-  }
-});
 
 function atualizarBotaoAdd(){
   if(!curProd) return;
