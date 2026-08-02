@@ -125,7 +125,7 @@ body{font-family:'Inter',sans-serif;background:#fafafa;color:#111;max-width:480p
 .mprod-name{font-weight:700;font-size:1rem;flex:1;}
 .mprod-price{font-weight:700;font-size:1.1rem;color:#111;}
 .mprod-cat{font-size:0.75rem;color:#888;margin-bottom:4px;}
-.mprod-tam{display:inline-block;background:#f0f0f0;border-radius:20px;padding:3px 10px;font-size:0.72rem;font-weight:600;margin-bottom:10px;}
+.mprod-tam{display:inline-flex;align-items:center;gap:4px;background:#f0f0f0;border-radius:20px;padding:3px 10px;font-size:0.72rem;font-weight:600;margin-bottom:6px;}
 .mprod-desc{font-size:0.85rem;color:#444;line-height:1.5;margin-bottom:16px;white-space:pre-line;}
 .op-grupo{margin-bottom:14px;}
 .op-grupo-head{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
@@ -468,9 +468,7 @@ Faça sua encomenda abaixo 👇</div>
 
 <!-- FEED (era Inspiração: modelos sem preço fechado, agora a vitrine principal) -->
 <div id="inspArea">
-  <div style="background:#fff7ed;border:1px solid #fde7cf;border-radius:12px;padding:12px 14px;margin:10px 12px;font-size:0.82rem;color:#7a5a30;line-height:1.4;">
-    ✨ <strong>Esses são modelos que já fizemos!</strong> Quer um modelo mais personalizado? Se inspire e nos conte mais detalhes sobre o que você está procurando 💌 Manda o código pelo WhatsApp que te passamos os valores!
-  </div>
+  <div id="inspBanner" style="background:#fff7ed;border:1px solid #fde7cf;border-radius:12px;padding:12px 14px;margin:10px 12px;font-size:0.82rem;color:#7a5a30;line-height:1.4;"></div>
   <div id="inspGrid" class="feed-grid" style="padding:0 8px;"></div>
 </div>
 
@@ -517,7 +515,7 @@ Faça sua encomenda abaixo 👇</div>
         <div class="mprod-price" id="mpPreco"></div>
       </div>
       <div id="mpTam"></div>
-      <div id="mpVariantes" style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0;"></div>
+      <div id="mpVariantes" style="display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 8px;"></div>
       <div id="mpVarInfo" style="font-size:0.8rem;color:#666;margin-bottom:6px;"></div>
       <div class="mprod-desc" id="mpDesc"></div>
       <div id="mpOpcionais"></div>
@@ -861,6 +859,10 @@ Faça sua encomenda abaixo 👇</div>
             <input id="msgTituloInclusos" type="text" style="width:100%;font-size:13px;padding:8px;border:1px solid #eee;border-radius:8px;">
           </div>
           <div style="margin-bottom:10px">
+            <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">Aviso no topo do Feed (pode usar &lt;strong&gt;texto&lt;/strong&gt; pra deixar em negrito)</label>
+            <textarea id="msgBannerFeed" rows="3" style="width:100%;font-size:13px;padding:8px;border:1px solid #eee;border-radius:8px;resize:vertical"></textarea>
+          </div>
+          <div style="margin-bottom:10px">
             <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">Fechamento</label>
             <textarea id="msgFec" rows="2" style="width:100%;font-size:13px;padding:8px;border:1px solid #eee;border-radius:8px;resize:vertical"></textarea>
           </div>
@@ -1005,6 +1007,7 @@ var msgAbertura2 = ldTxt('msg_ab2', 'Ola! Gostei desses modelos e quero seguir c
 var msgFechamento = ldTxt('msg_fec', 'Aguardo retorno para combinarmos os detalhes!');
 var msgPreferencia = ldTxt('msg_pref', 'Preferencia');
 var tituloInclusos = ldTxt('titulo_inclusos', '✨ O que está incluso:');
+var msgBannerFeed = ldTxt('msg_banner_feed', '✨ <strong>Esses são modelos que já fizemos!</strong> Quer um modelo mais personalizado? Se inspire e nos conte mais detalhes sobre o que você está procurando 💌 Manda o código pelo WhatsApp que te passamos os valores!');
 
 function newCod(){var u=new Set(prods.map(function(p){return p.cod;}).filter(Boolean));for(var i=1;i<=99999;i++){var c=('00000'+i).slice(-5);if(!u.has(c))return c;}return'00001';}
 
@@ -1592,11 +1595,14 @@ function salvarMensagem(){
   msgFechamento = document.getElementById('msgFec').value || msgFechamento;
   msgPreferencia = document.getElementById('msgPref').value || msgPreferencia;
   tituloInclusos = document.getElementById('msgTituloInclusos').value || tituloInclusos;
+  msgBannerFeed = document.getElementById('msgBannerFeed').value || msgBannerFeed;
   sv('msg_ab1', msgAbertura1);
   sv('msg_ab2', msgAbertura2);
   sv('msg_fec', msgFechamento);
   sv('msg_pref', msgPreferencia);
   sv('titulo_inclusos', tituloInclusos);
+  sv('msg_banner_feed', msgBannerFeed);
+  var bannerEl = document.getElementById('inspBanner'); if(bannerEl) bannerEl.innerHTML = msgBannerFeed;
   toast('✅ Mensagem salva!');
   atualizarPrevia();
 }
@@ -1619,11 +1625,13 @@ function carregarCamposMensagem(){
   var fec = document.getElementById('msgFec');
   var pref = document.getElementById('msgPref');
   var tituloInc = document.getElementById('msgTituloInclusos');
+  var bannerFeed = document.getElementById('msgBannerFeed');
   if(ab1) { ab1.value = msgAbertura1; ab1.oninput = atualizarPrevia; }
   if(ab2) { ab2.value = msgAbertura2; ab2.oninput = atualizarPrevia; }
   if(fec) { fec.value = msgFechamento; fec.oninput = atualizarPrevia; }
   if(pref) { pref.value = msgPreferencia; pref.oninput = atualizarPrevia; }
   if(tituloInc) { tituloInc.value = tituloInclusos; }
+  if(bannerFeed) { bannerFeed.value = msgBannerFeed; }
   atualizarPrevia();
 }
 
@@ -3220,8 +3228,9 @@ function renderVariantes(prod){
     var cor = v.esgotado ? '#ccc' : (sel?'#111':'#ddd');
     var fundo = v.esgotado ? '#f5f5f5' : (sel?'#111':'#fff');
     var texto = v.esgotado ? '#aaa' : (sel?'#fff':'#333');
-    var label = v.diferenca || v.nome || ('#'+codDisplay(v.cod));
-    return '<button class="mprod-qb variant-btn" data-idx="'+v.idx+'" onclick="selectVariant('+v.idx+')" style="border-radius:20px;width:auto;padding:0 12px;height:32px;font-size:0.78rem;font-weight:600;border:1px solid '+cor+';background:'+fundo+';color:'+texto+';'+(v.esgotado?'text-decoration:line-through;':'')+'">'+label+(v.esgotado?' (esgotado)':'')+'</button>';
+    var label = v.diferenca || v.nome || 'Padrão';
+    var subCod = (v.diferenca || v.nome) ? ' <span style="opacity:.6;font-weight:400;">#'+codDisplay(v.cod)+'</span>' : '';
+    return '<button class="mprod-qb variant-btn" data-idx="'+v.idx+'" onclick="selectVariant('+v.idx+')" style="border-radius:20px;width:auto;padding:0 12px;height:32px;font-size:0.78rem;font-weight:600;border:1px solid '+cor+';background:'+fundo+';color:'+texto+';'+(v.esgotado?'text-decoration:line-through;':'')+'">'+label+subCod+(v.esgotado?' (esgotado)':'')+'</button>';
   }).join('');
   atualizarPrecoVariante();
   atualizarInfoVariante();
@@ -3276,8 +3285,10 @@ function atualizarInfoVariante(){
   }
   if(curVariant && curVariant.diferenca){
     var itensInclusos = curVariant.diferenca.split(',').map(function(x){return x.trim();}).filter(Boolean);
-    el.innerHTML = '<div style="font-weight:600;color:#555;margin-bottom:3px;">'+tituloInclusos+'</div>'+
-      itensInclusos.map(function(it){return '<div>✓ '+it+'</div>';}).join('');
+    el.innerHTML = '<div style="background:#fdf6ec;border:1px solid #f5e3c4;border-radius:10px;padding:10px 12px;">'+
+      '<div style="font-weight:700;color:#8a6d1f;margin-bottom:3px;">'+tituloInclusos+'</div>'+
+      itensInclusos.map(function(it){return '<div style="color:#5c4a15;">✓ '+it+'</div>';}).join('')+
+      '</div>';
   } else {
     el.innerHTML = '';
   }
@@ -3490,7 +3501,7 @@ openProd = function(id, startIdx){
   buildCarousel(p, startIdx); // já define curVariant (padrão = variação principal do produto, ou a foto específica clicada na Inspiração)
   var codAtual = curVariant ? curVariant.cod : p.cod;
   curProdQty=qtyInCart(p.id,codAtual)||1;
-  document.getElementById('mpTam').innerHTML=p.tam?'<div class="mprod-tam">'+p.tam+'</div>':'';
+  document.getElementById('mpTam').innerHTML=p.tam?'<div class="mprod-tam">📏 '+p.tam+'</div>':'';
   document.getElementById('mpQty').textContent=curProdQty;
   renderOpcionaisProduto(p);
   atualizarPrecoVariante();
@@ -3766,6 +3777,7 @@ applyPerfil();renderStories();renderHls();updateCart();
   }catch(err){
     console.error('Erro ao carregar grupos de adicionais do Supabase:', err);
   }
+  var bannerEl0 = document.getElementById('inspBanner'); if(bannerEl0) bannerEl0.innerHTML = msgBannerFeed;
   render();
   renderInspClient();
   renderHls();
