@@ -49,9 +49,9 @@ body{font-family:'Inter',sans-serif;background:#fafafa;color:#111;max-width:480p
 .hl-label{font-size:0.68rem;color:#111;max-width:66px;text-align:center;}
 
 /* TABS FEED */
-.feed-tabs{background:#fff;border-top:1px solid #eee;border-bottom:1px solid #eee;display:flex;}
-.feed-tab{flex:1;padding:10px;text-align:center;cursor:pointer;border-bottom:2px solid transparent;font-size:0.82rem;color:#888;}
-.feed-tab.active{border-bottom-color:var(--brand);color:var(--brand);}
+.feed-tabs{background:#fff;padding:8px 12px 10px;display:flex;gap:6px;border-bottom:1px solid #eee;}
+.feed-tab{flex:1;padding:9px 10px;text-align:center;cursor:pointer;border-radius:20px;font-size:0.82rem;font-weight:600;color:#777;background:#f2f2f2;transition:background .15s,color .15s;}
+.feed-tab.active{background:var(--brand);color:#fff;box-shadow:0 2px 8px rgba(122,35,49,.3);}
 
 /* SEARCH/FILTER */
 .feed-toolbar{background:#fff;padding:8px 12px;display:flex;gap:8px;border-bottom:1px solid #eee;}
@@ -908,7 +908,6 @@ Faça sua encomenda abaixo 👇</div>
 </div>
 
 <button class="beq" onclick="openAdmin()" title="Equipe">⚙️</button>
-<button class="btn-topo" id="btnTopo" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Voltar ao topo">↑</button>
 <button class="cart-float" id="cartFloat" onclick="toggleCart()">
   🛒 <span id="cartFloatLbl">Meu Pedido</span>
   <span class="cart-float-count" id="cartFloatCount" style="display:none">0</span>
@@ -1637,6 +1636,7 @@ function salvarMensagem(){
   sv('msg_banner_feed', msgBannerFeed);
   sv('msg_confirmacao_pedido', msgConfirmacaoPedido);
   var bannerEl = document.getElementById('inspBanner'); if(bannerEl) bannerEl.innerHTML = msgBannerFeed;
+  if(curProd) atualizarInfoVariante(); // se um produto já estiver aberto nessa mesma aba, atualiza a listinha na hora
   toast('✅ Mensagem salva!');
   atualizarPrevia();
 }
@@ -2717,11 +2717,8 @@ function savePerfil(){
   toast('Perfil atualizado! ✅');
 }
 
-// Mostrar botão topo ao rolar
+// Esconder botão equipe ao rolar
 window.addEventListener('scroll', function(){
-  var btnTopo = document.getElementById('btnTopo');
-  if(btnTopo) btnTopo.style.display = window.scrollY > 200 ? 'block' : 'none';
-  // Esconder botão equipe ao rolar
   var beq = document.querySelector('.beq');
   if(beq) beq.style.opacity = window.scrollY > 60 ? '0' : '1';
 });
@@ -3539,7 +3536,7 @@ openProd = function(id, startIdx){
   buildCarousel(p, startIdx); // já define curVariant (padrão = variação principal do produto, ou a foto específica clicada na Inspiração)
   var codAtual = curVariant ? curVariant.cod : p.cod;
   curProdQty=qtyInCart(p.id,codAtual)||1;
-  document.getElementById('mpTam').innerHTML=p.tam?'<div class="mprod-tam">📏 '+p.tam+'</div>':'';
+  document.getElementById('mpTam').innerHTML=p.tam?'<div class="mprod-tam">Tamanho: '+p.tam+'</div>':'';
   document.getElementById('mpQty').textContent=curProdQty;
   renderOpcionaisProduto(p);
   atualizarPrecoVariante();
