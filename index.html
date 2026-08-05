@@ -58,7 +58,7 @@ body{font-family:'Inter',sans-serif;background:#fafafa;color:#111;max-width:480p
 .feed-search{flex:1;padding:7px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.83rem;font-family:'Inter',sans-serif;outline:none;background:#fafafa;}
 .feed-sort{padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:0.8rem;font-family:'Inter',sans-serif;background:#fafafa;outline:none;}
 .feed-selbtn{padding:7px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.78rem;font-weight:600;font-family:'Inter',sans-serif;background:#fafafa;color:#555;cursor:pointer;white-space:nowrap;}
-.feed-selbtn.active{background:#111;color:#fff;border-color:#111;}
+.feed-selbtn.active{background:var(--brand);color:#fff;border-color:var(--brand);}
 .sel-check{position:absolute;top:5px;left:5px;width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,0.9);border:2px solid #bbb;z-index:3;display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:900;color:transparent;}
 .sel-check.on{background:#111;border-color:#111;color:#fff;}
 .sel-bar{position:fixed;left:0;right:0;bottom:0;z-index:850;background:#111;color:#fff;padding:12px 16px;display:none;align-items:center;justify-content:space-between;gap:10px;box-shadow:0 -4px 16px rgba(0,0,0,0.2);}
@@ -290,7 +290,7 @@ body{font-family:'Inter',sans-serif;background:#fafafa;color:#111;max-width:480p
 .cart-float{position:fixed;bottom:86px;right:16px;z-index:999;background:var(--brand);color:#fff;border:none;border-radius:50px;padding:12px 18px;font-size:0.9rem;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.3);display:flex;align-items:center;gap:8px;font-family:"Inter",sans-serif;-webkit-tap-highlight-color:transparent;}
 .cart-float-count{background:#e91e63;color:#fff;border-radius:50%;width:20px;height:20px;font-size:0.7rem;font-weight:900;display:flex;align-items:center;justify-content:center;}
 
-.extra-media-item{position:relative;border-radius:8px;background:#f0f0f0;border:1px solid #eee;}
+.extra-media-item{position:relative;border-radius:12px;background:#fafafa;border:1px solid #eee;padding:14px;}
 .extra-media-thumb{position:relative;aspect-ratio:4/5;border-radius:8px;overflow:hidden;background:#f0f0f0;}
 .extra-media-item img,.extra-media-item video{width:100%;height:100%;object-fit:cover;}
 .extra-media-del{position:absolute;top:2px;right:2px;background:rgba(0,0,0,0.6);color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
@@ -469,6 +469,10 @@ Faça sua encomenda abaixo 👇</div>
 
 <!-- FEED (era Inspiração: modelos sem preço fechado, agora a vitrine principal) -->
 <div id="inspArea">
+  <div style="display:flex;justify-content:flex-end;gap:6px;padding:8px 12px 0;">
+    <button class="feed-selbtn" id="btnVerFavoritos" onclick="toggleVerFavoritos()">🤍 Favoritos</button>
+    <button class="feed-selbtn" id="selBtnFeed" onclick="toggleModoSelecaoFeed()">☑️ Selecionar</button>
+  </div>
   <div id="inspBanner" style="background:#fff7ed;border:1px solid #fde7cf;border-radius:12px;padding:12px 14px;margin:10px 12px;font-size:0.82rem;color:#7a5a30;line-height:1.4;"></div>
   <div id="inspGrid" class="feed-grid" style="padding:0 8px;"></div>
 </div>
@@ -663,6 +667,7 @@ Faça sua encomenda abaixo 👇</div>
         </div>
         <!-- LISTA PRODS -->
         <div id="at-prods">
+          <input type="text" id="admBusca" placeholder="🔎 Buscar por nome ou código..." oninput="renderAdmList()" style="width:100%;padding:9px 12px;border:1px solid #ddd;border-radius:10px;font-size:0.85rem;margin-bottom:10px;">
           <p style="font-size:.73rem;color:#888;margin-bottom:8px;">Arraste para reordenar</p>
           <div class="alist" id="adminList"></div>
         </div>
@@ -718,7 +723,7 @@ Faça sua encomenda abaixo 👇</div>
             <div class="form-section-title">📸 Fotos do produto</div>
             <div class="fl">
               <p class="ih" style="margin-bottom:6px;">Escolha várias de uma vez — a primeira (ou a que tiver ⭐) é a capa, todas aparecem juntas aqui do mesmo jeito.</p>
-              <div class="extra-media-grid" id="extraMediaGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px;margin-bottom:6px;"></div>
+              <div class="extra-media-grid" id="extraMediaGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:6px;"></div>
               <div style="display:flex;gap:6px;">
                 <label style="flex:1;display:flex;align-items:center;justify-content:center;aspect-ratio:3/1;border:2px dashed #ddd;border-radius:8px;cursor:pointer;font-size:1.3rem;color:#bbb;background:#fafafa;" onclick="guardarScrollExtraMedia()">
                   ＋ Adicionar fotos/vídeos
@@ -917,7 +922,7 @@ Faça sua encomenda abaixo 👇</div>
   <span class="sel-bar-count" id="selBarCount">0 selecionados</span>
   <div class="sel-bar-actions">
     <button class="sel-bar-btn sel-bar-cancel" onclick="toggleModoSelecao()">Cancelar</button>
-    <button class="sel-bar-btn sel-bar-send" onclick="enviarSelecionados()">📤 Enviar no WhatsApp</button>
+    <button class="sel-bar-btn sel-bar-send" onclick="enviarSelecionadosAtivo()">📤 Enviar no WhatsApp</button>
   </div>
 </div>
 
@@ -1027,6 +1032,31 @@ var msgBannerFeed = ldTxt('msg_banner_feed', '✨ <strong>Esses são modelos que
 var msgConfirmacaoPedido = ldTxt('msg_confirmacao_pedido', 'Fica de olho no WhatsApp — vou confirmar prazo, forma de pagamento e todos os detalhes certinho com você por lá 💕');
 
 function newCod(){var u=new Set(prods.map(function(p){return p.cod;}).filter(Boolean));for(var i=1;i<=99999;i++){var c=('00000'+i).slice(-5);if(!u.has(c))return c;}return'00001';}
+// Versão mais completa: confere contra TODOS os códigos em uso (produtos e variações/fotos extras),
+// não só os códigos principais — usada quando uma foto extra precisa ganhar um código próprio sozinha
+function newCodCompleto(){
+  var u = new Set();
+  prods.forEach(function(p){
+    if(p.cod) u.add(p.cod);
+    (p.medias||[]).forEach(function(m){ if(m && m.cod && m.tipo!=='ref') u.add(m.cod); });
+  });
+  for(var i=1;i<=99999;i++){
+    var c=('00000'+i).slice(-5);
+    if(!u.has(c)) return c;
+  }
+  return '00001';
+}
+// Quando marca "Mostrar no Feed" numa foto que ainda não tem código próprio, dá um código sozinha —
+// assim o link de compartilhar (🔗) dessa foto específica sempre mostra ELA, não a capa do produto
+function ativarMostrarNoFeed(i, checked){
+  if(!extraMedias[i]) return;
+  extraMedias[i].mostrarInsp = checked;
+  if(checked && !extraMedias[i].cod){
+    extraMedias[i].cod = newCodCompleto();
+    renderExtraMediaGrid();
+  }
+  salvarRascunhoProduto();
+}
 
 // Confere se o código do produto ou de alguma variação já é usado em outro lugar do catálogo
 function codigosDuplicados(p){
@@ -1196,6 +1226,10 @@ function openHl(id){
 // RENDER FEED
 function setFeedTab(t){
   feedTab=t;
+  // Trocar de aba sai de qualquer modo de seleção em andamento — evita confusão de ficar
+  // selecionando numa aba com a barra de envio ainda amarrada na outra
+  if(modoSelecao) toggleModoSelecao();
+  if(modoSelecaoFeed) toggleModoSelecaoFeed();
   document.getElementById('tab-feed').className='feed-tab'+(t==='feed'?' active':'');
   document.getElementById('tab-produtos').className='feed-tab'+(t==='produtos'?' active':'');
   document.getElementById('feedArea').style.display=(t==='produtos')?'block':'none';
@@ -1421,6 +1455,67 @@ function fecharConfirmacaoPedido(){
 // ===== SELEÇÃO MÚLTIPLA (enviar várias opções pro cliente de uma vez) =====
 var modoSelecao = false;
 var produtosSelecionados = [];
+
+var modoSelecaoFeed = false;
+var feedSelecionados = []; // códigos das fotos do Feed selecionadas
+
+function toggleModoSelecaoFeed(){
+  modoSelecaoFeed = !modoSelecaoFeed;
+  if(!modoSelecaoFeed) feedSelecionados = [];
+  var btn = document.getElementById('selBtnFeed');
+  btn.classList.toggle('active', modoSelecaoFeed);
+  btn.textContent = modoSelecaoFeed ? '✕ Cancelar' : '☑️ Selecionar';
+  atualizarBarraSelecaoFeed();
+  renderInspClient();
+}
+
+function toggleSelecionarFeedItem(cod){
+  if(!cod) return;
+  var idx = feedSelecionados.indexOf(cod);
+  if(idx>-1) feedSelecionados.splice(idx,1);
+  else feedSelecionados.push(cod);
+  atualizarBarraSelecaoFeed();
+  renderInspClient();
+}
+
+function atualizarBarraSelecaoFeed(){
+  var bar = document.getElementById('selBar');
+  var n = feedSelecionados.length;
+  bar.classList.toggle('show', modoSelecaoFeed && n>0);
+  document.getElementById('selBarCount').textContent = n + (n===1?' selecionada':' selecionadas');
+}
+
+// Acha o nome/preço certo pra um código — pode ser o produto principal ou uma variação/foto extra dele
+function infoDoCodigo(cod){
+  for(var i=0;i<prods.length;i++){
+    var p = prods[i];
+    if(p.cod===cod) return {nome:p.nome, preco:p.preco};
+    var m = (p.medias||[]).find(function(x){return x.cod===cod;});
+    if(m) return {nome:(m.nome||p.nome), preco:(m.preco!=null && m.preco!==''?parseFloat(m.preco):p.preco)};
+  }
+  return {nome:'Confira esse modelo', preco:null};
+}
+
+function enviarSelecionadosFeed(){
+  if(!feedSelecionados.length) return;
+  var msg = 'Separei essas opções pra você:\n\n';
+  feedSelecionados.forEach(function(cod,i){
+    var info = infoDoCodigo(cod);
+    msg += (i+1)+'. *'+info.nome+'*'+(info.preco!=null?(' — R$ '+info.preco.toFixed(2).replace('.',',')):'')+'\n';
+    msg += produtoLink(cod) + '\n\n';
+  });
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(msg).then(function(){ toast('📋 Mensagem copiada! Cole no WhatsApp do cliente.'); }).catch(function(){});
+  }
+  window.open('https://wa.me/?text='+encodeURIComponent(msg), '_blank');
+  toggleModoSelecaoFeed();
+}
+// A barrinha de baixo é compartilhada entre a seleção da aba Produtos e a do Feed — essa função
+// decide pra qual das duas mandar, dependendo de qual está ativa no momento
+function enviarSelecionadosAtivo(){
+  if(modoSelecaoFeed) enviarSelecionadosFeed();
+  else enviarSelecionados();
+}
 
 function toggleModoSelecao(){
   modoSelecao = !modoSelecao;
@@ -1673,8 +1768,8 @@ function carregarCamposMensagem(){
 
 function openAdminStories(){openAdmin();setTimeout(function(){doLogin2();showAT("stories");},100);}
 function doLogin2(){/* recurso de Stories desativado */}
-function openAdmin(){document.getElementById('adminModal').classList.add('open');document.getElementById('loginSec').style.display='block';document.getElementById('adminPanel').style.display='none';document.getElementById('modalTitle').textContent='🔐 Equipe';document.getElementById('pwInput').value='';document.getElementById('errLogin').style.display='none';var cf=document.getElementById('cartFloat');if(cf)cf.style.display='none';}
-function closeAdmin(){document.getElementById('adminModal').classList.remove('open');updateCart();}
+function openAdmin(){document.getElementById('adminModal').classList.add('open');document.getElementById('loginSec').style.display='block';document.getElementById('adminPanel').style.display='none';document.getElementById('modalTitle').textContent='🔐 Equipe';document.getElementById('pwInput').value='';document.getElementById('errLogin').style.display='none';var cf=document.getElementById('cartFloat');if(cf)cf.style.display='none';travarScrollFundo();}
+function closeAdmin(){document.getElementById('adminModal').classList.remove('open');updateCart();destravarScrollFundo();}
 var ADMIN_SESSION_PW = null;
 var ultimoErroAdmin = '';
 async function chamarAdmin(acao, extra){
@@ -1743,10 +1838,17 @@ function showAT(t){
 function renderAdmList(){
   var el=document.getElementById('adminList');
   var list=[].concat(prods).sort(function(a,b){return(a.order||0)-(b.order||0);});
-  if(!list.length){el.innerHTML='<p style="font-size:.79rem;color:#888">Nenhum produto.</p>';return;}
+  var buscaEl = document.getElementById('admBusca');
+  var termo = buscaEl ? buscaEl.value.trim().toLowerCase() : '';
+  if(termo){
+    list = list.filter(function(p){
+      return (p.nome||'').toLowerCase().indexOf(termo)>-1 || (p.cod||'').toLowerCase().indexOf(termo)>-1;
+    });
+  }
+  if(!list.length){el.innerHTML='<p style="font-size:.79rem;color:#888">'+(termo?'Nenhum produto encontrado pra "'+termo+'".':'Nenhum produto.')+'</p>';return;}
   el.innerHTML=list.map(function(p,i){
     var st=p.status==='esgotado'?' 🔴':p.status==='escondido'?' 👁️':'';
-    return '<div class="ait"><div class="aiord"><button type="button" onclick="moverProdutoOrdem('+p.id+',-1)" '+(i===0?'disabled':'')+'>▲</button><button type="button" onclick="moverProdutoOrdem('+p.id+',1)" '+(i===list.length-1?'disabled':'')+'>▼</button></div><div class="aith">'+(p.img?'<img src="'+p.img+'" alt="">':'🌸')+'</div><div class="aiin"><div class="ainm">'+st+(p.cod?'#'+codDisplay(p.cod)+' ':'')+''+p.nome+'</div><div class="aisb">R$ '+p.preco.toFixed(2).replace('.',',')+' · '+(p.cat||'—')+'</div></div><div class="aiact"><button class="be" onclick="editProd('+p.id+')">Editar</button><button class="bd" onclick="delProd('+p.id+')">Apagar</button></div></div>';
+    return '<div class="ait"><div class="aiord"><button type="button" title="Jogar pro topo" onclick="moverProdutoParaTopo('+p.id+')" '+(i===0?'disabled':'')+' style="font-size:0.65rem;">⏫</button><button type="button" onclick="moverProdutoOrdem('+p.id+',-1)" '+(i===0?'disabled':'')+'>▲</button><button type="button" onclick="moverProdutoOrdem('+p.id+',1)" '+(i===list.length-1?'disabled':'')+'>▼</button></div><div class="aith">'+(p.img?'<img src="'+p.img+'" alt="">':'🌸')+'</div><div class="aiin"><div class="ainm">'+st+(p.cod?'#'+codDisplay(p.cod)+' ':'')+''+p.nome+'</div><div class="aisb">R$ '+p.preco.toFixed(2).replace('.',',')+' · '+(p.cat||'—')+'</div></div><div class="aiact"><button class="be" onclick="editProd('+p.id+')">Editar</button><button class="bd" onclick="delProd('+p.id+')">Apagar</button></div></div>';
   }).join('');
 }
 // Sobe/desce um produto na lista trocando a posição com o vizinho — funciona em qualquer aparelho,
@@ -1756,11 +1858,30 @@ function moverProdutoOrdem(id, dir){
   var i=list.findIndex(function(p){return p.id===id;});
   var j=i+dir;
   if(i<0||j<0||j>=list.length) return;
-  var s=list[i], tg=list[j];
-  var tmp=s.order;s.order=tg.order;tg.order=tmp;
+  var item = list.splice(i,1)[0];
+  list.splice(j,0,item);
+  aplicarNovaOrdemProdutos(list);
+}
+// Joga o produto direto pro topo da lista, sem precisar clicar ▲ várias vezes
+function moverProdutoParaTopo(id){
+  var list=[].concat(prods).sort(function(a,b){return(a.order||0)-(b.order||0);});
+  var i=list.findIndex(function(p){return p.id===id;});
+  if(i<0) return;
+  var item = list.splice(i,1)[0];
+  list.unshift(item);
+  aplicarNovaOrdemProdutos(list);
+}
+// Renumera a lista inteira (0,1,2,3...) e só manda pro Supabase quem realmente mudou de posição —
+// isso corrige de vez qualquer duplicidade de número de ordem que tenha ficado de produtos mais
+// antigos (essa duplicidade era o motivo do "trava e não sobe mais": trocar dois produtos com o
+// mesmo número entre si não muda nada, então parecia travado)
+function aplicarNovaOrdemProdutos(list){
+  var mudou = [];
+  list.forEach(function(p,idx){
+    if(p.order !== idx){ p.order = idx; mudou.push(p); }
+  });
   try{ localStorage.setItem('manu_p', JSON.stringify(prods)); }catch(e){}
-  sbUpsertProduto(s).catch(function(e){console.error('Erro Supabase:',e);});
-  sbUpsertProduto(tg).catch(function(e){console.error('Erro Supabase:',e);});
+  mudou.forEach(function(p){ sbUpsertProduto(p).catch(function(e){console.error('Erro Supabase:',e);}); });
   renderAdmList();render();
 }
 function editProd(id){guardarScrollAdminList();var p=prods.find(function(x){return x.id===id;});if(!p)return;editPId=id;document.getElementById('editId').value=id;document.getElementById('pNome').value=p.nome;document.getElementById('pDesc').value=p.desc||'';document.getElementById('pPreco').value=p.preco;document.getElementById('pCat').value=p.cat||'';document.getElementById('pTam').value=p.tam||'';document.getElementById('pCod').value=p.cod||'';document.getElementById('imgData').value=p.img||'';document.getElementById('imgPrev').innerHTML=p.img?'<img src="'+p.img+'">':'<span>📷</span>';setStatus(p.status||'ativo');showAT('novo');}
@@ -1810,7 +1931,11 @@ var rascunhoProdutoVerificado = false;
 // pra você ter certeza de que salvou antes de sair, em vez de confiar só no salvamento silencioso
 function salvarRascunhoManual(){
   var salvou = salvarRascunhoProduto();
-  toast(salvou ? '📝 Rascunho salvo! Pode sair tranquila, ele estará aqui quando voltar.' : 'Preencha algo antes de salvar o rascunho.');
+  if(salvou==='parcial'){
+    toast('📝 Rascunho salvo, mas as fotos extras eram grandes demais pra guardar — só o texto e a capa ficaram protegidos.');
+  } else {
+    toast(salvou ? '📝 Rascunho salvo! Pode sair tranquila, ele estará aqui quando voltar.' : 'Preencha algo antes de salvar o rascunho.');
+  }
 }
 // Avisa na hora, enquanto digita, se aquele número já está em uso em outro produto/variação —
 // evita ter que salvar pra descobrir que o código escolhido já existe
@@ -1852,9 +1977,20 @@ function salvarRascunhoProduto(){
       // depois, já que o id interno do produto muda toda vez que a página recarrega
       editandoCod: editPId ? ((prods.find(function(x){return x.id===editPId;})||{}).cod||'') : ''
     };
-    if(!r.nome && !r.desc && !r.imgData && !r.preco){ localStorage.removeItem('manu_rascunho_produto'); return false; }
-    localStorage.setItem('manu_rascunho_produto', JSON.stringify(r));
-    return true;
+    if(!r.nome && !r.desc && !r.imgData && !r.preco){ try{ localStorage.removeItem('manu_rascunho_produto'); }catch(e){} return false; }
+    // Tenta guardar as fotos extras também — antes só a capa era protegida, então se o navegador
+    // fechasse antes do "💾 Salvar" de verdade, as fotos extras simplesmente não estavam no rascunho
+    try{
+      r.extraMedias = extraMedias;
+      localStorage.setItem('manu_rascunho_produto', JSON.stringify(r));
+      return true;
+    }catch(e){
+      // Provavelmente estourou o limite de espaço do navegador (fotos grandes demais) — tenta salvar
+      // só o essencial sem as fotos extras, pra não perder tudo de uma vez
+      delete r.extraMedias;
+      localStorage.setItem('manu_rascunho_produto', JSON.stringify(r));
+      return 'parcial';
+    }
   }catch(e){ console.error('Erro ao salvar rascunho (talvez a foto seja grande demais pro navegador guardar):', e); return false; }
 }
 // Quando abre um produto JÁ EXISTENTE pra editar, confere se tem um rascunho não salvo dele
@@ -1884,6 +2020,10 @@ function verificarRascunhoAoEditar(p){
       var sliderE=document.getElementById('posYSlider'); if(sliderE) sliderE.value=posYAtual;
       var zoomE=document.getElementById('zoomSlider'); if(zoomE) zoomE.value=zoomAtual;
       setEncaixe(r.encaixe||'cover');
+    }
+    if(r.extraMedias && r.extraMedias.length){
+      extraMedias = r.extraMedias;
+      renderExtraMediaGrid();
     }
   }catch(e){ console.error('Erro ao verificar rascunho de edição:', e); }
 }
@@ -1922,6 +2062,10 @@ function verificarRascunhoProduto(){
       var zoomE=document.getElementById('zoomSlider'); if(zoomE) zoomE.value=zoomAtual;
       setEncaixe(r.encaixe||'cover');
     });
+  }
+  if(r.extraMedias && r.extraMedias.length){
+    extraMedias = r.extraMedias;
+    renderExtraMediaGrid();
   }
   toast('📝 Rascunho restaurado!');
 }
@@ -2467,6 +2611,7 @@ function renderInspAdmList(){
 function coletarInspiracoesDeProdutos(){
   var lista = [];
   prods.forEach(function(p){
+    if(p.status==='escondido') return; // produto escondido não deve aparecer em lugar nenhum, nem no Feed
     // Foto principal (capa), se marcada pra aparecer no Feed
     if(p.mostrarInsp && p.img){
       lista.push({origem:'produto', prodId:p.id, img:p.img, cod:p.cod||'', posy:(p.posy!=null?p.posy:50), carouselIdx:0, ordem:(p.ordemFeed||0), oculta:false, legenda:''});
@@ -2494,6 +2639,22 @@ function coletarInspiracoesDeProdutos(){
   return lista;
 }
 
+var favoritos = ldTxt('cliente_favoritos', []);
+var verSoFavoritos = false;
+function toggleFavorito(cod, ev){
+  if(ev){ ev.stopPropagation(); ev.preventDefault(); } // não abre a foto/produto ao tocar no coraçãozinho
+  if(!cod) return;
+  var idx = favoritos.indexOf(cod);
+  if(idx>-1) favoritos.splice(idx,1); else favoritos.push(cod);
+  sv('cliente_favoritos', favoritos);
+  renderInspClient();
+}
+function toggleVerFavoritos(){
+  verSoFavoritos = !verSoFavoritos;
+  var btn = document.getElementById('btnVerFavoritos');
+  if(btn) btn.classList.toggle('active', verSoFavoritos);
+  renderInspClient();
+}
 function renderInspClient(){
   var el = document.getElementById('inspGrid');
   if(!el) return;
@@ -2503,20 +2664,29 @@ function renderInspClient(){
   var deProdutos = coletarInspiracoesDeProdutos();
   // Ordem única: manuais e fotos de produtos ficam misturados, na posição que a Manu escolheu em "Ordem do Feed"
   var lista = manual.concat(deProdutos).sort(function(a,b){return (a.ordem||0)-(b.ordem||0);});
-  if(!lista.length){ el.innerHTML='<div style="text-align:center;padding:40px;color:#888;grid-column:1/-1;">Nenhuma inspiração por aqui ainda</div>'; return; }
+  var btnFav = document.getElementById('btnVerFavoritos');
+  if(btnFav) btnFav.textContent = '🤍 Favoritos'+(favoritos.length?' ('+favoritos.length+')':'');
+  if(verSoFavoritos) lista = lista.filter(function(it){ return it.cod && favoritos.indexOf(it.cod)>-1; });
+  if(!lista.length){ el.innerHTML='<div style="text-align:center;padding:40px;color:#888;grid-column:1/-1;">'+(verSoFavoritos?'Você ainda não favoritou nada — toque no 🤍 de uma foto pra guardar aqui':'Nenhuma inspiração por aqui ainda')+'</div>'; return; }
   el.innerHTML = lista.map(function(it){
+    var sel = modoSelecaoFeed && feedSelecionados.indexOf(it.cod)>-1;
     var clique;
-    if(it.origem==='produto' && it.oculta){
+    if(modoSelecaoFeed){
+      clique = it.cod ? ('toggleSelecionarFeedItem(\''+it.cod.replace(/'/g,"\\'")+'\')') : '';
+    } else if(it.origem==='produto' && it.oculta){
       clique = 'abrirFotoFeedOculta('+it.prodId+',\''+it.img.replace(/'/g,"\\'")+'\',\''+(it.legenda||'').replace(/'/g,"\\'")+'\',\''+(it.cod||'').replace(/'/g,"\\'")+'\',\''+(it.ehVideo?(it.videoSrc||'').replace(/'/g,"\\'"):'')+'\')';
     } else if(it.origem==='produto'){
       clique = 'openProd('+it.prodId+','+it.carouselIdx+')';
     } else {
       clique = 'openInsp('+it.id+')';
     }
-    var playIcon = it.ehVideo ? '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;"><div style="width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.9rem;">▶</div></div>' : '';
+    var playIcon = (it.ehVideo && !modoSelecaoFeed) ? '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;"><div style="width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.9rem;">▶</div></div>' : '';
+    var checkSel = modoSelecaoFeed ? '<div style="position:absolute;top:6px;left:6px;width:24px;height:24px;border-radius:50%;border:2px solid '+(sel?'var(--brand)':'#fff')+';background:'+(sel?'var(--brand)':'rgba(0,0,0,0.25)')+';color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:900;z-index:2;">'+(sel?'✓':'')+'</div>' : '';
+    var ehFav = it.cod && favoritos.indexOf(it.cod)>-1;
+    var coracao = (!modoSelecaoFeed && it.cod) ? '<div onclick="toggleFavorito(\''+it.cod.replace(/'/g,"\\'")+'\',event)" style="position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;font-size:0.95rem;z-index:2;">'+(ehFav?'❤️':'🤍')+'</div>' : '';
     return '<div class="feed-cell" onclick="'+clique+'">'+
       (it.img?'<img src="'+it.img+'" alt="" loading="lazy" style="object-fit:cover;object-position:center '+posySafe(it.posy)+'%;">':'<div class="cell-fallback"><span style="font-size:2.5rem">🌸</span></div>')+
-      playIcon+
+      playIcon+checkSel+coracao+
       '<div class="cell-overlay"></div>'+
       '<div class="cell-cod">#'+codDisplay(it.cod)+'</div>'+
       '</div>';
@@ -2570,6 +2740,7 @@ function coletarItensOrdemFeed(){
     lista.push({origem:'manual', ordem:(it.order||0), img:it.img, cod:(it.codProduto||it.cod||''), inspId:it.id});
   });
   prods.forEach(function(p){
+    if(p.status==='escondido') return;
     if(p.mostrarInsp && p.img){
       lista.push({origem:'capa', ordem:(p.ordemFeed||0), img:p.img, cod:p.cod||'', prodId:p.id});
     }
@@ -3018,25 +3189,26 @@ function renderExtraMediaGrid(){
   if(capaImg){
     var chkCapa = document.getElementById('pMostrarInsp');
     var ehContain = encaixeAtual !== 'cover';
-    htmlCapa = '<div class="extra-media-item" style="display:flex;flex-direction:column;border-color:#f5c518;">'+
-      '<div class="aiord" style="flex-direction:row;justify-content:center;align-items:center;gap:6px;margin-bottom:3px;"><span style="font-size:0.68rem;font-weight:700;color:#c9970a;">⭐ Capa</span></div>'+
+    htmlCapa = '<div class="extra-media-item" style="display:flex;flex-direction:column;border-color:#f5c518;border-width:2px;">'+
+      '<div class="aiord" style="flex-direction:row;justify-content:center;align-items:center;gap:8px;margin-bottom:6px;"><span style="font-size:0.82rem;font-weight:700;color:#c9970a;">⭐ Capa do produto</span></div>'+
       '<div class="extra-media-thumb">'+(ehContain ? '<img src="'+capaImg+'" style="width:100%;height:100%;object-fit:contain;background:#f0f0f0;">' : '<img id="capaThumbImg" src="'+capaImg+'" onload="posicionarFotoExtra(this,'+posYAtual+','+zoomAtual+')">')+'</div>'+
-      '<div style="display:flex;gap:4px;margin-top:4px;">'+
-      '<button type="button" onclick="setEncaixeCapaCard(\'cover\')" style="flex:1;font-size:0.6rem;padding:4px;border-radius:6px;border:1px solid '+(!ehContain?'#111':'#ddd')+';background:'+(!ehContain?'#111':'#fff')+';color:'+(!ehContain?'#fff':'#666')+';">🔲 Cortar</button>'+
-      '<button type="button" onclick="setEncaixeCapaCard(\'contain\')" style="flex:1;font-size:0.6rem;padding:4px;border-radius:6px;border:1px solid '+(ehContain?'#111':'#ddd')+';background:'+(ehContain?'#111':'#fff')+';color:'+(ehContain?'#fff':'#666')+';">🖼️ Ajustar</button>'+
+      '<div style="display:flex;gap:6px;margin-top:10px;">'+
+      '<button type="button" onclick="setEncaixeCapaCard(\'cover\')" style="flex:1;font-size:0.75rem;padding:7px;border-radius:8px;border:1px solid '+(!ehContain?'var(--brand)':'#ddd')+';background:'+(!ehContain?'var(--brand)':'#fff')+';color:'+(!ehContain?'#fff':'#666')+';">🔲 Cortar</button>'+
+      '<button type="button" onclick="setEncaixeCapaCard(\'contain\')" style="flex:1;font-size:0.75rem;padding:7px;border-radius:8px;border:1px solid '+(ehContain?'var(--brand)':'#ddd')+';background:'+(ehContain?'var(--brand)':'#fff')+';color:'+(ehContain?'#fff':'#666')+';">🖼️ Ajustar</button>'+
       '</div>'+
       (ehContain ? '' :
-        '<div style="margin-top:4px;">'+
-        '<label style="font-size:0.6rem;color:#888;display:block;">↕️ Posição</label>'+
-        '<input type="range" min="0" max="100" value="'+posYAtual+'" oninput="ajustarPosY(this.value);sincronizarCardCapa();" style="width:100%;height:14px;">'+
-        '<label style="font-size:0.6rem;color:#888;display:block;">🔍 Zoom</label>'+
-        '<input type="range" min="50" max="400" value="'+zoomAtual+'" oninput="ajustarZoom(this.value);sincronizarCardCapa();" style="width:100%;height:14px;">'+
+        '<div style="margin-top:12px;padding-top:10px;border-top:1px solid #eee;">'+
+        '<div style="font-size:0.7rem;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.03em;margin-bottom:6px;">📍 Enquadramento</div>'+
+        '<label style="font-size:0.72rem;color:#888;display:block;margin-bottom:2px;">↕️ Posição</label>'+
+        '<input type="range" min="0" max="100" value="'+posYAtual+'" oninput="ajustarPosY(this.value);sincronizarCardCapa();" style="width:100%;height:18px;">'+
+        '<label style="font-size:0.72rem;color:#888;display:block;margin:6px 0 2px;">🔍 Zoom</label>'+
+        '<input type="range" min="50" max="400" value="'+zoomAtual+'" oninput="ajustarZoom(this.value);sincronizarCardCapa();" style="width:100%;height:18px;">'+
         '</div>')+
-      '<label style="display:flex;align-items:center;gap:3px;font-size:0.65rem;margin-top:3px;color:#8a5cf6;"><input type="checkbox" '+(chkCapa&&chkCapa.checked?'checked':'')+' onchange="document.getElementById(\'pMostrarInsp\').checked=this.checked" style="width:12px;height:12px;">✨ Mostrar no Feed</label>'+
+      '<label style="display:flex;align-items:center;gap:6px;font-size:0.76rem;margin-top:10px;padding-top:10px;border-top:1px solid #eee;color:#8a5cf6;font-weight:600;"><input type="checkbox" '+(chkCapa&&chkCapa.checked?'checked':'')+' onchange="document.getElementById(\'pMostrarInsp\').checked=this.checked" style="width:16px;height:16px;">✨ Mostrar no Feed</label>'+
       '</div>';
   }
   el.innerHTML = htmlCapa + extraMedias.map(function(m,i){
-    var ordBtns = '<div class="aiord" style="flex-direction:row;justify-content:center;align-items:center;gap:6px;margin-bottom:3px;"><button type="button" onclick="moverExtraMedia('+i+',-1)" '+(i===0?'disabled':'')+'>◀</button><button type="button" onclick="moverExtraMedia('+i+',1)" '+(i===extraMedias.length-1?'disabled':'')+'>▶</button>'+((m.type!=='video' && m.tipo!=='ref') ? '<button type="button" title="Definir como capa" onclick="promoverParaCapa('+i+')" style="background:none;border:none;font-size:0.9rem;cursor:pointer;">⭐</button>' : '')+'</div>';
+    var ordBtns = '<div class="aiord" style="flex-direction:row;justify-content:center;align-items:center;gap:10px;margin-bottom:6px;"><button type="button" onclick="moverExtraMedia('+i+',-1)" '+(i===0?'disabled':'')+'>◀</button><button type="button" onclick="moverExtraMedia('+i+',1)" '+(i===extraMedias.length-1?'disabled':'')+'>▶</button>'+((m.type!=='video' && m.tipo!=='ref') ? '<button type="button" title="Definir como capa" onclick="promoverParaCapa('+i+')" style="background:none;border:none;font-size:1.1rem;cursor:pointer;">⭐</button>' : '')+'</div>';
     if(m.tipo==='ref'){
       var codRefAdm = (m.cod||'').trim().toLowerCase();
       var pRef = prods.find(function(x){return (x.cod||'').trim().toLowerCase()===codRefAdm;});
@@ -3056,34 +3228,40 @@ function renderExtraMediaGrid(){
       ? '<video src="'+m.data+'" controls playsinline '+(m.mudo?'muted':'')+' onloadedmetadata="this.currentTime='+trimIni+'" ontimeupdate="if(this.currentTime>='+trimFim+'){this.currentTime='+trimIni+';this.pause();}" style="width:100%;height:100%;object-fit:cover"></video>'
       : '<img src="'+fotoParaPreview+'" onload="posicionarFotoExtra(this,'+(m.posy!=null?m.posy:50)+','+(m.zoom!=null?m.zoom:100)+')">';
     var ajusteFoto = m.type==='video' ? '' :
-      '<div style="margin-top:4px;">'+
-      '<label style="font-size:0.6rem;color:#888;display:block;">↕️ Posição</label>'+
-      '<input type="range" min="0" max="100" value="'+(m.posy!=null?m.posy:50)+'" oninput="ajustarExtraPosY('+i+',this.value)" style="width:100%;height:14px;">'+
-      '<label style="font-size:0.6rem;color:#888;display:block;">🔍 Zoom</label>'+
-      '<input type="range" min="50" max="400" value="'+(m.zoom!=null?m.zoom:100)+'" oninput="ajustarExtraZoom('+i+',this.value)" style="width:100%;height:14px;">'+
+      '<div style="margin-top:10px;padding-top:10px;border-top:1px solid #eee;">'+
+      '<div style="font-size:0.7rem;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.03em;margin-bottom:6px;">📍 Enquadramento</div>'+
+      '<label style="font-size:0.72rem;color:#888;display:block;margin-bottom:2px;">↕️ Posição</label>'+
+      '<input type="range" min="0" max="100" value="'+(m.posy!=null?m.posy:50)+'" oninput="ajustarExtraPosY('+i+',this.value)" style="width:100%;height:18px;">'+
+      '<label style="font-size:0.72rem;color:#888;display:block;margin:6px 0 2px;">🔍 Zoom</label>'+
+      '<input type="range" min="50" max="400" value="'+(m.zoom!=null?m.zoom:100)+'" oninput="ajustarExtraZoom('+i+',this.value)" style="width:100%;height:18px;">'+
       '</div>';
     var ajusteVideo = m.type!=='video' ? '' :
-      '<div style="margin-top:4px;">'+
-      '<label style="display:flex;align-items:center;gap:4px;font-size:0.65rem;color:#666;"><input type="checkbox" '+(m.mudo?'checked':'')+' onchange="setMediaVar('+i+',\'mudo\',this.checked);renderExtraMediaGrid();" style="width:12px;height:12px;">🔇 Sem áudio</label>'+
-      '<label style="font-size:0.6rem;color:#888;display:block;margin-top:3px;">✂️ Cortar (segundos)</label>'+
-      '<div style="display:flex;gap:4px;">'+
-      '<input type="number" step="0.1" min="0" placeholder="Início" value="'+(m.trimStart||'')+'" oninput="setMediaVar('+i+',\'trimStart\',parseFloat(this.value)||0)" onblur="renderExtraMediaGrid()" style="width:50%;font-size:0.65rem;padding:3px 4px;border:1px solid #ddd;border-radius:6px;">'+
-      '<input type="number" step="0.1" min="0" placeholder="Fim" value="'+(m.trimEnd!=null?m.trimEnd:'')+'" oninput="setMediaVar('+i+',\'trimEnd\',this.value?parseFloat(this.value):null)" onblur="renderExtraMediaGrid()" style="width:50%;font-size:0.65rem;padding:3px 4px;border:1px solid #ddd;border-radius:6px;">'+
+      '<div style="margin-top:10px;padding-top:10px;border-top:1px solid #eee;">'+
+      '<label style="display:flex;align-items:center;gap:6px;font-size:0.76rem;color:#666;"><input type="checkbox" '+(m.mudo?'checked':'')+' onchange="setMediaVar('+i+',\'mudo\',this.checked);renderExtraMediaGrid();" style="width:16px;height:16px;">🔇 Sem áudio</label>'+
+      '<div style="font-size:0.7rem;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.03em;margin:10px 0 6px;">✂️ Cortar (segundos)</div>'+
+      '<div style="display:flex;gap:8px;">'+
+      '<input type="number" step="0.1" min="0" placeholder="Início" value="'+(m.trimStart||'')+'" oninput="setMediaVar('+i+',\'trimStart\',parseFloat(this.value)||0)" onblur="renderExtraMediaGrid()" style="width:50%;font-size:0.78rem;padding:7px 8px;border:1px solid #ddd;border-radius:8px;">'+
+      '<input type="number" step="0.1" min="0" placeholder="Fim" value="'+(m.trimEnd!=null?m.trimEnd:'')+'" oninput="setMediaVar('+i+',\'trimEnd\',this.value?parseFloat(this.value):null)" onblur="renderExtraMediaGrid()" style="width:50%;font-size:0.78rem;padding:7px 8px;border:1px solid #ddd;border-radius:8px;">'+
       '</div>'+
-      '<p style="font-size:0.58rem;color:#aaa;margin-top:2px;">Deixe "Fim" vazio pra ir até o final. O vídeo original continua inteiro por trás — isso só controla o que toca no site.</p>'+
-      '<label style="display:flex;align-items:center;gap:3px;font-size:0.65rem;margin-top:5px;color:#8a5cf6;"><input type="checkbox" '+(m.mostrarInsp?'checked':'')+' onchange="setMediaVar('+i+',\'mostrarInsp\',this.checked)" style="width:12px;height:12px;">✨ Mostrar no Feed'+(m.poster?'':' (tirando a fotinho do vídeo...)')+'</label>'+
+      '<p style="font-size:0.68rem;color:#aaa;margin-top:6px;line-height:1.4;">Deixe "Fim" vazio pra ir até o final. O vídeo original continua inteiro por trás — isso só controla o que toca no site.</p>'+
+      '<label style="display:flex;align-items:center;gap:6px;font-size:0.76rem;margin-top:10px;padding-top:10px;border-top:1px solid #eee;color:#8a5cf6;font-weight:600;"><input type="checkbox" '+(m.mostrarInsp?'checked':'')+' onchange="ativarMostrarNoFeed('+i+',this.checked)" style="width:16px;height:16px;">✨ Mostrar no Feed'+(m.poster?'':' (tirando a fotinho do vídeo...)')+'</label>'+
       '</div>';
     var variante = m.type==='video' ? '' :
-      '<div style="display:flex;gap:4px;margin-top:4px;align-items:flex-start;">'+
-      '<div><input placeholder="Cód." value="'+(m.cod||'')+'" oninput="setMediaVar('+i+',\'cod\',this.value);checarCodigoLivre(this.value,\'mCodStatus'+i+'\')" onblur="formatarCodVariante('+i+',this)" maxlength="5" style="width:54px;font-size:0.68rem;padding:3px 4px;border:1px solid #ddd;border-radius:6px;"><div id="mCodStatus'+i+'" style="font-size:0.6rem;"></div></div>'+
-      '<input placeholder="Preço" type="number" step="0.01" value="'+(m.preco||'')+'" oninput="setMediaVar('+i+',\'preco\',this.value)" style="width:50px;font-size:0.68rem;padding:3px 4px;border:1px solid #ddd;border-radius:6px;">'+
+      '<div style="margin-top:10px;padding-top:10px;border-top:1px solid #eee;">'+
+      '<div style="font-size:0.7rem;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.03em;margin-bottom:6px;">🏷️ Identificação (opcional)</div>'+
+      '<div style="display:flex;gap:8px;align-items:flex-start;">'+
+      '<div style="flex:0 0 auto;"><input placeholder="Cód." value="'+(m.cod||'')+'" oninput="setMediaVar('+i+',\'cod\',this.value);checarCodigoLivre(this.value,\'mCodStatus'+i+'\')" onblur="formatarCodVariante('+i+',this)" maxlength="5" style="width:64px;font-size:0.78rem;padding:7px 8px;border:1px solid #ddd;border-radius:8px;"><div id="mCodStatus'+i+'" style="font-size:0.66rem;margin-top:2px;"></div></div>'+
+      '<input placeholder="Preço" type="number" step="0.01" value="'+(m.preco||'')+'" oninput="setMediaVar('+i+',\'preco\',this.value)" style="flex:1;font-size:0.78rem;padding:7px 8px;border:1px solid #ddd;border-radius:8px;">'+
       '</div>'+
-      '<input placeholder="Nome (ex: Buquê rosa)" value="'+(m.nome||'')+'" oninput="setMediaVar('+i+',\'nome\',this.value)" style="width:100%;font-size:0.68rem;padding:3px 4px;margin-top:3px;border:1px solid #ddd;border-radius:6px;">'+
-      '<input placeholder="O que tem a mais nessa foto (separe por vírgula: Coroa, Borboleta)" value="'+(m.diferenca||'')+'" oninput="setMediaVar('+i+',\'diferenca\',this.value)" style="width:100%;font-size:0.68rem;padding:3px 4px;margin-top:3px;border:1px solid #ddd;border-radius:6px;">'+
-      '<input placeholder="Legenda dessa foto (opcional — se vazio, usa a descrição principal)" value="'+(m.legenda||'')+'" oninput="setMediaVar('+i+',\'legenda\',this.value)" style="width:100%;font-size:0.68rem;padding:3px 4px;margin-top:3px;border:1px solid #ddd;border-radius:6px;">'+
-      '<label style="display:flex;align-items:center;gap:3px;font-size:0.65rem;margin-top:3px;color:#c0392b;"><input type="checkbox" '+(m.esgotado?'checked':'')+' onchange="setMediaVar('+i+',\'esgotado\',this.checked)" style="width:12px;height:12px;">Esgotado</label>'+
-      '<label style="display:flex;align-items:center;gap:3px;font-size:0.65rem;margin-top:3px;color:#8a5cf6;"><input type="checkbox" '+(m.mostrarInsp?'checked':'')+' onchange="setMediaVar('+i+',\'mostrarInsp\',this.checked)" style="width:12px;height:12px;">✨ Mostrar no Feed</label>'+
-      '<label style="display:flex;align-items:center;gap:3px;font-size:0.65rem;margin-top:3px;color:#888;"><input type="checkbox" '+(m.ocultarNoProduto?'checked':'')+' onchange="setMediaVar('+i+',\'ocultarNoProduto\',this.checked)" style="width:12px;height:12px;">🙈 Ocultar essa foto no produto (aparece só no Feed)</label>';
+      '<input placeholder="Nome (ex: Buquê rosa)" value="'+(m.nome||'')+'" oninput="setMediaVar('+i+',\'nome\',this.value)" style="width:100%;font-size:0.78rem;padding:7px 8px;margin-top:8px;border:1px solid #ddd;border-radius:8px;">'+
+      '<input placeholder="O que tem a mais nessa foto (separe por vírgula: Coroa, Borboleta)" value="'+(m.diferenca||'')+'" oninput="setMediaVar('+i+',\'diferenca\',this.value)" style="width:100%;font-size:0.78rem;padding:7px 8px;margin-top:8px;border:1px solid #ddd;border-radius:8px;">'+
+      '<input placeholder="Legenda dessa foto (opcional — se vazio, usa a descrição principal)" value="'+(m.legenda||'')+'" oninput="setMediaVar('+i+',\'legenda\',this.value)" style="width:100%;font-size:0.78rem;padding:7px 8px;margin-top:8px;border:1px solid #ddd;border-radius:8px;">'+
+      '</div>'+
+      '<div style="margin-top:10px;padding-top:10px;border-top:1px solid #eee;display:flex;flex-direction:column;gap:8px;">'+
+      '<label style="display:flex;align-items:center;gap:6px;font-size:0.76rem;color:#c0392b;font-weight:600;"><input type="checkbox" '+(m.esgotado?'checked':'')+' onchange="setMediaVar('+i+',\'esgotado\',this.checked)" style="width:16px;height:16px;">Esgotado</label>'+
+      '<label style="display:flex;align-items:center;gap:6px;font-size:0.76rem;color:#8a5cf6;font-weight:600;"><input type="checkbox" '+(m.mostrarInsp?'checked':'')+' onchange="ativarMostrarNoFeed('+i+',this.checked)" style="width:16px;height:16px;">✨ Mostrar no Feed</label>'+
+      '<label style="display:flex;align-items:center;gap:6px;font-size:0.76rem;color:#888;"><input type="checkbox" '+(m.ocultarNoProduto?'checked':'')+' onchange="setMediaVar('+i+',\'ocultarNoProduto\',this.checked)" style="width:16px;height:16px;flex-shrink:0;">🙈 Ocultar essa foto no produto (aparece só no Feed)</label>'+
+      '</div>';
     return '<div class="extra-media-item" style="display:flex;flex-direction:column;">'+
       ordBtns+
       '<div class="extra-media-thumb">'+tag+'<button class="extra-media-del" onclick="delExtraMedia('+i+')">×</button></div>'+
