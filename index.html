@@ -442,14 +442,8 @@ Faça sua encomenda abaixo 👇</div>
 <!-- DESTAQUES -->
 <div class="highlights" id="hlBar"></div>
 
-<!-- TABS -->
-<div class="feed-tabs">
-  <div class="feed-tab active" id="tab-feed" onclick="setFeedTab('feed')">✨ Feed</div>
-  <div class="feed-tab" id="tab-produtos" onclick="setFeedTab('produtos')">⊞ Produtos</div>
-</div>
-
-<!-- TOOLBAR (aba Produtos) -->
-<div class="feed-toolbar" id="feedToolbar" style="display:none;">
+<!-- BARRA DE FERRAMENTAS ÚNICA (busca, ordenar, favoritos, selecionar) -->
+<div class="feed-toolbar" id="feedToolbar">
   <input class="feed-search" type="search" placeholder="🔍 Buscar..." id="searchInput" oninput="render()">
   <select class="feed-sort" id="sortSel" onchange="render()">
     <option value="custom" selected>Ordem</option>
@@ -457,22 +451,15 @@ Faça sua encomenda abaixo 👇</div>
     <option value="pa">Menor preço</option>
     <option value="pd">Maior preço</option>
   </select>
-  <button class="feed-selbtn" id="viewBtn" onclick="toggleVisualizacaoProdutos()" title="Alternar entre grade e lista">⊞</button>
-  <button class="feed-selbtn" id="selBtn" onclick="toggleModoSelecao()" style="display:none;">☑️ Selecionar</button>
+  <button class="feed-selbtn" id="btnVerFavoritos" onclick="toggleVerFavoritos()">🤍 Favoritos</button>
+  <button class="feed-selbtn" id="selBtnFeed" onclick="toggleModoSelecaoFeed()" style="display:none;">☑️ Selecionar</button>
 </div>
 
-<!-- CATEGORIAS (aba Produtos) -->
-<div id="catChips" style="display:none;gap:6px;overflow-x:auto;padding:2px 12px 10px;-webkit-overflow-scrolling:touch;"></div>
+<!-- CATEGORIAS -->
+<div id="catChips" style="display:flex;gap:6px;overflow-x:auto;padding:2px 12px 10px;-webkit-overflow-scrolling:touch;"></div>
 
-<!-- PRODUTOS (era Feed/Lista: itens com preço fechado) -->
-<div id="feedArea" style="display:none;"></div>
-
-<!-- FEED (era Inspiração: modelos sem preço fechado, agora a vitrine principal) -->
+<!-- VITRINE ÚNICA (era separado em Feed + Produtos; agora é uma coisa só) -->
 <div id="inspArea">
-  <div style="display:flex;justify-content:flex-end;gap:6px;padding:8px 12px 0;">
-    <button class="feed-selbtn" id="btnVerFavoritos" onclick="toggleVerFavoritos()">🤍 Favoritos</button>
-    <button class="feed-selbtn" id="selBtnFeed" onclick="toggleModoSelecaoFeed()">☑️ Selecionar</button>
-  </div>
   <div id="inspBanner" style="background:#fff7ed;border:1px solid #fde7cf;border-radius:12px;padding:12px 14px;margin:10px 12px;font-size:0.82rem;color:#7a5a30;line-height:1.4;"></div>
   <div id="inspGrid" class="feed-grid" style="padding:0 8px;"></div>
 </div>
@@ -921,7 +908,7 @@ Faça sua encomenda abaixo 👇</div>
 <div class="sel-bar" id="selBar">
   <span class="sel-bar-count" id="selBarCount">0 selecionados</span>
   <div class="sel-bar-actions">
-    <button class="sel-bar-btn sel-bar-cancel" onclick="toggleModoSelecao()">Cancelar</button>
+    <button class="sel-bar-btn sel-bar-cancel" onclick="cancelarSelecaoAtiva()">Cancelar</button>
     <button class="sel-bar-btn sel-bar-send" onclick="enviarSelecionadosAtivo()">📤 Enviar no WhatsApp</button>
   </div>
 </div>
@@ -985,7 +972,7 @@ function renderCatChips(){
     var c = p.cat && p.cat.trim() ? p.cat.trim() : 'Outros';
     if(cats.indexOf(c)===-1) cats.push(c);
   });
-  if(cats.length<2){ el.innerHTML=''; return; } // a visibilidade (mostrar só na aba Produtos) é controlada por setFeedTab, não aqui
+  if(cats.length<2){ el.innerHTML=''; return; } // só mostra os chips se houver mais de uma categoria cadastrada
   var todas = ['todos'].concat(cats);
   el.innerHTML = todas.map(function(c){
     var ativo = c===catAtual;
@@ -1223,69 +1210,13 @@ function openHl(id){
   document.getElementById('modalHl').classList.add('open');
 }
 
-// RENDER FEED
-function setFeedTab(t){
-  feedTab=t;
-  // Trocar de aba sai de qualquer modo de seleção em andamento — evita confusão de ficar
-  // selecionando numa aba com a barra de envio ainda amarrada na outra
-  if(modoSelecao) toggleModoSelecao();
-  if(modoSelecaoFeed) toggleModoSelecaoFeed();
-  document.getElementById('tab-feed').className='feed-tab'+(t==='feed'?' active':'');
-  document.getElementById('tab-produtos').className='feed-tab'+(t==='produtos'?' active':'');
-  document.getElementById('feedArea').style.display=(t==='produtos')?'block':'none';
-  document.getElementById('feedToolbar').style.display=(t==='produtos')?'flex':'none';
-  document.getElementById('catChips').style.display=(t==='produtos')?'flex':'none';
-  document.getElementById('inspArea').style.display=(t==='feed')?'block':'none';
-  if(t==='feed') renderInspClient();
-  else render();
-}
-function toggleVisualizacaoProdutos(){
-  produtosView = produtosView==='grid' ? 'lista' : 'grid';
-  var btn = document.getElementById('viewBtn'); if(btn) btn.textContent = produtosView==='grid' ? '☰' : '⊞';
-  render();
-}
+// RENDER VITRINE (era dividido em abas Feed/Produtos; agora é uma vitrine única)
 
+// Antes "render()" desenhava a aba Produtos separada da aba Feed. Agora existe uma vitrine só,
+// então render() só aponta pra ela — assim todo lugar que já chamava render() continua funcionando
+// sem precisar mudar nada.
 function render(){
-  var q=document.getElementById('searchInput').value.toLowerCase();
-  var s=document.getElementById('sortSel').value;
-  var list=prods.filter(function(p){
-    if(p.status==='escondido')return false;
-    if(catAtual!=='todos' && (p.cat||'Outros')!==catAtual) return false;
-    return !q||p.nome.toLowerCase().indexOf(q)>=0||(p.desc||'').toLowerCase().indexOf(q)>=0||(p.tags||'').toLowerCase().indexOf(q)>=0||(p.cat||'').toLowerCase().indexOf(q)>=0;
-  });
-  renderCatChips();
-  if(s==='az')list.sort(function(a,b){return a.nome.localeCompare(b.nome);});
-  else if(s==='pa')list.sort(function(a,b){return a.preco-b.preco;});
-  else if(s==='pd')list.sort(function(a,b){return b.preco-a.preco;});
-  else list.sort(function(a,b){return(a.order||0)-(b.order||0);});
-  document.getElementById('statProds').textContent=prods.filter(function(p){return p.status!=='escondido';}).length;
-  var el=document.getElementById('feedArea');
-  if(produtosView==='grid'){
-    if(!list.length){el.innerHTML='<div style="text-align:center;padding:40px;color:#888">Nenhum produto</div>';return;}
-    var cells=list.map(function(p){
-      var img=p.img?'<img src="'+p.img+'" alt="" loading="lazy" style="object-fit:cover;object-position:center '+posySafe(p.posy)+'%;">':'<div class="cell-fallback"><span style="font-size:2.5rem">🌸</span></div>';
-      var esg=p.status==='esgotado'?'<div class="cell-esg-overlay"><div class="cell-esg">ESGOTADO</div></div>':'';
-      var cod=p.cod?'<div class="cell-cod">#'+codDisplay(p.cod)+'</div>':'';
-      var sel = produtosSelecionados.indexOf(p.id)>-1;
-      var check = modoSelecao ? '<div class="sel-check'+(sel?' on':'')+'">✓</div>' : '';
-      var clique = modoSelecao ? 'toggleSelecionarProduto('+p.id+')' : 'openProd('+p.id+')';
-      return '<div class="feed-cell" onclick="'+clique+'">'+check+img+'<div class="cell-overlay"></div>'+esg+cod+'</div>';
-    }).join('');
-    el.innerHTML='<div class="feed-grid">'+cells+'</div>';
-  } else {
-    if(!list.length){el.innerHTML='<div style="text-align:center;padding:40px;color:#888">Nenhum produto</div>';return;}
-    var cards=list.map(function(p){
-      var img=p.img?'<img src="'+p.img+'" alt="" loading="lazy" style="width:90px;height:90px;object-fit:cover;border-radius:10px;flex-shrink:0;">':'<div style="width:90px;height:90px;background:#f0f0f0;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:2rem;flex-shrink:0;">🌸</div>';
-      var esg=p.status==='esgotado'?'<span style="background:#fde8e8;color:#c0392b;font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:20px;margin-left:6px;">ESGOTADO</span>':'';
-      var qty=totalQtyProduto(p.id);
-      var sel = produtosSelecionados.indexOf(p.id)>-1;
-      var check = modoSelecao ? '<div style="width:24px;height:24px;border-radius:50%;border:2px solid '+(sel?'#111':'#ccc')+';background:'+(sel?'#111':'#fff')+';color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:900;flex-shrink:0;align-self:center;">'+(sel?'✓':'')+'</div>' : '';
-      var btn=p.status==='esgotado'?'<button style="padding:6px 14px;border-radius:50px;border:1px solid #ddd;background:#f5f5f5;font-size:0.78rem;font-weight:600;color:#999;" disabled>Esgotado</button>':'<button style="padding:6px 14px;border-radius:50px;border:none;background:#111;color:#fff;font-size:0.78rem;font-weight:600;cursor:pointer;"'+(qty>0?' style="background:#25a244"':'')+' onclick="openProd('+p.id+')">'+( qty>0?'✓ OK':'Adicionar')+'</button>';
-      var clique = modoSelecao ? 'toggleSelecionarProduto('+p.id+')' : 'openProd('+p.id+')';
-      return '<div style="display:flex;gap:12px;padding:12px 14px;border-bottom:1px solid #f0f0f0;background:#fff;cursor:pointer;" onclick="'+clique+'">'+check+img+'<div style="flex:1;padding-top:2px;"><div style="font-size:0.7rem;color:#888;margin-bottom:2px;">'+(p.cat||'')+(p.cod?' · #'+codDisplay(p.cod):'')+'</div><div style="font-weight:600;font-size:0.9rem;margin-bottom:3px;">'+p.nome+esg+'</div>'+(p.tam?'<div style="font-size:0.72rem;color:#666;margin-bottom:4px;">'+p.tam+'</div>':'')+'<div style="font-weight:700;font-size:0.95rem;margin-bottom:8px;">R$ '+p.preco.toFixed(2).replace('.',',')+'</div>'+(modoSelecao?'':btn)+'</div></div>';
-    }).join('');
-    el.innerHTML='<div>'+cards+'</div>';
-  }
+  renderInspClient();
 }
 
 // MODAL PRODUTO
@@ -1515,6 +1446,10 @@ function enviarSelecionadosFeed(){
 function enviarSelecionadosAtivo(){
   if(modoSelecaoFeed) enviarSelecionadosFeed();
   else enviarSelecionados();
+}
+function cancelarSelecaoAtiva(){
+  if(modoSelecaoFeed) toggleModoSelecaoFeed();
+  else toggleModoSelecao();
 }
 
 function toggleModoSelecao(){
@@ -1795,7 +1730,7 @@ async function doLogin(){
     document.getElementById('modalTitle').textContent='Gerenciar';
     showAT('prods');
     renderStories();
-    var selBtnEl = document.getElementById('selBtn');
+    var selBtnEl = document.getElementById('selBtnFeed');
     if(selBtnEl) selBtnEl.style.display='inline-block'; // "Selecionar" (enviar seleção pro cliente) é só pra você, depois de logar
   } else {
     ADMIN_SESSION_PW = null;
@@ -2611,10 +2546,11 @@ function renderInspAdmList(){
 function coletarInspiracoesDeProdutos(){
   var lista = [];
   prods.forEach(function(p){
-    if(p.status==='escondido') return; // produto escondido não deve aparecer em lugar nenhum, nem no Feed
-    // Foto principal (capa), se marcada pra aparecer no Feed
-    if(p.mostrarInsp && p.img){
-      lista.push({origem:'produto', prodId:p.id, img:p.img, cod:p.cod||'', posy:(p.posy!=null?p.posy:50), carouselIdx:0, ordem:(p.ordemFeed||0), oculta:false, legenda:''});
+    if(p.status==='escondido') return; // produto escondido não deve aparecer em lugar nenhum, nem na vitrine
+    // A capa sempre aparece — ela é a listagem principal do produto agora que não existe mais uma
+    // aba "Produtos" separada. "Mostrar no Feed" continua controlando só as fotos EXTRAS opcionais.
+    if(p.img){
+      lista.push({origem:'produto', prodId:p.id, img:p.img, cod:p.cod||'', posy:(p.posy!=null?p.posy:50), carouselIdx:0, ordem:(p.ordemFeed||0), oculta:false, legenda:'', cat:(p.cat||'Outros'), preco:p.preco, nome:p.nome, esgotado:(p.status==='esgotado')});
     }
     // carouselPos acompanha a posição real no carrossel do produto (posição 0 é sempre a capa);
     // fotos ocultadas do produto (ocultarNoProduto) não existem lá, então não contam posição
@@ -2630,7 +2566,8 @@ function coletarInspiracoesDeProdutos(){
           ordem:(m.ordemFeed||0),
           oculta: !apareceNoCarrossel, // marcada "só no Feed" — não dá pra pular pra ela dentro do produto, precisa de um jeito próprio de ver grande
           legenda: m.legenda||'',
-          videoSrc: (m.type==='video'?m.data:'')
+          videoSrc: (m.type==='video'?m.data:''),
+          cat:(p.cat||'Outros'), preco:(m.preco!=null && m.preco!==''?parseFloat(m.preco):p.preco), nome:(m.nome||p.nome), esgotado:(!!m.esgotado || p.status==='esgotado')
         });
       }
       if(apareceNoCarrossel) carouselPos++;
@@ -2658,16 +2595,41 @@ function toggleVerFavoritos(){
 function renderInspClient(){
   var el = document.getElementById('inspGrid');
   if(!el) return;
+  var qEl = document.getElementById('searchInput');
+  var q = qEl ? qEl.value.trim().toLowerCase() : '';
+  var sEl = document.getElementById('sortSel');
+  var s = sEl ? sEl.value : 'custom';
+  renderCatChips();
+  var statEl = document.getElementById('statProds');
+  if(statEl) statEl.textContent = prods.filter(function(p){return p.status!=='escondido';}).length;
+
   var manual = inspiracoes.slice().map(function(it){
     return {origem:'manual', id:it.id, img:it.img, cod:(it.codProduto||it.cod), posy:it.posy, ordem:(it.order||0)};
   });
   var deProdutos = coletarInspiracoesDeProdutos();
-  // Ordem única: manuais e fotos de produtos ficam misturados, na posição que a Manu escolheu em "Ordem do Feed"
-  var lista = manual.concat(deProdutos).sort(function(a,b){return (a.ordem||0)-(b.ordem||0);});
+  // Filtra por categoria e busca (as manuais não têm categoria/nome pra comparar, então elas
+  // só aparecem quando nada disso está sendo usado — ver mais abaixo)
+  deProdutos = deProdutos.filter(function(it){
+    if(catAtual!=='todos' && (it.cat||'Outros')!==catAtual) return false;
+    if(q && (it.nome||'').toLowerCase().indexOf(q)<0) return false;
+    return true;
+  });
+  var semFiltroNenhum = (catAtual==='todos' && s==='custom' && !q);
+  var lista;
+  if(s==='az'){ deProdutos.sort(function(a,b){return (a.nome||'').localeCompare(b.nome||'');}); lista = deProdutos; }
+  else if(s==='pa'){ deProdutos.sort(function(a,b){return (a.preco||0)-(b.preco||0);}); lista = deProdutos; }
+  else if(s==='pd'){ deProdutos.sort(function(a,b){return (b.preco||0)-(a.preco||0);}); lista = deProdutos; }
+  else if(semFiltroNenhum){
+    // Ordem única (sem filtro nenhum): manuais e fotos de produtos ficam misturados, na posição
+    // que a Manu escolheu em "Ordem do Feed"
+    lista = manual.concat(deProdutos).sort(function(a,b){return (a.ordem||0)-(b.ordem||0);});
+  } else {
+    lista = deProdutos.sort(function(a,b){return (a.ordem||0)-(b.ordem||0);});
+  }
   var btnFav = document.getElementById('btnVerFavoritos');
   if(btnFav) btnFav.textContent = '🤍 Favoritos'+(favoritos.length?' ('+favoritos.length+')':'');
   if(verSoFavoritos) lista = lista.filter(function(it){ return it.cod && favoritos.indexOf(it.cod)>-1; });
-  if(!lista.length){ el.innerHTML='<div style="text-align:center;padding:40px;color:#888;grid-column:1/-1;">'+(verSoFavoritos?'Você ainda não favoritou nada — toque no 🤍 de uma foto pra guardar aqui':'Nenhuma inspiração por aqui ainda')+'</div>'; return; }
+  if(!lista.length){ el.innerHTML='<div style="text-align:center;padding:40px;color:#888;grid-column:1/-1;">'+(verSoFavoritos?'Você ainda não favoritou nada — toque no 🤍 de uma foto pra guardar aqui':'Nenhum produto encontrado')+'</div>'; return; }
   el.innerHTML = lista.map(function(it){
     var sel = modoSelecaoFeed && feedSelecionados.indexOf(it.cod)>-1;
     var clique;
@@ -2683,10 +2645,11 @@ function renderInspClient(){
     var playIcon = (it.ehVideo && !modoSelecaoFeed) ? '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;"><div style="width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.9rem;">▶</div></div>' : '';
     var checkSel = modoSelecaoFeed ? '<div style="position:absolute;top:6px;left:6px;width:24px;height:24px;border-radius:50%;border:2px solid '+(sel?'var(--brand)':'#fff')+';background:'+(sel?'var(--brand)':'rgba(0,0,0,0.25)')+';color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:900;z-index:2;">'+(sel?'✓':'')+'</div>' : '';
     var ehFav = it.cod && favoritos.indexOf(it.cod)>-1;
-    var coracao = (!modoSelecaoFeed && it.cod) ? '<div onclick="toggleFavorito(\''+it.cod.replace(/'/g,"\\'")+'\',event)" style="position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;font-size:0.95rem;z-index:2;">'+(ehFav?'❤️':'🤍')+'</div>' : '';
+    var coracao = (!modoSelecaoFeed && it.cod) ? '<div onclick="toggleFavorito(\''+it.cod.replace(/'/g,"\\'")+'\',event)" style="position:absolute;bottom:6px;right:6px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;font-size:1rem;z-index:4;">'+(ehFav?'❤️':'🤍')+'</div>' : '';
+    var esgOverlay = it.esgotado ? '<div class="cell-esg-overlay"><div class="cell-esg">ESGOTADO</div></div>' : '';
     return '<div class="feed-cell" onclick="'+clique+'">'+
       (it.img?'<img src="'+it.img+'" alt="" loading="lazy" style="object-fit:cover;object-position:center '+posySafe(it.posy)+'%;">':'<div class="cell-fallback"><span style="font-size:2.5rem">🌸</span></div>')+
-      playIcon+checkSel+coracao+
+      playIcon+checkSel+coracao+esgOverlay+
       '<div class="cell-overlay"></div>'+
       '<div class="cell-cod">#'+codDisplay(it.cod)+'</div>'+
       '</div>';
@@ -2741,7 +2704,7 @@ function coletarItensOrdemFeed(){
   });
   prods.forEach(function(p){
     if(p.status==='escondido') return;
-    if(p.mostrarInsp && p.img){
+    if(p.img){
       lista.push({origem:'capa', ordem:(p.ordemFeed||0), img:p.img, cod:p.cod||'', prodId:p.id});
     }
     (p.medias||[]).forEach(function(m, mi){
@@ -3187,7 +3150,6 @@ function renderExtraMediaGrid(){
   var capaImg = document.getElementById('imgData').value;
   var htmlCapa = '';
   if(capaImg){
-    var chkCapa = document.getElementById('pMostrarInsp');
     var ehContain = encaixeAtual !== 'cover';
     htmlCapa = '<div class="extra-media-item" style="display:flex;flex-direction:column;border-color:#f5c518;border-width:2px;">'+
       '<div class="aiord" style="flex-direction:row;justify-content:center;align-items:center;gap:8px;margin-bottom:6px;"><span style="font-size:0.82rem;font-weight:700;color:#c9970a;">⭐ Capa do produto</span></div>'+
@@ -3204,7 +3166,6 @@ function renderExtraMediaGrid(){
         '<label style="font-size:0.72rem;color:#888;display:block;margin:6px 0 2px;">🔍 Zoom</label>'+
         '<input type="range" min="50" max="400" value="'+zoomAtual+'" oninput="ajustarZoom(this.value);sincronizarCardCapa();" style="width:100%;height:18px;">'+
         '</div>')+
-      '<label style="display:flex;align-items:center;gap:6px;font-size:0.76rem;margin-top:10px;padding-top:10px;border-top:1px solid #eee;color:#8a5cf6;font-weight:600;"><input type="checkbox" '+(chkCapa&&chkCapa.checked?'checked':'')+' onchange="document.getElementById(\'pMostrarInsp\').checked=this.checked" style="width:16px;height:16px;">✨ Mostrar no Feed</label>'+
       '</div>';
   }
   el.innerHTML = htmlCapa + extraMedias.map(function(m,i){
@@ -3992,7 +3953,6 @@ applyPerfil();renderStories();renderHls();updateCart();
   }
   var bannerEl0 = document.getElementById('inspBanner'); if(bannerEl0) bannerEl0.innerHTML = msgBannerFeed;
   render();
-  renderInspClient();
   renderHls();
   applyPerfil();
   initSwipe();
