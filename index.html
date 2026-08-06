@@ -77,7 +77,6 @@ body{font-family:'Inter',sans-serif;background:#fafafa;color:#111;max-width:480p
 .feed-cell img{width:100%;height:100%;object-fit:cover;}
 .feed-cell .cell-overlay{position:absolute;inset:0;background:rgba(0,0,0,0);transition:background .15s;display:flex;align-items:center;justify-content:center;}
 .feed-cell:hover .cell-overlay{background:rgba(0,0,0,0.18);}
-.cell-esg{position:absolute;bottom:4px;left:4px;background:rgba(192,57,43,0.9);color:#fff;font-size:0.58rem;font-weight:700;padding:2px 6px;border-radius:20px;}
 .cell-cod{position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.55);color:#fff;font-size:0.58rem;font-weight:700;padding:2px 5px;border-radius:20px;z-index:3;}
 
 /* STORY VIEWER */
@@ -1783,11 +1782,20 @@ function renderAdmList(){
   if(!list.length){el.innerHTML='<p style="font-size:.79rem;color:#888">'+(termo?'Nenhum produto encontrado pra "'+termo+'".':'Nenhum produto.')+'</p>';return;}
   el.innerHTML=list.map(function(p,i){
     var st=p.status==='esgotado'?' 🔴':p.status==='escondido'?' 👁️':'';
-    return '<div class="ait"><div class="aiord"><button type="button" title="Jogar pro topo" onclick="moverProdutoParaTopo('+p.id+')" '+(i===0?'disabled':'')+' style="font-size:0.65rem;">⏫</button><button type="button" onclick="moverProdutoOrdem('+p.id+',-1)" '+(i===0?'disabled':'')+'>▲</button><button type="button" onclick="moverProdutoOrdem('+p.id+',1)" '+(i===list.length-1?'disabled':'')+'>▼</button></div><div class="aith">'+(p.img?'<img src="'+p.img+'" alt="">':'🌸')+'</div><div class="aiin"><div class="ainm">'+st+(p.cod?'#'+codDisplay(p.cod)+' ':'')+''+p.nome+'</div><div class="aisb">R$ '+p.preco.toFixed(2).replace('.',',')+' · '+(p.cat||'—')+'</div></div><div class="aiact"><button class="be" onclick="editProd('+p.id+')">Editar</button><button class="bd" onclick="delProd('+p.id+')">Apagar</button></div></div>';
+    return '<div class="ait"><div class="aiord"><button type="button" title="Jogar pro topo" onclick="moverProdutoParaTopo('+p.id+')" '+(i===0?'disabled':'')+' style="font-size:0.65rem;">⏫</button><button type="button" onclick="moverProdutoOrdem('+p.id+',-1)" '+(i===0?'disabled':'')+'>▲</button><button type="button" onclick="moverProdutoOrdem('+p.id+',1)" '+(i===list.length-1?'disabled':'')+'>▼</button></div><div class="aith">'+(p.img?'<img src="'+p.img+'" alt="">':'🌸')+'</div><div class="aiin"><div class="ainm">'+st+(p.cod?'#'+codDisplay(p.cod)+' ':'')+''+p.nome+'</div><div class="aisb">R$ '+p.preco.toFixed(2).replace('.',',')+' · '+(p.cat||'—')+'</div></div><div class="aiact"><button class="be" onclick="toggleEsconderProduto('+p.id+')" title="'+(p.status==='escondido'?'Mostrar de novo':'Esconder sem precisar editar')+'" style="padding:6px 8px;">'+(p.status==='escondido'?'👁️':'🙈')+'</button><button class="be" onclick="editProd('+p.id+')">Editar</button><button class="bd" onclick="delProd('+p.id+')">Apagar</button></div></div>';
   }).join('');
 }
 // Sobe/desce um produto na lista trocando a posição com o vizinho — funciona em qualquer aparelho,
 // diferente do arrastar (que só funciona com mouse, não em toque de celular)
+// Esconde ou mostra de volta um produto direto pela lista, sem precisar abrir Editar toda vez
+function toggleEsconderProduto(id){
+  var p = prods.find(function(x){return x.id===id;});
+  if(!p) return;
+  p.status = (p.status==='escondido') ? 'ativo' : 'escondido';
+  try{ localStorage.setItem('manu_p', JSON.stringify(prods)); }catch(e){}
+  sbUpsertProduto(p).catch(function(e){console.error('Erro Supabase:',e);});
+  renderAdmList(); render();
+}
 function moverProdutoOrdem(id, dir){
   var list=[].concat(prods).sort(function(a,b){return(a.order||0)-(b.order||0);});
   var i=list.findIndex(function(p){return p.id===id;});
@@ -2550,18 +2558,18 @@ function coletarInspiracoesDeProdutos(){
     // A capa sempre aparece — ela é a listagem principal do produto agora que não existe mais uma
     // aba "Produtos" separada. "Mostrar no Feed" continua controlando só as fotos EXTRAS opcionais.
     if(p.img){
-      lista.push({origem:'produto', prodId:p.id, img:p.img, cod:p.cod||'', posy:(p.posy!=null?p.posy:50), carouselIdx:0, ordem:(p.ordemFeed||0), oculta:false, legenda:'', cat:(p.cat||'Outros'), preco:p.preco, nome:p.nome, esgotado:(p.status==='esgotado')});
+      lista.push({origem:'produto', prodId:p.id, img:p.img, cod:p.cod||'', chave:'capa_'+p.id, posy:(p.posy!=null?p.posy:50), carouselIdx:0, ordem:(p.ordemFeed||0), oculta:false, legenda:'', cat:(p.cat||'Outros'), preco:p.preco, nome:p.nome, esgotado:(p.status==='esgotado')});
     }
     // carouselPos acompanha a posição real no carrossel do produto (posição 0 é sempre a capa);
     // fotos ocultadas do produto (ocultarNoProduto) não existem lá, então não contam posição
     var carouselPos = 1;
-    (p.medias||[]).forEach(function(m){
+    (p.medias||[]).forEach(function(m, mi){
       if(!m) return;
       var apareceNoCarrossel = !m.ocultarNoProduto;
       var elegivel = m.mostrarInsp && m.tipo!=='ref' && ((m.type!=='video' && m.data) || (m.type==='video' && m.poster));
       if(elegivel){
         lista.push({
-          origem:'produto', prodId:p.id, img:(m.type==='video'?m.poster:m.data), ehVideo:(m.type==='video'), cod:(m.cod||p.cod||''), posy:(m.posy!=null?m.posy:50),
+          origem:'produto', prodId:p.id, img:(m.type==='video'?m.poster:m.data), ehVideo:(m.type==='video'), cod:(m.cod||p.cod||''), chave:'media_'+p.id+'_'+mi, posy:(m.posy!=null?m.posy:50),
           carouselIdx: apareceNoCarrossel ? carouselPos : 0, // se não existe no carrossel, abre na capa
           ordem:(m.ordemFeed||0),
           oculta: !apareceNoCarrossel, // marcada "só no Feed" — não dá pra pular pra ela dentro do produto, precisa de um jeito próprio de ver grande
@@ -2604,7 +2612,7 @@ function renderInspClient(){
   if(statEl) statEl.textContent = prods.filter(function(p){return p.status!=='escondido';}).length;
 
   var manual = inspiracoes.slice().map(function(it){
-    return {origem:'manual', id:it.id, img:it.img, cod:(it.codProduto||it.cod), posy:it.posy, ordem:(it.order||0)};
+    return {origem:'manual', id:it.id, img:it.img, cod:(it.codProduto||it.cod), chave:'manual_'+it.id, posy:it.posy, ordem:(it.order||0)};
   });
   var deProdutos = coletarInspiracoesDeProdutos();
   // Filtra por categoria e busca (as manuais não têm categoria/nome pra comparar, então elas
@@ -2628,8 +2636,8 @@ function renderInspClient(){
   }
   var btnFav = document.getElementById('btnVerFavoritos');
   if(btnFav) btnFav.textContent = '🤍 Favoritos'+(favoritos.length?' ('+favoritos.length+')':'');
-  if(verSoFavoritos) lista = lista.filter(function(it){ return it.cod && favoritos.indexOf(it.cod)>-1; });
-  if(!lista.length){ el.innerHTML='<div style="text-align:center;padding:40px;color:#888;grid-column:1/-1;">'+(verSoFavoritos?'Você ainda não favoritou nada — toque no 🤍 de uma foto pra guardar aqui':'Nenhum produto encontrado')+'</div>'; return; }
+  if(verSoFavoritos) lista = lista.filter(function(it){ return it.chave && favoritos.indexOf(it.chave)>-1; });
+  if(!lista.length){ el.innerHTML= verSoFavoritos ? '' : '<div style="text-align:center;padding:40px;color:#888;grid-column:1/-1;">Nenhum produto encontrado</div>'; return; }
   el.innerHTML = lista.map(function(it){
     var sel = modoSelecaoFeed && feedSelecionados.indexOf(it.cod)>-1;
     var clique;
@@ -2644,8 +2652,8 @@ function renderInspClient(){
     }
     var playIcon = (it.ehVideo && !modoSelecaoFeed) ? '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;"><div style="width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.9rem;">▶</div></div>' : '';
     var checkSel = modoSelecaoFeed ? '<div style="position:absolute;top:6px;left:6px;width:24px;height:24px;border-radius:50%;border:2px solid '+(sel?'var(--brand)':'#fff')+';background:'+(sel?'var(--brand)':'rgba(0,0,0,0.25)')+';color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:900;z-index:2;">'+(sel?'✓':'')+'</div>' : '';
-    var ehFav = it.cod && favoritos.indexOf(it.cod)>-1;
-    var coracao = (!modoSelecaoFeed && it.cod) ? '<div onclick="toggleFavorito(\''+it.cod.replace(/'/g,"\\'")+'\',event)" style="position:absolute;bottom:6px;right:6px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;font-size:1rem;z-index:4;">'+(ehFav?'❤️':'🤍')+'</div>' : '';
+    var ehFav = it.chave && favoritos.indexOf(it.chave)>-1;
+    var coracao = (!modoSelecaoFeed && it.chave) ? '<div onclick="toggleFavorito(\''+it.chave.replace(/'/g,"\\'")+'\',event)" style="position:absolute;bottom:6px;right:6px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;font-size:1rem;z-index:4;">'+(ehFav?'❤️':'🤍')+'</div>' : '';
     var esgOverlay = it.esgotado ? '<div class="cell-esg-overlay"><div class="cell-esg">ESGOTADO</div></div>' : '';
     return '<div class="feed-cell" onclick="'+clique+'">'+
       (it.img?'<img src="'+it.img+'" alt="" loading="lazy" style="object-fit:cover;object-position:center '+posySafe(it.posy)+'%;">':'<div class="cell-fallback"><span style="font-size:2.5rem">🌸</span></div>')+
@@ -2796,8 +2804,8 @@ function clearSt(){editStId=null;document.getElementById('stTitulo').value='';do
 var perfil = ld('manu_perfil', {
   nome: 'Confeitos da Manu',
   bio: '💝 Tornamos seus momentos mais doces\n✨ 1ª loja de buquês de chocolate Lages-SC 📍\n🍫 Buquês | Presentes | Cestas\nFaça sua encomenda abaixo 👇',
-  link: 'https://wa.me/5549998058794',
-  linkTxt: 'wa.me/5549998058794',
+  link: '',
+  linkTxt: '',
   img: ''
 });
 
