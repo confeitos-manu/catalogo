@@ -2685,11 +2685,13 @@ function renderInspClient(){
   if(verSoFavoritos) lista = lista.filter(function(it){ return it.chave && favoritos.indexOf(it.chave)>-1; });
   var bannerEl = document.getElementById('inspBanner');
   if(bannerEl){
-    if(verSoFavoritos && favoritos.length){
-      bannerEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">'+
+    if(verSoFavoritos){
+      bannerEl.innerHTML = favoritos.length ? (
+        '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">'+
         '<span>💕 Gostou desses? Manda pra gente que a gente te ajuda a escolher!</span>'+
         '<button onclick="enviarFavoritosCliente()" style="flex-shrink:0;background:var(--brand);color:#fff;border:none;padding:8px 14px;border-radius:20px;font-size:0.8rem;font-weight:700;cursor:pointer;white-space:nowrap;">📤 Mandar no WhatsApp</button>'+
-        '</div>';
+        '</div>'
+      ) : '';
     } else {
       bannerEl.innerHTML = msgBannerFeed;
     }
