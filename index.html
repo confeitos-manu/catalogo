@@ -54,10 +54,10 @@ body{font-family:'Inter',sans-serif;background:#fafafa;color:#111;max-width:480p
 .feed-tab.active{background:var(--brand);color:#fff;box-shadow:0 2px 8px rgba(122,35,49,.3);}
 
 /* SEARCH/FILTER */
-.feed-toolbar{background:#fff;padding:8px 12px;display:flex;gap:8px;border-bottom:1px solid #eee;}
-.feed-search{flex:1;padding:7px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.83rem;font-family:'Inter',sans-serif;outline:none;background:#fafafa;}
-.feed-sort{padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:0.8rem;font-family:'Inter',sans-serif;background:#fafafa;outline:none;}
-.feed-selbtn{padding:7px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.78rem;font-weight:600;font-family:'Inter',sans-serif;background:#fafafa;color:#555;cursor:pointer;white-space:nowrap;}
+.feed-toolbar{background:#fff;padding:8px 12px;display:flex;flex-wrap:wrap;gap:8px;border-bottom:1px solid #eee;}
+.feed-search{flex:1;min-width:120px;padding:7px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.83rem;font-family:'Inter',sans-serif;outline:none;background:#fafafa;}
+.feed-sort{flex-shrink:0;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:0.8rem;font-family:'Inter',sans-serif;background:#fafafa;outline:none;}
+.feed-selbtn{flex-shrink:0;padding:7px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.78rem;font-weight:600;font-family:'Inter',sans-serif;background:#fafafa;color:#555;cursor:pointer;white-space:nowrap;}
 .feed-selbtn.active{background:var(--brand);color:#fff;border-color:var(--brand);}
 .sel-check{position:absolute;top:5px;left:5px;width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,0.9);border:2px solid #bbb;z-index:3;display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:900;color:transparent;}
 .sel-check.on{background:#111;border-color:#111;color:#fff;}
@@ -1731,6 +1731,7 @@ async function doLogin(){
     renderStories();
     var selBtnEl = document.getElementById('selBtnFeed');
     if(selBtnEl) selBtnEl.style.display='inline-block'; // "Selecionar" (enviar seleção pro cliente) é só pra você, depois de logar
+    carregarFavoritosContagem();
   } else {
     ADMIN_SESSION_PW = null;
     document.getElementById('errLogin').style.display='block';
@@ -1782,7 +1783,7 @@ function renderAdmList(){
   if(!list.length){el.innerHTML='<p style="font-size:.79rem;color:#888">'+(termo?'Nenhum produto encontrado pra "'+termo+'".':'Nenhum produto.')+'</p>';return;}
   el.innerHTML=list.map(function(p,i){
     var st=p.status==='esgotado'?' 🔴':p.status==='escondido'?' 👁️':'';
-    return '<div class="ait"><div class="aiord"><button type="button" title="Jogar pro topo" onclick="moverProdutoParaTopo('+p.id+')" '+(i===0?'disabled':'')+' style="font-size:0.65rem;">⏫</button><button type="button" onclick="moverProdutoOrdem('+p.id+',-1)" '+(i===0?'disabled':'')+'>▲</button><button type="button" onclick="moverProdutoOrdem('+p.id+',1)" '+(i===list.length-1?'disabled':'')+'>▼</button></div><div class="aith">'+(p.img?'<img src="'+p.img+'" alt="">':'🌸')+'</div><div class="aiin"><div class="ainm">'+st+(p.cod?'#'+codDisplay(p.cod)+' ':'')+''+p.nome+'</div><div class="aisb">R$ '+p.preco.toFixed(2).replace('.',',')+' · '+(p.cat||'—')+'</div></div><div class="aiact"><button class="be" onclick="toggleEsconderProduto('+p.id+')" title="'+(p.status==='escondido'?'Mostrar de novo':'Esconder sem precisar editar')+'" style="padding:6px 8px;">'+(p.status==='escondido'?'👁️':'🙈')+'</button><button class="be" onclick="editProd('+p.id+')">Editar</button><button class="bd" onclick="delProd('+p.id+')">Apagar</button></div></div>';
+    return '<div class="ait"><div class="aiord"><button type="button" title="Jogar pro topo" onclick="moverProdutoParaTopo('+p.id+')" '+(i===0?'disabled':'')+' style="font-size:0.65rem;">⏫</button><button type="button" onclick="moverProdutoOrdem('+p.id+',-1)" '+(i===0?'disabled':'')+'>▲</button><button type="button" onclick="moverProdutoOrdem('+p.id+',1)" '+(i===list.length-1?'disabled':'')+'>▼</button></div><div class="aith">'+(p.img?'<img src="'+p.img+'" alt="">':'🌸')+'</div><div class="aiin"><div class="ainm">'+st+(p.cod?'#'+codDisplay(p.cod)+' ':'')+''+p.nome+(favoritosContagem[p.cod]?' <span style="color:#c0392b;font-weight:600;">❤️ '+favoritosContagem[p.cod]+'</span>':'')+'</div><div class="aisb">R$ '+p.preco.toFixed(2).replace('.',',')+' · '+(p.cat||'—')+'</div></div><div class="aiact"><button class="be" onclick="toggleEsconderProduto('+p.id+')" title="'+(p.status==='escondido'?'Mostrar de novo':'Esconder sem precisar editar')+'" style="padding:6px 8px;">'+(p.status==='escondido'?'👁️':'🙈')+'</button><button class="be" onclick="editProd('+p.id+')">Editar</button><button class="bd" onclick="delProd('+p.id+')">Apagar</button></div></div>';
   }).join('');
 }
 // Sobe/desce um produto na lista trocando a posição com o vizinho — funciona em qualquer aparelho,
@@ -2558,7 +2559,7 @@ function coletarInspiracoesDeProdutos(){
     // A capa sempre aparece — ela é a listagem principal do produto agora que não existe mais uma
     // aba "Produtos" separada. "Mostrar no Feed" continua controlando só as fotos EXTRAS opcionais.
     if(p.img){
-      lista.push({origem:'produto', prodId:p.id, img:p.img, cod:p.cod||'', chave:'capa_'+p.id, posy:(p.posy!=null?p.posy:50), carouselIdx:0, ordem:(p.ordemFeed||0), oculta:false, legenda:'', cat:(p.cat||'Outros'), preco:p.preco, nome:p.nome, esgotado:(p.status==='esgotado')});
+      lista.push({origem:'produto', prodId:p.id, img:p.img, cod:p.cod||'', codBase:p.cod||'', chave:'capa_'+p.id, posy:(p.posy!=null?p.posy:50), carouselIdx:0, ordem:(p.ordemFeed||0), oculta:false, legenda:'', cat:(p.cat||'Outros'), preco:p.preco, nome:p.nome, esgotado:(p.status==='esgotado')});
     }
     // carouselPos acompanha a posição real no carrossel do produto (posição 0 é sempre a capa);
     // fotos ocultadas do produto (ocultarNoProduto) não existem lá, então não contam posição
@@ -2569,7 +2570,7 @@ function coletarInspiracoesDeProdutos(){
       var elegivel = m.mostrarInsp && m.tipo!=='ref' && ((m.type!=='video' && m.data) || (m.type==='video' && m.poster));
       if(elegivel){
         lista.push({
-          origem:'produto', prodId:p.id, img:(m.type==='video'?m.poster:m.data), ehVideo:(m.type==='video'), cod:(m.cod||p.cod||''), chave:'media_'+p.id+'_'+mi, posy:(m.posy!=null?m.posy:50),
+          origem:'produto', prodId:p.id, img:(m.type==='video'?m.poster:m.data), ehVideo:(m.type==='video'), cod:(m.cod||p.cod||''), codBase:(p.cod||''), chave:'media_'+p.id+'_'+mi, posy:(m.posy!=null?m.posy:50),
           carouselIdx: apareceNoCarrossel ? carouselPos : 0, // se não existe no carrossel, abre na capa
           ordem:(m.ordemFeed||0),
           oculta: !apareceNoCarrossel, // marcada "só no Feed" — não dá pra pular pra ela dentro do produto, precisa de um jeito próprio de ver grande
@@ -2586,13 +2587,58 @@ function coletarInspiracoesDeProdutos(){
 
 var favoritos = ldTxt('cliente_favoritos', []);
 var verSoFavoritos = false;
-function toggleFavorito(cod, ev){
+function toggleFavorito(chave, ev, cod){
   if(ev){ ev.stopPropagation(); ev.preventDefault(); } // não abre a foto/produto ao tocar no coraçãozinho
-  if(!cod) return;
-  var idx = favoritos.indexOf(cod);
-  if(idx>-1) favoritos.splice(idx,1); else favoritos.push(cod);
+  if(!chave) return;
+  var idx = favoritos.indexOf(chave);
+  var delta;
+  if(idx>-1){ favoritos.splice(idx,1); delta=-1; } else { favoritos.push(chave); delta=1; }
   sv('cliente_favoritos', favoritos);
   renderInspClient();
+  // Contagem total de favoritos por produto (sem guardar quem foi) — usa o código real do produto,
+  // não a chave da foto específica, senão a mesma foto vinda de duas variações contaria separado
+  if(!cod) return;
+  fetch(SB_URL+'/rest/v1/rpc/incrementar_favorito', {
+    method:'POST',
+    headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY},
+    body: JSON.stringify({codigo:cod, delta:delta})
+  }).catch(function(){});
+}
+var favoritosContagem = {}; // cod -> número de favoritos, carregado sob demanda no admin
+async function carregarFavoritosContagem(){
+  try{
+    var rows = await sbFetch('/rest/v1/favoritos_contagem?select=cod,contagem&limit=2000');
+    favoritosContagem = {};
+    (rows||[]).forEach(function(r){ favoritosContagem[r.cod] = r.contagem; });
+    renderAdmList();
+  }catch(e){ console.error('Erro ao carregar contagem de favoritos:', e); }
+}
+// Acha as informações (código real, nome, preço) de uma foto favoritada a partir da chave dela —
+// a chave identifica a foto exata (capa, uma foto extra específica, ou uma inspiração manual),
+// então primeiro reconstrói a mesma lista que a vitrine usa e procura ali
+function infoDaChave(chave){
+  var manual = inspiracoes.slice().map(function(it){
+    return {chave:'manual_'+it.id, cod:(it.codProduto||it.cod), nome:(it.desc||'Inspiração'), preco:null};
+  });
+  var deProdutos = coletarInspiracoesDeProdutos();
+  var todos = manual.concat(deProdutos);
+  return todos.find(function(it){ return it.chave===chave; });
+}
+// Deixa a própria pessoa mandar os favoritos dela pra Manu pelo WhatsApp, direto da telinha de
+// Favoritos — assim o interesse não se perde se ela sair do site sem falar com a gente
+function enviarFavoritosCliente(){
+  if(!favoritos.length) return;
+  var msg = 'Oi! Separei esses favoritos e queria saber mais sobre eles:\n\n';
+  var n = 0;
+  favoritos.forEach(function(chave){
+    var it = infoDaChave(chave);
+    if(!it || !it.cod) return; // se não achar mais (produto apagado etc), pula sem quebrar o resto
+    n++;
+    msg += n+'. *'+(it.nome||'Confira esse modelo')+'*\n';
+    msg += produtoLink(it.cod) + '\n\n';
+  });
+  if(!n){ toast('Não encontrei mais esses favoritos — algum produto pode ter sido removido.'); return; }
+  window.open('https://wa.me/'+WA+'?text='+encodeURIComponent(msg), '_blank');
 }
 function toggleVerFavoritos(){
   verSoFavoritos = !verSoFavoritos;
@@ -2637,6 +2683,17 @@ function renderInspClient(){
   var btnFav = document.getElementById('btnVerFavoritos');
   if(btnFav) btnFav.textContent = '🤍 Favoritos'+(favoritos.length?' ('+favoritos.length+')':'');
   if(verSoFavoritos) lista = lista.filter(function(it){ return it.chave && favoritos.indexOf(it.chave)>-1; });
+  var bannerEl = document.getElementById('inspBanner');
+  if(bannerEl){
+    if(verSoFavoritos && favoritos.length){
+      bannerEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">'+
+        '<span>💕 Gostou desses? Manda pra gente que a gente te ajuda a escolher!</span>'+
+        '<button onclick="enviarFavoritosCliente()" style="flex-shrink:0;background:var(--brand);color:#fff;border:none;padding:8px 14px;border-radius:20px;font-size:0.8rem;font-weight:700;cursor:pointer;white-space:nowrap;">📤 Mandar no WhatsApp</button>'+
+        '</div>';
+    } else {
+      bannerEl.innerHTML = msgBannerFeed;
+    }
+  }
   if(!lista.length){ el.innerHTML= verSoFavoritos ? '' : '<div style="text-align:center;padding:40px;color:#888;grid-column:1/-1;">Nenhum produto encontrado</div>'; return; }
   el.innerHTML = lista.map(function(it){
     var sel = modoSelecaoFeed && feedSelecionados.indexOf(it.cod)>-1;
@@ -2653,7 +2710,7 @@ function renderInspClient(){
     var playIcon = (it.ehVideo && !modoSelecaoFeed) ? '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;"><div style="width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.9rem;">▶</div></div>' : '';
     var checkSel = modoSelecaoFeed ? '<div style="position:absolute;top:6px;left:6px;width:24px;height:24px;border-radius:50%;border:2px solid '+(sel?'var(--brand)':'#fff')+';background:'+(sel?'var(--brand)':'rgba(0,0,0,0.25)')+';color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:900;z-index:2;">'+(sel?'✓':'')+'</div>' : '';
     var ehFav = it.chave && favoritos.indexOf(it.chave)>-1;
-    var coracao = (!modoSelecaoFeed && it.chave) ? '<div onclick="toggleFavorito(\''+it.chave.replace(/'/g,"\\'")+'\',event)" style="position:absolute;bottom:6px;right:6px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;font-size:1rem;z-index:4;">'+(ehFav?'❤️':'🤍')+'</div>' : '';
+    var coracao = (!modoSelecaoFeed && it.chave) ? '<div onclick="toggleFavorito(\''+it.chave.replace(/'/g,"\\'")+'\',event,\''+(it.codBase||it.cod||'').replace(/'/g,"\\'")+'\')" style="position:absolute;bottom:6px;right:6px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;font-size:1rem;z-index:4;">'+(ehFav?'❤️':'🤍')+'</div>' : '';
     var esgOverlay = it.esgotado ? '<div class="cell-esg-overlay"><div class="cell-esg">ESGOTADO</div></div>' : '';
     return '<div class="feed-cell" onclick="'+clique+'">'+
       (it.img?'<img src="'+it.img+'" alt="" loading="lazy" style="object-fit:cover;object-position:center '+posySafe(it.posy)+'%;">':'<div class="cell-fallback"><span style="font-size:2.5rem">🌸</span></div>')+
