@@ -32,7 +32,8 @@ module.exports = async (req, res) => {
     console.error('Erro ao buscar produtos pro feed da Meta:', err);
   }
 
-  var itens = (produtos || [])
+  var brutos = produtos || [];
+  var itens = brutos
     // só entra no feed quem tem o mínimo pra ser vendável: código, nome, foto de verdade (não vazia/base64) e preço
     .filter(function (p) { return p && p.cod && p.nome && p.img && p.img.indexOf('http') === 0 && p.preco; })
     .map(function (p) {
@@ -55,7 +56,26 @@ module.exports = async (req, res) => {
         '  </item>';
     }).join('\n');
 
+  // ===== TERMÔMETRO TEMPORÁRIO — mostra, produto por produto, o que faltou pra entrar no feed.
+  // É só um comentário dentro do XML (a Meta ignora completamente), pra gente descobrir o problema
+  // olhando o arquivo. Depois que resolver, é só me pedir "tira o termômetro" que eu removo isso.
+  var diag = '<!-- TERMÔMETRO: ' + brutos.length + ' produto(s) vieram do Supabase, ' +
+    brutos.filter(function (p) { return p && p.cod && p.nome && p.img && p.img.indexOf('http') === 0 && p.preco; }).length +
+    ' passaram no filtro.\n' +
+    brutos.map(function (p) {
+      if (!p) return ' - (linha vazia)';
+      var faltando = [];
+      if (!p.cod) faltando.push('cod');
+      if (!p.nome) faltando.push('nome');
+      if (!p.img) faltando.push('img (vazio)');
+      else if (p.img.indexOf('http') !== 0) faltando.push('img (não começa com http: "' + String(p.img).slice(0, 30) + '...")');
+      if (!p.preco) faltando.push('preco (vazio ou zero)');
+      return ' - ' + (p.cod || '(sem cod)') + ' "' + (p.nome || '(sem nome)') + '": ' + (faltando.length ? 'FALTOU ' + faltando.join(', ') : 'OK, deveria estar no feed');
+    }).join('\n') +
+    '\n-->';
+
   var xml = '<?xml version="1.0" encoding="utf-8"?>\n' +
+    diag + '\n' +
     '<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">\n' +
     '<channel>\n' +
     '  <title>Confeitos da Manu</title>\n' +
